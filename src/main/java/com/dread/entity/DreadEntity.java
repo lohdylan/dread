@@ -4,7 +4,9 @@ import com.dread.DreadMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,7 +14,10 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.LocalDifficulty;
+import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.*;
@@ -33,11 +38,13 @@ import java.util.List;
  */
 public class DreadEntity extends PathAwareEntity implements GeoEntity {
     private static final String NBT_FORM_VARIANT = "FormVariant";
+    private static final String NBT_SPAWN_ANIM_PLAYED = "SpawnAnimPlayed";
     private static final int EXTINGUISH_RANGE = 8;
     private static final int EXTINGUISH_COOLDOWN_TICKS = 20; // One torch per second
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private int currentFormVariant = 0;
+    private DreadFormVariant formVariant = DreadFormVariant.BASE;
+    private boolean hasPlayedSpawnAnimation = false;
     private int extinguishCooldown = 0;
     private List<BlockPos> pendingExtinguish = new ArrayList<>();
 
@@ -56,6 +63,22 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
 
         // Target players
         this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+    }
+
+    @Override
+    public EntityData initialize(
+        ServerWorldAccess world,
+        LocalDifficulty difficulty,
+        SpawnReason spawnReason,
+        @Nullable EntityData entityData
+    ) {
+        // Select form variant based on world day
+        long worldDay = world.toServerWorld().getTimeOfDay() / 24000L;
+        this.formVariant = DreadFormVariant.fromWorldDay(worldDay);
+
+        DreadMod.LOGGER.debug("Dread spawned on day {} with variant {}", worldDay, formVariant);
+
+        return super.initialize(world, difficulty, spawnReason, entityData);
     }
 
     @Override
@@ -133,19 +156,34 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
-    }
+        // Main movement controller
+        controllers.add(new AnimationController<>(this, "main", 5, state -> {
+            if (this.isDead()) {
+                return state.setAndContinue(RawAnimation.begin().thenPlay("despawn"));
+            }
 
-    /**
-     * Animation predicate - determines which animation to play based on entity state.
-     */
-    private PlayState predicate(AnimationState<DreadEntity> state) {
-        if (state.isMoving()) {
-            state.getController().setAnimation(RawAnimation.begin().then("walk", Animation.LoopType.LOOP));
-        } else {
-            state.getController().setAnimation(RawAnimation.begin().then("idle", Animation.LoopType.LOOP));
-        }
-        return PlayState.CONTINUE;
+            if (!hasPlayedSpawnAnimation) {
+                hasPlayedSpawnAnimation = true;
+                return state.setAndContinue(RawAnimation.begin()
+                    .thenPlay("spawn")
+                    .thenLoop("idle"));
+            }
+
+            if (this.isAttacking()) {
+                return state.setAndContinue(RawAnimation.begin().thenPlay("attack"));
+            }
+
+            if (state.isMoving()) {
+                return state.setAndContinue(RawAnimation.begin().thenLoop("walk"));
+            }
+
+            return state.setAndContinue(RawAnimation.begin().thenLoop("idle"));
+        }));
+
+        // Separate head tracking controller (concurrent)
+        controllers.add(new AnimationController<>(this, "head", 0, state -> {
+            return state.setAndContinue(RawAnimation.begin().thenLoop("head_track"));
+        }));
     }
 
     @Override
@@ -158,17 +196,24 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
     // ========================
 
     /**
-     * Get the current form variant (0-2).
+     * Get the current form variant texture index (0-2).
      */
     public int getFormVariant() {
-        return this.currentFormVariant;
+        return this.formVariant.getTextureIndex();
+    }
+
+    /**
+     * Get the form variant enum.
+     */
+    public DreadFormVariant getFormVariantEnum() {
+        return this.formVariant;
     }
 
     /**
      * Set the form variant (0-2).
      */
     public void setFormVariant(int variant) {
-        this.currentFormVariant = Math.max(0, Math.min(2, variant));
+        this.formVariant = DreadFormVariant.fromIndex(variant);
     }
 
     // ========================
@@ -178,13 +223,15 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
     @Override
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
-        nbt.putInt(NBT_FORM_VARIANT, this.currentFormVariant);
+        nbt.putInt(NBT_FORM_VARIANT, this.formVariant.getTextureIndex());
+        nbt.putBoolean(NBT_SPAWN_ANIM_PLAYED, this.hasPlayedSpawnAnimation);
     }
 
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
-        this.currentFormVariant = nbt.getInt(NBT_FORM_VARIANT);
+        this.formVariant = DreadFormVariant.fromIndex(nbt.getInt(NBT_FORM_VARIANT));
+        this.hasPlayedSpawnAnimation = nbt.getBoolean(NBT_SPAWN_ANIM_PLAYED);
     }
 
     // ========================
