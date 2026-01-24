@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 1 of 4 (Foundation & Entity)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 01-01-PLAN.md
+Last activity: 2026-01-24 — Completed 01-02-PLAN.md
 
-Progress: [█░░░░░░░░░] 6.25%
+Progress: [██░░░░░░░░] 12.5%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 14.5 min
-- Total execution time: 0.24 hours
+- Total plans completed: 2
+- Average duration: 10.6 min
+- Total execution time: 0.61 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation-entity | 1/4 | 14.5 min | 14.5 min |
+| 01-foundation-entity | 2/4 | 21.1 min | 10.6 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (14.5 min)
-- Trend: Just started
+- Last 5 plans: 01-01 (14.5 min), 01-02 (6.6 min)
+- Trend: Improving velocity
 
 *Updated after each plan completion*
 
@@ -62,11 +62,21 @@ Recent decisions affecting current work:
 - Gradle 8.13: Required for Java 21+ support
 - DuplicatesStrategy.EXCLUDE: Handle multiple fabric.mod.json files in split source sets
 
+**Plan 01-02:**
+- Placeholder texture generation: Created Node.js PNG encoder to generate functional 128x128 textures (can be replaced with art assets)
+- JDK 21 portable download: Downloaded and configured portable JDK 21.0.6 for compilation (requires JAVA_HOME export)
+- AutoGlowingGeoLayer: GeckoLib's automatic glowmask detection handles emissive rendering without additional code
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
+
+**Phase 1 Execution:**
+- Build requires `export JAVA_HOME="X:/Vibe Coding/jdk-21.0.6+7"` before Gradle commands (portable JDK)
+- Placeholder textures are functional but basic - need proper art assets for final release
+- AutoGlowingGeoLayer intensity may need adjustment after visual testing in 01-04
 
 **Phase 2 Planning:**
 - Turn-around jump scare mechanics require FOV calculations and precise positioning — research suggests complexity
@@ -81,10 +91,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24 05:42:23
-Stopped at: Completed 01-01-PLAN.md (Foundation & Entity Registration)
+Last session: 2026-01-24 05:53:03
+Stopped at: Completed 01-02-PLAN.md (GeckoLib Model & Renderer)
 Resume file: None
-Next: 01-02-PLAN.md (GeckoLib Model & Renderer)
+Next: 01-03-PLAN.md (Entity Behaviors)
 
 ## Phase 1 Wave Structure
 
