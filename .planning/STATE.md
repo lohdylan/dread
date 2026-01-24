@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 2 of 4 (AI & Horror Experience)
-Plan: 2 of 6 in current phase
+Plan: 3 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 02-02-PLAN.md
+Last activity: 2026-01-24 — Completed 02-03-PLAN.md
 
-Progress: [███░░░░░░░] 35%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 6.8 min
-- Total execution time: 0.82 hours
+- Total plans completed: 7
+- Average duration: 6.4 min
+- Total execution time: 0.90 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
-| 02-ai-horror-experience | 2/6 | 7.3 min | 3.7 min |
+| 02-ai-horror-experience | 3/6 | 11.8 min | 3.9 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (4 min), 01-04 (checkpoint), 02-01 (3.1 min), 02-02 (4.2 min)
-- Trend: Consistent fast execution (~3-4 min per plan)
+- Last 5 plans: 01-04 (checkpoint), 02-01 (3.1 min), 02-02 (4.2 min), 02-03 (4.5 min)
+- Trend: Consistent fast execution (~4 min per plan)
 
 *Updated after each plan completion*
 
@@ -52,6 +52,9 @@ Recent decisions affecting current work:
 - Day escalation capped at day 20: Prevents infinite scaling, 11x multiplier max (Implemented - Phase 2)
 - Mining bonus +0.1% per block: Makes mining risky, resets after spawn (Implemented - Phase 2)
 - 3:1 fake-out to real spawn ratio: Maintains psychological horror unpredictability (Implemented - Phase 2)
+- AI goal priorities: VanishGoal (1) > StareStandoffGoal (2) ensures vanishing overrides freeze (Implemented - Phase 2)
+- Stare timeout 600 ticks: 30 seconds creates tension without tedium (Implemented - Phase 2)
+- Spawn distance 3-8 blocks: Close enough for scare, far enough to avoid screen edge visibility (Implemented - Phase 2)
 - 300 second revive window: Long enough for friends to reach, short enough for tension (Pending - Phase 3)
 - Spectator mode for perm death: Player can still watch friends, stays in session (Pending - Phase 3)
 
@@ -97,10 +100,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24 07:14 UTC
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-01-24 07:23 UTC
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
-Next: Execute 02-03-PLAN.md (Spawn triggering and entity placement)
+Next: Execute 02-04-PLAN.md (Turn-around jump scare mechanics)
 
 ## Phase 1 Results
 
@@ -117,7 +120,7 @@ Next: Execute 02-03-PLAN.md (Spawn triggering and entity placement)
 |------|------|-----------|--------|
 | 1 | 02-01 | Sound event registration and placeholder audio | ✓ Complete |
 | 1 | 02-02 | Spawn probability system with persistent tracking | ✓ Complete |
-| 2 | 02-03 | Spawn triggering and entity placement | Pending |
+| 2 | 02-03 | Spawn triggering and entity placement | ✓ Complete |
 | 2 | 02-04 | Turn-around jump scare mechanics | Pending |
 | 3 | 02-05 | Dynamic audio system | Pending |
 | 4 | 02-06 | Horror experience validation | Pending |
