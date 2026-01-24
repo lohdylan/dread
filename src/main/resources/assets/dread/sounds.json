@@ -1,0 +1,19 @@
+{
+  "dread_ambient": {
+    "sounds": [
+      {
+        "name": "dread:dread_ambient",
+        "stream": true
+      }
+    ]
+  },
+  "dread_jumpscare": {
+    "sounds": ["dread:dread_jumpscare"]
+  },
+  "dread_proximity": {
+    "sounds": ["dread:dread_proximity"]
+  },
+  "danger_rising": {
+    "sounds": ["dread:danger_rising"]
+  }
+}
