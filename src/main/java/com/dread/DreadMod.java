@@ -2,6 +2,7 @@ package com.dread;
 
 import com.dread.registry.ModEntities;
 import com.dread.sound.ModSounds;
+import com.dread.spawn.DreadSpawnManager;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ public class DreadMod implements ModInitializer {
         LOGGER.info("Initializing Dread mod...");
         ModSounds.register();
         ModEntities.register();
+        DreadSpawnManager.register();
         LOGGER.info("Dread mod initialized successfully");
     }
 }
