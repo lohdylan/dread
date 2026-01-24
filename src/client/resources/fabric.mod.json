@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "dread-client",
+  "version": "${version}",
+  "name": "Dread Client",
+  "description": "Client-side components for Dread mod",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.dread.DreadClient"
+    ]
+  },
+  "depends": {
+    "dread": "*"
+  }
+}

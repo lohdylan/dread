@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "dread",
+  "version": "${version}",
+  "name": "Dread",
+  "description": "A cosmic horror entity that stalks and terrifies players",
+  "authors": [
+    "DreadMod Team"
+  ],
+  "contact": {
+    "homepage": "https://github.com/dread-mod/dread",
+    "sources": "https://github.com/dread-mod/dread"
+  },
+  "license": "MIT",
+  "icon": "assets/dread/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.dread.DreadMod"
+    ]
+  },
+  "mixins": [
+    "dread.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21",
+    "java": ">=21",
+    "fabric-api": "*",
+    "geckolib": ">=4.7.0"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
