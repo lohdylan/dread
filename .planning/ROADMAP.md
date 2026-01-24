@@ -12,7 +12,7 @@ Dread is a Minecraft horror mod delivering genuine terror through a cosmic horro
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Entity** - Fabric mod skeleton with Dread entity model and animations
+- [x] **Phase 1: Foundation & Entity** - Fabric mod skeleton with Dread entity model and animations
 - [ ] **Phase 2: AI & Horror Experience** - Turn-around jump scares, stalking AI, and complete soundscape
 - [ ] **Phase 3: Death & Revival System** - Downed state, cinematic death, and multiplayer revival
 - [ ] **Phase 4: Configuration & Release Prep** - User customization and final polish
@@ -28,10 +28,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Entity animations play smoothly (idle, walking, attacking) via GeckoLib
   3. Nearby torches extinguish when Dread spawns creating darkness
   4. Multiple Dread forms/appearances are implemented and randomly selected
-**Plans**: TBD
+**Plans**: 4 plans in 4 waves
 
 Plans:
-- [ ] TBD (to be planned)
+- [x] 01-01-PLAN.md — Fabric mod skeleton with entity registration
+- [x] 01-02-PLAN.md — GeckoLib model, textures, and renderer
+- [x] 01-03-PLAN.md — Entity behaviors (torch extinguishing, form variants)
+- [x] 01-04-PLAN.md — Human visual verification checkpoint
 
 ### Phase 2: AI & Horror Experience
 **Goal**: Dread intelligently stalks players with turn-around jump scares and full atmospheric soundscape
@@ -88,12 +91,14 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Entity | 0/TBD | Not started | - |
+| 1. Foundation & Entity | 4/4 | Complete | 2026-01-24 |
 | 2. AI & Horror Experience | 0/TBD | Not started | - |
 | 3. Death & Revival System | 0/TBD | Not started | - |
 | 4. Configuration & Release Prep | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-23*
+*Phase 1 planned: 2026-01-24*
+*Phase 1 complete: 2026-01-24*
 *Depth: quick (4 phases)*
 *Coverage: 20/20 v1 requirements mapped*

@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Entity
 
-- [ ] **ENTITY-01**: Dread entity with Cthulhu-style cosmic horror design
-- [ ] **ENTITY-02**: GeckoLib animations for smooth, creepy movement
-- [ ] **ENTITY-03**: Light extinguishing (Dread puts out nearby torches when spawning)
-- [ ] **ENTITY-04**: Multiple Dread forms/appearances
+- [x] **ENTITY-01**: Dread entity with Cthulhu-style cosmic horror design
+- [x] **ENTITY-02**: GeckoLib animations for smooth, creepy movement
+- [x] **ENTITY-03**: Light extinguishing (Dread puts out nearby torches when spawning)
+- [x] **ENTITY-04**: Multiple Dread forms/appearances
 
 ### AI & Spawning
 
@@ -79,10 +79,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENTITY-01 | Phase 1 | Pending |
-| ENTITY-02 | Phase 1 | Pending |
-| ENTITY-03 | Phase 1 | Pending |
-| ENTITY-04 | Phase 1 | Pending |
+| ENTITY-01 | Phase 1 | Complete |
+| ENTITY-02 | Phase 1 | Complete |
+| ENTITY-03 | Phase 1 | Complete |
+| ENTITY-04 | Phase 1 | Complete |
 | AI-01 | Phase 2 | Pending |
 | AI-02 | Phase 2 | Pending |
 | AI-03 | Phase 2 | Pending |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-23 after roadmap creation*
+*Last updated: 2026-01-24 after Phase 1 completion*
