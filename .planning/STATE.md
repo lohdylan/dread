@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 2 of 4 (AI & Horror Experience)
-Plan: 3 of 6 in current phase
+Plan: 4 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 02-03-PLAN.md
+Last activity: 2026-01-24 — Completed 02-04-PLAN.md
 
-Progress: [████░░░░░░] 40%
+Progress: [████░░░░░░] 45%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 6.4 min
-- Total execution time: 0.90 hours
+- Total plans completed: 8
+- Average duration: 6.2 min
+- Total execution time: 0.99 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
-| 02-ai-horror-experience | 3/6 | 11.8 min | 3.9 min |
+| 02-ai-horror-experience | 4/6 | 17.3 min | 4.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (checkpoint), 02-01 (3.1 min), 02-02 (4.2 min), 02-03 (4.5 min)
-- Trend: Consistent fast execution (~4 min per plan)
+- Last 5 plans: 02-01 (3.1 min), 02-02 (4.2 min), 02-03 (4.5 min), 02-04 (5.5 min)
+- Trend: Consistent fast execution (~4-5 min per plan)
 
 *Updated after each plan completion*
 
@@ -55,6 +55,10 @@ Recent decisions affecting current work:
 - AI goal priorities: VanishGoal (1) > StareStandoffGoal (2) ensures vanishing overrides freeze (Implemented - Phase 2)
 - Stare timeout 600 ticks: 30 seconds creates tension without tedium (Implemented - Phase 2)
 - Spawn distance 3-8 blocks: Close enough for scare, far enough to avoid screen edge visibility (Implemented - Phase 2)
+- Sound priority levels: JUMPSCARE=0, PROXIMITY=1, AMBIENT=2 prevents audio overlap (Implemented - Phase 2)
+- Jumpscare protection window: 3 seconds exclusive audio prevents interruption (Implemented - Phase 2)
+- Fake-out distribution: 40% danger rising, 30% proximity, 30% ambient for variety (Implemented - Phase 2)
+- Unnatural silence effect: Proximity volume decreases as Dread gets closer (Implemented - Phase 2)
 - 300 second revive window: Long enough for friends to reach, short enough for tension (Pending - Phase 3)
 - Spectator mode for perm death: Player can still watch friends, stays in session (Pending - Phase 3)
 
@@ -88,7 +92,6 @@ None yet.
 
 **Phase 2 Planning:**
 - Turn-around jump scare mechanics require FOV calculations and precise positioning — research suggests complexity
-- Sound priority management needed to prevent channel exhaustion during layered audio
 
 **Phase 3 Planning:**
 - Death event ordering has edge cases with Totem of Undying and other death-modifying mods
@@ -100,10 +103,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24 07:23 UTC
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-01-24 07:24 UTC
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
-Next: Execute 02-04-PLAN.md (Turn-around jump scare mechanics)
+Next: Execute 02-05-PLAN.md (Dynamic audio system)
 
 ## Phase 1 Results
 
@@ -121,6 +124,6 @@ Next: Execute 02-04-PLAN.md (Turn-around jump scare mechanics)
 | 1 | 02-01 | Sound event registration and placeholder audio | ✓ Complete |
 | 1 | 02-02 | Spawn probability system with persistent tracking | ✓ Complete |
 | 2 | 02-03 | Spawn triggering and entity placement | ✓ Complete |
-| 2 | 02-04 | Turn-around jump scare mechanics | Pending |
+| 2 | 02-04 | Fake-out behaviors with priority-based sound | ✓ Complete |
 | 3 | 02-05 | Dynamic audio system | Pending |
 | 4 | 02-06 | Horror experience validation | Pending |
