@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-01-23)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Phase 1 - Foundation & Entity
+**Current focus:** Phase 1 - Foundation & Entity (Planned, ready for execution)
 
 ## Current Position
 
 Phase: 1 of 4 (Foundation & Entity)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-23 — Roadmap created with 4 phases covering all 20 v1 requirements
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-01-24 — Completed 01-01-PLAN.md
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 6.25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: N/A
-- Total execution time: 0.0 hours
+- Total plans completed: 1
+- Average duration: 14.5 min
+- Total execution time: 0.24 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-foundation-entity | 1/4 | 14.5 min | 14.5 min |
 
 **Recent Trend:**
-- Last 5 plans: None yet
-- Trend: N/A
+- Last 5 plans: 01-01 (14.5 min)
+- Trend: Just started
 
 *Updated after each plan completion*
 
@@ -42,10 +42,25 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Fabric over Forge: Modern, lightweight, 1.21.x support (Pending)
-- Single entity focus: Nail the horror before expanding (Pending)
+- Fabric over Forge: Modern, lightweight, 1.21.x support (Implemented - 01-01)
+- Single entity focus: Nail the horror before expanding (In progress)
 - 300 second revive window: Long enough for friends to reach, short enough for tension (Pending)
 - Spectator mode for perm death: Player can still watch friends, stays in session (Pending)
+
+### Phase 1 Planning Decisions
+
+- Torch extinguishing range: 8 blocks (balanced gameplay/horror)
+- Torch restoration: None (permanent removal adds stakes)
+- Form variant selection: Per-entity at spawn time based on world day
+- Animation style: Jerky/stutter for unsettling effect
+
+### Phase 1 Execution Decisions
+
+**Plan 01-01:**
+- Java 21 toolchain: System has Java 25, Gradle requires Java 21 - downloaded portable JDK
+- Fabric API 0.116.8: Latest available for 1.21.1 (plan specified unavailable version)
+- Gradle 8.13: Required for Java 21+ support
+- DuplicatesStrategy.EXCLUDE: Handle multiple fabric.mod.json files in split source sets
 
 ### Pending Todos
 
@@ -66,6 +81,16 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-23
-Stopped at: Roadmap and state initialization complete, ready to plan Phase 1
+Last session: 2026-01-24 05:42:23
+Stopped at: Completed 01-01-PLAN.md (Foundation & Entity Registration)
 Resume file: None
+Next: 01-02-PLAN.md (GeckoLib Model & Renderer)
+
+## Phase 1 Wave Structure
+
+| Wave | Plan | Objective | Autonomous |
+|------|------|-----------|------------|
+| 1 | 01-01 | Fabric mod skeleton + entity registration | Yes |
+| 2 | 01-02 | GeckoLib model, textures, renderer | Yes |
+| 3 | 01-03 | Entity behaviors (torch, variants) | Yes |
+| 4 | 01-04 | Human visual verification | No (checkpoint) |
