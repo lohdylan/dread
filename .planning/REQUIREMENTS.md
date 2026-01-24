@@ -79,32 +79,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENTITY-01 | TBD | Pending |
-| ENTITY-02 | TBD | Pending |
-| ENTITY-03 | TBD | Pending |
-| ENTITY-04 | TBD | Pending |
-| AI-01 | TBD | Pending |
-| AI-02 | TBD | Pending |
-| AI-03 | TBD | Pending |
-| AI-04 | TBD | Pending |
-| SOUND-01 | TBD | Pending |
-| SOUND-02 | TBD | Pending |
-| SOUND-03 | TBD | Pending |
-| SOUND-04 | TBD | Pending |
-| DEATH-01 | TBD | Pending |
-| DEATH-02 | TBD | Pending |
-| DEATH-03 | TBD | Pending |
-| DEATH-04 | TBD | Pending |
-| CONFIG-01 | TBD | Pending |
-| CONFIG-02 | TBD | Pending |
-| CONFIG-03 | TBD | Pending |
-| CONFIG-04 | TBD | Pending |
+| ENTITY-01 | Phase 1 | Pending |
+| ENTITY-02 | Phase 1 | Pending |
+| ENTITY-03 | Phase 1 | Pending |
+| ENTITY-04 | Phase 1 | Pending |
+| AI-01 | Phase 2 | Pending |
+| AI-02 | Phase 2 | Pending |
+| AI-03 | Phase 2 | Pending |
+| AI-04 | Phase 2 | Pending |
+| SOUND-01 | Phase 2 | Pending |
+| SOUND-02 | Phase 2 | Pending |
+| SOUND-03 | Phase 2 | Pending |
+| SOUND-04 | Phase 2 | Pending |
+| DEATH-01 | Phase 3 | Pending |
+| DEATH-02 | Phase 3 | Pending |
+| DEATH-03 | Phase 3 | Pending |
+| DEATH-04 | Phase 3 | Pending |
+| CONFIG-01 | Phase 4 | Pending |
+| CONFIG-02 | Phase 4 | Pending |
+| CONFIG-03 | Phase 4 | Pending |
+| CONFIG-04 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20 (pending roadmap creation)
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-23 after initial definition*
+*Last updated: 2026-01-23 after roadmap creation*

@@ -1,0 +1,99 @@
+# Roadmap: Dread
+
+## Overview
+
+Dread is a Minecraft horror mod delivering genuine terror through a cosmic horror entity with turn-around jump scares, cinematic death sequences, and cooperative revival mechanics. This roadmap structures delivery across four phases: foundational entity creation, AI-driven stalking and sound design, death/revival systems, and configuration polish for release.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Foundation & Entity** - Fabric mod skeleton with Dread entity model and animations
+- [ ] **Phase 2: AI & Horror Experience** - Turn-around jump scares, stalking AI, and complete soundscape
+- [ ] **Phase 3: Death & Revival System** - Downed state, cinematic death, and multiplayer revival
+- [ ] **Phase 4: Configuration & Release Prep** - User customization and final polish
+
+## Phase Details
+
+### Phase 1: Foundation & Entity
+**Goal**: Dread entity exists as a visible, animated horror creature with proper Fabric mod infrastructure
+**Depends on**: Nothing (first phase)
+**Requirements**: ENTITY-01, ENTITY-02, ENTITY-03, ENTITY-04
+**Success Criteria** (what must be TRUE):
+  1. Dread entity spawns in-game with Cthulhu-style cosmic horror appearance
+  2. Entity animations play smoothly (idle, walking, attacking) via GeckoLib
+  3. Nearby torches extinguish when Dread spawns creating darkness
+  4. Multiple Dread forms/appearances are implemented and randomly selected
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (to be planned)
+
+### Phase 2: AI & Horror Experience
+**Goal**: Dread intelligently stalks players with turn-around jump scares and full atmospheric soundscape
+**Depends on**: Phase 1
+**Requirements**: AI-01, AI-02, AI-03, AI-04, SOUND-01, SOUND-02, SOUND-03, SOUND-04
+**Success Criteria** (what must be TRUE):
+  1. Player experiences turn-around jump scare (entity appears when looking away then back)
+  2. Mining activity noticeably increases Dread spawn frequency
+  3. Spawn probability escalates as game days progress creating long-term tension
+  4. Fake-out tension moments occur without attacks keeping player on edge
+  5. Ambient tension soundscape plays building dread before possible spawns
+  6. Jump scare audio triggers precisely when Dread appears
+  7. Sound intensity increases when Dread is nearby even when not visible
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (to be planned)
+
+### Phase 3: Death & Revival System
+**Goal**: Players experience unskippable cinematic death followed by downed state with cooperative revival mechanics
+**Depends on**: Phase 2
+**Requirements**: DEATH-01, DEATH-02, DEATH-03, DEATH-04
+**Success Criteria** (what must be TRUE):
+  1. Player death triggers unskippable cinematic sequence showing their demise
+  2. Killed player enters downed state with 300 second timer and blurred/dark screen
+  3. Downed player becomes permanent spectator if timer expires without revival
+  4. Nearby player can crouch to revive downed teammate restoring them to play
+  5. Solo players experience permanent death stakes (no revival possible)
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (to be planned)
+
+### Phase 4: Configuration & Release Prep
+**Goal**: Players can customize mod behavior and mod is release-ready with full documentation
+**Depends on**: Phase 3
+**Requirements**: CONFIG-01, CONFIG-02, CONFIG-03, CONFIG-04
+**Success Criteria** (what must be TRUE):
+  1. Spawn rate is configurable via config file
+  2. Damage settings are adjustable for different difficulty preferences
+  3. Mod can be fully disabled via toggle without removing from mod folder
+  4. Death cinematic can be skipped via configuration option
+  5. Mod works reliably in multiplayer with 2-4 players on dedicated server
+  6. Mod is compatible with Iris and Optifine shaders
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (to be planned)
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Foundation & Entity | 0/TBD | Not started | - |
+| 2. AI & Horror Experience | 0/TBD | Not started | - |
+| 3. Death & Revival System | 0/TBD | Not started | - |
+| 4. Configuration & Release Prep | 0/TBD | Not started | - |
+
+---
+*Roadmap created: 2026-01-23*
+*Depth: quick (4 phases)*
+*Coverage: 20/20 v1 requirements mapped*
