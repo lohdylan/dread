@@ -1,6 +1,8 @@
 package com.dread.entity;
 
 import com.dread.DreadMod;
+import com.dread.entity.ai.StareStandoffGoal;
+import com.dread.entity.ai.VanishGoal;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -45,6 +47,7 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private DreadFormVariant formVariant = DreadFormVariant.BASE;
     private boolean hasPlayedSpawnAnimation = false;
+    private boolean isVanishing = false;
     private int extinguishCooldown = 0;
     private List<BlockPos> pendingExtinguish = new ArrayList<>();
 
@@ -52,14 +55,30 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
         super(entityType, world);
     }
 
+    /**
+     * Check if entity is in vanishing state.
+     */
+    public boolean isVanishing() {
+        return this.isVanishing;
+    }
+
+    /**
+     * Set vanishing state (triggers VanishGoal).
+     */
+    public void setVanishing(boolean vanishing) {
+        this.isVanishing = vanishing;
+    }
+
     @Override
     protected void initGoals() {
-        // Basic AI goals
+        // AI goals with priorities (lower number = higher priority)
         this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(1, new MeleeAttackGoal(this, 1.0, false));
-        this.goalSelector.add(2, new WanderAroundFarGoal(this, 0.8));
-        this.goalSelector.add(3, new LookAtEntityGoal(this, PlayerEntity.class, 8.0f));
-        this.goalSelector.add(4, new LookAroundGoal(this));
+        this.goalSelector.add(1, new VanishGoal(this)); // Highest priority when vanishing
+        this.goalSelector.add(2, new StareStandoffGoal(this)); // Freeze when watched
+        this.goalSelector.add(3, new MeleeAttackGoal(this, 1.2, false));
+        this.goalSelector.add(4, new WanderAroundFarGoal(this, 0.8));
+        this.goalSelector.add(5, new LookAtEntityGoal(this, PlayerEntity.class, 16.0f));
+        this.goalSelector.add(6, new LookAroundGoal(this));
 
         // Target players
         this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
@@ -158,6 +177,11 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         // Main movement controller
         controllers.add(new AnimationController<>(this, "main", 5, state -> {
+            // Vanishing takes priority over death
+            if (this.isVanishing) {
+                return state.setAndContinue(RawAnimation.begin().thenPlay("despawn"));
+            }
+
             if (this.isDead()) {
                 return state.setAndContinue(RawAnimation.begin().thenPlay("despawn"));
             }
