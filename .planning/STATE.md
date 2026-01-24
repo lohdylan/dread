@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 2 of 4 (AI & Horror Experience)
-Plan: 5 of 6 in current phase
-Status: In progress
-Last activity: 2026-01-24 — Completed 02-05-PLAN.md
+Plan: 6 of 6 in current phase
+Status: Phase complete - ready for Phase 3
+Last activity: 2026-01-24 — Completed 02-06-PLAN.md (Phase 2 verified and approved)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100% (Phase 2 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 5.5 min
+- Total plans completed: 10
+- Average duration: 4.5 min
 - Total execution time: 1.05 hours
 
 **By Phase:**
@@ -28,11 +28,11 @@ Progress: [█████░░░░░] 50%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
-| 02-ai-horror-experience | 5/6 | 19.6 min | 3.9 min |
+| 02-ai-horror-experience | 6/6 | 19.6 min | 3.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (4.2 min), 02-03 (4.5 min), 02-04 (5.5 min), 02-05 (2.3 min)
-- Trend: Fast execution with 02-05 exceptionally quick (2.3 min)
+- Last 5 plans: 02-03 (4.5 min), 02-04 (5.5 min), 02-05 (2.3 min), 02-06 (0 min - checkpoint)
+- Trend: Efficient execution, Phase 2 completed faster than Phase 1
 
 *Updated after each plan completion*
 
@@ -84,6 +84,29 @@ Recent decisions affecting current work:
 
 **Human verification:** Approved - entity meets horror standards
 
+### Phase 2 Completion Summary
+
+**What was built:**
+- Turn-around spawn mechanic (entity appears 3-8 blocks behind player)
+- Weeping Angel / SCP-173 stare mechanic (entity freezes when watched, vanishes after 30s)
+- Mining-based spawn probability (increments danger with each block broken)
+- Day-based escalation (1x to 11x multiplier, capped at day 20)
+- Fake-out system (3:1 ratio of false alarms to real spawns)
+- Priority-based sound system (jumpscare > proximity > ambient)
+- Dynamic audio atmosphere (ambient tension, proximity triggers, unnatural silence)
+- Complete AI goal system (VanishGoal, StareStandoffGoal, MeleeAttackGoal)
+
+**Key implementation decisions:**
+- Base spawn chance 0.5% per second for natural pacing
+- Mining bonus +0.1% per block mined (resets after spawn)
+- Proximity sound every 2 seconds, ambient intervals 10-30s randomized
+- Unnatural silence effect (volume decreases when Dread within 8 blocks)
+- FOV threshold 0.85 (~31° cone) for stare detection with raycast obstruction
+- Fake-out distribution: 40% danger rising, 30% proximity, 30% ambient
+- Tension calculation: (blocksMined * 0.01) + (worldDay * 0.02)
+
+**Human verification:** Approved - all 6 tests passed, horror experience genuinely terrifying
+
 ### Pending Todos
 
 None yet.
@@ -106,10 +129,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24 07:31 UTC
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-01-24 (current session)
+Stopped at: Completed 02-06-PLAN.md (Phase 2 complete)
 Resume file: None
-Next: Execute 02-06-PLAN.md (Horror experience validation)
+Next: Plan Phase 3 - Death & Revival System
 
 ## Phase 1 Results
 
@@ -129,4 +152,6 @@ Next: Execute 02-06-PLAN.md (Horror experience validation)
 | 2 | 02-03 | Spawn triggering and entity placement | ✓ Complete |
 | 2 | 02-04 | Fake-out behaviors with priority-based sound | ✓ Complete |
 | 3 | 02-05 | Dynamic audio system | ✓ Complete |
-| 4 | 02-06 | Horror experience validation | Pending |
+| 4 | 02-06 | Horror experience validation | ✓ Approved |
+
+**Phase 2 Status:** COMPLETE - All horror mechanics verified and approved
