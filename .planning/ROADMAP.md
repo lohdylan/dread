@@ -13,7 +13,7 @@ Dread is a Minecraft horror mod delivering genuine terror through a cosmic horro
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Entity** - Fabric mod skeleton with Dread entity model and animations
-- [ ] **Phase 2: AI & Horror Experience** - Turn-around jump scares, stalking AI, and complete soundscape
+- [x] **Phase 2: AI & Horror Experience** - Turn-around jump scares, stalking AI, and complete soundscape
 - [ ] **Phase 3: Death & Revival System** - Downed state, cinematic death, and multiplayer revival
 - [ ] **Phase 4: Configuration & Release Prep** - User customization and final polish
 
@@ -39,7 +39,7 @@ Plans:
 ### Phase 2: AI & Horror Experience
 **Goal**: Dread intelligently stalks players with turn-around jump scares and full atmospheric soundscape
 **Depends on**: Phase 1
-**Requirements**: AI-01, AI-02, AI-03, AI-04, SOUND-01, SOUND-02, SOUND-03, SOUND-04
+**Requirements**: AI-01, AI-02, AI-03, AI-04, SOUND-01, SOUND-02, SOUND-04
 **Success Criteria** (what must be TRUE):
   1. Player experiences turn-around jump scare (entity appears when looking away then back)
   2. Mining activity noticeably increases Dread spawn frequency
@@ -48,10 +48,15 @@ Plans:
   5. Ambient tension soundscape plays building dread before possible spawns
   6. Jump scare audio triggers precisely when Dread appears
   7. Sound intensity increases when Dread is nearby even when not visible
-**Plans**: TBD
+**Plans**: 6 plans in 4 waves
 
 Plans:
-- [ ] TBD (to be planned)
+- [x] 02-01-PLAN.md — Sound event registration and placeholder audio files
+- [x] 02-02-PLAN.md — Spawn probability system with persistent state
+- [x] 02-03-PLAN.md — AI goals (turn-around spawn, stare-to-freeze, vanish)
+- [x] 02-04-PLAN.md — Fake-out behaviors with varied tension sounds
+- [x] 02-05-PLAN.md — Proximity audio and ambient tension integration
+- [x] 02-06-PLAN.md — Human verification checkpoint
 
 ### Phase 3: Death & Revival System
 **Goal**: Players experience unskippable cinematic death followed by downed state with cooperative revival mechanics
@@ -92,7 +97,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Entity | 4/4 | Complete | 2026-01-24 |
-| 2. AI & Horror Experience | 0/TBD | Not started | - |
+| 2. AI & Horror Experience | 6/6 | Complete | 2026-01-24 |
 | 3. Death & Revival System | 0/TBD | Not started | - |
 | 4. Configuration & Release Prep | 0/TBD | Not started | - |
 
@@ -100,5 +105,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 *Roadmap created: 2026-01-23*
 *Phase 1 planned: 2026-01-24*
 *Phase 1 complete: 2026-01-24*
+*Phase 2 planned: 2026-01-24*
+*Phase 2 complete: 2026-01-24*
 *Depth: quick (4 phases)*
 *Coverage: 20/20 v1 requirements mapped*

@@ -16,17 +16,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### AI & Spawning
 
-- [ ] **AI-01**: Turn-around spawn mechanic (appears when player looks away then back)
-- [ ] **AI-02**: Mining activity increases spawn chance
-- [ ] **AI-03**: Spawn probability escalates with game days
-- [ ] **AI-04**: Fake-out behaviors (sometimes plays tension without attacking)
+- [x] **AI-01**: Turn-around spawn mechanic (appears when player looks away then back)
+- [x] **AI-02**: Mining activity increases spawn chance
+- [x] **AI-03**: Spawn probability escalates with game days
+- [x] **AI-04**: Fake-out behaviors (sometimes plays tension without attacking)
 
 ### Sound
 
-- [ ] **SOUND-01**: Ambient tension soundscape
-- [ ] **SOUND-02**: Jump scare audio when Dread appears
+- [x] **SOUND-01**: Ambient tension soundscape
+- [x] **SOUND-02**: Jump scare audio when Dread appears
 - [ ] **SOUND-03**: Death sequence audio
-- [ ] **SOUND-04**: Sound intensity based on Dread proximity
+- [x] **SOUND-04**: Sound intensity based on Dread proximity
 
 ### Death System
 
@@ -83,14 +83,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENTITY-02 | Phase 1 | Complete |
 | ENTITY-03 | Phase 1 | Complete |
 | ENTITY-04 | Phase 1 | Complete |
-| AI-01 | Phase 2 | Pending |
-| AI-02 | Phase 2 | Pending |
-| AI-03 | Phase 2 | Pending |
-| AI-04 | Phase 2 | Pending |
-| SOUND-01 | Phase 2 | Pending |
-| SOUND-02 | Phase 2 | Pending |
-| SOUND-03 | Phase 2 | Pending |
-| SOUND-04 | Phase 2 | Pending |
+| AI-01 | Phase 2 | Complete |
+| AI-02 | Phase 2 | Complete |
+| AI-03 | Phase 2 | Complete |
+| AI-04 | Phase 2 | Complete |
+| SOUND-01 | Phase 2 | Complete |
+| SOUND-02 | Phase 2 | Complete |
+| SOUND-03 | Phase 3 | Pending |
+| SOUND-04 | Phase 2 | Complete |
 | DEATH-01 | Phase 3 | Pending |
 | DEATH-02 | Phase 3 | Pending |
 | DEATH-03 | Phase 3 | Pending |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-24 after Phase 1 completion*
+*Last updated: 2026-01-24 after Phase 2 completion*
