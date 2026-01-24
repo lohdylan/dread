@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 2 of 4 (AI & Horror Experience)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 02-04-PLAN.md
+Last activity: 2026-01-24 — Completed 02-05-PLAN.md
 
-Progress: [████░░░░░░] 45%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 6.2 min
-- Total execution time: 0.99 hours
+- Total plans completed: 9
+- Average duration: 5.5 min
+- Total execution time: 1.05 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
-| 02-ai-horror-experience | 4/6 | 17.3 min | 4.3 min |
+| 02-ai-horror-experience | 5/6 | 19.6 min | 3.9 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3.1 min), 02-02 (4.2 min), 02-03 (4.5 min), 02-04 (5.5 min)
-- Trend: Consistent fast execution (~4-5 min per plan)
+- Last 5 plans: 02-02 (4.2 min), 02-03 (4.5 min), 02-04 (5.5 min), 02-05 (2.3 min)
+- Trend: Fast execution with 02-05 exceptionally quick (2.3 min)
 
 *Updated after each plan completion*
 
@@ -59,6 +59,9 @@ Recent decisions affecting current work:
 - Jumpscare protection window: 3 seconds exclusive audio prevents interruption (Implemented - Phase 2)
 - Fake-out distribution: 40% danger rising, 30% proximity, 30% ambient for variety (Implemented - Phase 2)
 - Unnatural silence effect: Proximity volume decreases as Dread gets closer (Implemented - Phase 2)
+- Proximity sound cooldown 2 seconds: Prevents audio spam while maintaining entity presence (Implemented - Phase 2)
+- Ambient interval 20s ± 10s: Creates unpredictable soundscape timing, prevents player conditioning (Implemented - Phase 2)
+- Tension calculation formula: (blocksMined * 0.01) + (worldDay * 0.02) for balanced escalation (Implemented - Phase 2)
 - 300 second revive window: Long enough for friends to reach, short enough for tension (Pending - Phase 3)
 - Spectator mode for perm death: Player can still watch friends, stays in session (Pending - Phase 3)
 
@@ -103,10 +106,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24 07:24 UTC
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-01-24 07:31 UTC
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
-Next: Execute 02-05-PLAN.md (Dynamic audio system)
+Next: Execute 02-06-PLAN.md (Horror experience validation)
 
 ## Phase 1 Results
 
@@ -125,5 +128,5 @@ Next: Execute 02-05-PLAN.md (Dynamic audio system)
 | 1 | 02-02 | Spawn probability system with persistent tracking | ✓ Complete |
 | 2 | 02-03 | Spawn triggering and entity placement | ✓ Complete |
 | 2 | 02-04 | Fake-out behaviors with priority-based sound | ✓ Complete |
-| 3 | 02-05 | Dynamic audio system | Pending |
+| 3 | 02-05 | Dynamic audio system | ✓ Complete |
 | 4 | 02-06 | Horror experience validation | Pending |
