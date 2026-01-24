@@ -1,5 +1,7 @@
 package com.dread.sound;
 
+import com.dread.entity.DreadEntity;
+import com.dread.spawn.SpawnProbabilityState;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -17,6 +19,9 @@ public class DreadSoundManager {
 
     private static boolean isPlayingJumpscare = false;
     private static long jumpscareEndTick = 0;
+    private static long nextAmbientTick = 0;
+    private static final int AMBIENT_INTERVAL_BASE = 400; // 20 seconds base
+    private static final int AMBIENT_INTERVAL_VARIANCE = 200; // +/- 10 seconds
 
     /**
      * Tick handler to reset jumpscare state after duration expires.
@@ -28,6 +33,15 @@ public class DreadSoundManager {
         // Reset jumpscare flag after 3 seconds (60 ticks)
         if (isPlayingJumpscare && world.getTime() > jumpscareEndTick) {
             isPlayingJumpscare = false;
+        }
+
+        // Ambient tension soundscape
+        if (world.getTime() >= nextAmbientTick) {
+            playAmbientTension(world);
+            // Schedule next ambient sound with random interval
+            nextAmbientTick = world.getTime() +
+                AMBIENT_INTERVAL_BASE +
+                world.getRandom().nextBetween(-AMBIENT_INTERVAL_VARIANCE, AMBIENT_INTERVAL_VARIANCE);
         }
     }
 
@@ -121,5 +135,76 @@ public class DreadSoundManager {
             world.playSound(null, entityPos, ModSounds.DREAD_PROXIMITY,
                 SoundCategory.HOSTILE, volume, 0.8f);
         }
+    }
+
+    /**
+     * Play ambient tension soundscape based on spawn probability.
+     * Volume decreases near Dread entities (unnatural silence).
+     *
+     * @param world Server world
+     */
+    private static void playAmbientTension(ServerWorld world) {
+        if (isPlayingJumpscare) return;
+
+        // Play ambient sound for each player based on their spawn probability
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            SpawnProbabilityState state = SpawnProbabilityState.getOrCreate(world);
+            int blocksMined = state.getMinedBlocks(player.getUuid());
+            long worldDay = world.getTimeOfDay() / 24000L;
+
+            // Higher probability = more likely to play ambient
+            float tension = Math.min(1.0f, (blocksMined * 0.01f) + (worldDay * 0.02f));
+
+            if (world.getRandom().nextFloat() < tension * 0.5f) {
+                // Check if any Dread nearby (unnatural silence zone)
+                boolean dreadNearby = !world.getEntitiesByClass(
+                    DreadEntity.class,
+                    player.getBoundingBox().expand(8),
+                    e -> true
+                ).isEmpty();
+
+                float volume;
+                if (dreadNearby) {
+                    // Unnatural silence - very quiet ambient
+                    volume = 0.05f + (world.getRandom().nextFloat() * 0.1f);
+                } else {
+                    // Normal ambient based on tension
+                    volume = 0.2f + (tension * 0.3f);
+                }
+
+                world.playSound(
+                    null,
+                    player.getBlockPos(),
+                    ModSounds.DREAD_AMBIENT,
+                    SoundCategory.AMBIENT,
+                    volume,
+                    0.9f + world.getRandom().nextFloat() * 0.2f
+                );
+            }
+        }
+    }
+
+    /**
+     * Play distant whispers from random direction.
+     * Creates horror atmosphere with directional audio cues.
+     *
+     * @param world Server world
+     * @param player Target player
+     */
+    public static void playDistantWhispers(ServerWorld world, ServerPlayerEntity player) {
+        if (isPlayingJumpscare) return;
+
+        // Random direction whispers
+        int offsetX = world.getRandom().nextBetween(-15, 15);
+        int offsetZ = world.getRandom().nextBetween(-15, 15);
+
+        world.playSound(
+            null,
+            player.getBlockPos().add(offsetX, 0, offsetZ),
+            ModSounds.DREAD_AMBIENT,
+            SoundCategory.AMBIENT,
+            0.15f,
+            0.6f + world.getRandom().nextFloat() * 0.2f // Lower pitch = more ominous
+        );
     }
 }
