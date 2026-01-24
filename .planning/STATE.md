@@ -10,28 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 2 of 4 (AI & Horror Experience)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-24 — Completed Phase 1: Foundation & Entity
+Plan: 1 of 6 in current phase
+Status: In progress
+Last activity: 2026-01-24 — Completed 02-01-PLAN.md
 
-Progress: [██░░░░░░░░] 25%
+Progress: [██░░░░░░░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 8.3 min
-- Total execution time: 0.68 hours
+- Total plans completed: 5
+- Average duration: 7.4 min
+- Total execution time: 0.74 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
+| 02-ai-horror-experience | 1/6 | 3.1 min | 3.1 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (14.5 min), 01-02 (6.6 min), 01-03 (4 min), 01-04 (checkpoint)
-- Trend: Accelerating velocity
+- Last 5 plans: 01-02 (6.6 min), 01-03 (4 min), 01-04 (checkpoint), 02-01 (3.1 min)
+- Trend: Accelerating velocity (Phase 2 start at 3.1 min)
 
 *Updated after each plan completion*
 
@@ -44,6 +45,9 @@ Recent decisions affecting current work:
 
 - Fabric over Forge: Modern, lightweight, 1.21.x support (Implemented - Phase 1)
 - Single entity focus: Nail the horror before expanding (Implemented - Phase 1)
+- Sound registration before entities: Ensures sounds available when entities spawn (Implemented - Phase 2)
+- Streaming for ambient audio: Reduces memory usage for longer background audio (Implemented - Phase 2)
+- Mono OGG format required: Distance attenuation only works with mono audio (Implemented - Phase 2)
 - 300 second revive window: Long enough for friends to reach, short enough for tension (Pending - Phase 3)
 - Spectator mode for perm death: Player can still watch friends, stays in session (Pending - Phase 3)
 
@@ -89,10 +93,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24
-Stopped at: Phase 1 complete, ready for Phase 2 planning
+Last session: 2026-01-24 07:13 UTC
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
-Next: `/gsd:discuss-phase 2` or `/gsd:plan-phase 2`
+Next: Execute 02-02-PLAN.md (Turn-around jump scare mechanics)
 
 ## Phase 1 Results
 
@@ -102,3 +106,14 @@ Next: `/gsd:discuss-phase 2` or `/gsd:plan-phase 2`
 | 2 | 01-02 | GeckoLib model, textures, renderer | ✓ Complete |
 | 3 | 01-03 | Entity behaviors (torch, variants) | ✓ Complete |
 | 4 | 01-04 | Human visual verification | ✓ Approved |
+
+## Phase 2 Results
+
+| Wave | Plan | Objective | Status |
+|------|------|-----------|--------|
+| 1 | 02-01 | Sound event registration and placeholder audio | ✓ Complete |
+| 1 | 02-02 | Turn-around jump scare mechanics | Pending |
+| 2 | 02-03 | Dynamic audio system | Pending |
+| 3 | 02-04 | AI spawn probability system | Pending |
+| 4 | 02-05 | Integration verification | Pending |
+| 5 | 02-06 | Horror experience validation | Pending |
