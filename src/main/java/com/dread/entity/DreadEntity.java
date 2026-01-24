@@ -3,6 +3,7 @@ package com.dread.entity;
 import com.dread.DreadMod;
 import com.dread.entity.ai.StareStandoffGoal;
 import com.dread.entity.ai.VanishGoal;
+import com.dread.sound.DreadSoundManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -43,12 +44,14 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
     private static final String NBT_SPAWN_ANIM_PLAYED = "SpawnAnimPlayed";
     private static final int EXTINGUISH_RANGE = 8;
     private static final int EXTINGUISH_COOLDOWN_TICKS = 20; // One torch per second
+    private static final int PROXIMITY_SOUND_COOLDOWN = 40; // 2 seconds
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private DreadFormVariant formVariant = DreadFormVariant.BASE;
     private boolean hasPlayedSpawnAnimation = false;
     private boolean isVanishing = false;
     private int extinguishCooldown = 0;
+    private int proximitySoundCooldown = 0;
     private List<BlockPos> pendingExtinguish = new ArrayList<>();
 
     public DreadEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
@@ -104,9 +107,29 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
     public void tick() {
         super.tick();
 
-        // Server-side only - torch extinguishing
+        // Server-side only - torch extinguishing and proximity audio
         if (!this.getWorld().isClient) {
             handleTorchExtinguishing();
+            handleProximitySound();
+        }
+    }
+
+    private void handleProximitySound() {
+        if (proximitySoundCooldown > 0) {
+            proximitySoundCooldown--;
+            return;
+        }
+
+        // Find nearest player
+        PlayerEntity nearestPlayer = this.getWorld().getClosestPlayer(this, 24.0);
+        if (nearestPlayer == null) return;
+
+        float distance = (float) this.distanceTo(nearestPlayer);
+
+        // Only trigger if within audio range
+        if (distance < 16.0f && this.getWorld() instanceof ServerWorld serverWorld) {
+            DreadSoundManager.playProximitySound(serverWorld, this.getBlockPos(), distance);
+            proximitySoundCooldown = PROXIMITY_SOUND_COOLDOWN;
         }
     }
 
