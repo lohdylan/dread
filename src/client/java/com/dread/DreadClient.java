@@ -1,14 +1,16 @@
 package com.dread;
 
+import com.dread.client.DreadEntityRenderer;
+import com.dread.registry.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Client-side initialization for the Dread mod.
  *
- * Entity renderer will be registered in Plan 02 (model/renderer implementation).
- * For now, entities will be invisible when spawned.
+ * Registers entity renderers for client-side rendering.
  */
 public class DreadClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("dread-client");
@@ -17,8 +19,9 @@ public class DreadClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Initializing Dread client...");
 
-        // Entity renderer registration will be added in Plan 01-02
-        // EntityRendererRegistry.register(ModEntities.DREAD, DreadRenderer::new);
+        // Register Dread entity renderer with GeckoLib
+        EntityRendererRegistry.register(ModEntities.DREAD, DreadEntityRenderer::new);
+        LOGGER.info("Registered DreadEntityRenderer with AutoGlowingGeoLayer");
 
         LOGGER.info("Dread client initialized successfully");
     }
