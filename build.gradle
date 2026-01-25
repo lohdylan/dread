@@ -20,6 +20,10 @@ repositories {
         name = 'Modrinth'
         url = 'https://api.modrinth.com/maven'
     }
+    maven {
+        name = 'Ladysnake'
+        url = 'https://maven.ladysnake.org/releases'
+    }
 }
 
 loom {
@@ -46,7 +50,7 @@ dependencies {
     modImplementation "software.bernie.geckolib:geckolib-fabric-${project.minecraft_version}:${project.geckolib_version}"
 
     // Satin API for post-processing shaders
-    modImplementation "maven.modrinth:satin:1.17.0-1.21"
+    modImplementation "io.github.ladysnake:satin:1.17.0-1.21"
 }
 
 processResources {
