@@ -35,7 +35,13 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ### Active
 
-(None yet — define for next milestone)
+**v1.1 Polish & Immersion**
+
+- [ ] Crawl pose when downed — player model in swimming/crawling position
+- [ ] Attack prevention while downed — disable player attacks in downed state
+- [ ] Scary dread texture — replace gray placeholder with horror skin
+- [ ] Intense cinematic kill — longer grab animation with camera effects
+- [ ] Real horror audio — replace silent placeholder OGGs with creepy sounds
 
 ### Out of Scope
 
@@ -47,7 +53,7 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ## Context
 
-**Current State:** v1.0 MVP shipped 2026-01-25
+**Current State:** v1.1 in progress (polish & immersion milestone)
 
 **Codebase:**
 - 2,953 lines of Java across 32 files
@@ -91,4 +97,4 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 | Shader mod detection | Prevents conflicts with Iris/OptiFine | Good |
 
 ---
-*Last updated: 2026-01-25 after v1.0 milestone*
+*Last updated: 2026-01-25 after starting v1.1 milestone*

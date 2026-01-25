@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** v1.0 complete — planning next milestone
+**Current focus:** v1.1 polish & immersion — downed mechanics, texture, cinematic, audio
 
 ## Current Position
 
-Phase: 4 of 4 (Configuration & Release Prep)
-Plan: Complete
-Status: Milestone v1.0 shipped
-Last activity: 2026-01-25 — v1.0 milestone complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v1.1
+Last activity: 2026-01-25 — Milestone v1.1 started
 
-Progress: [████████████████████] 100% (20/20 plans complete)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -59,9 +59,9 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table with outcomes ma
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: v1.0 milestone complete
+Stopped at: Starting v1.1 milestone
 Resume file: None
-Next: `/gsd:new-milestone` to start v1.1 or v2.0
+Next: Define requirements and create roadmap
 
 ## Milestone History
 
