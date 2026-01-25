@@ -63,10 +63,11 @@ Recent decisions affecting current work:
 - Proximity sound cooldown 2 seconds: Prevents audio spam while maintaining entity presence (Implemented - Phase 2)
 - Ambient interval 20s ± 10s: Creates unpredictable soundscape timing, prevents player conditioning (Implemented - Phase 2)
 - Tension calculation formula: (blocksMined * 0.01) + (worldDay * 0.02) for balanced escalation (Implemented - Phase 2)
-- 300 second revive window: Long enough for friends to reach, short enough for tension (Implemented - Phase 3)
+- 300 second revive window: Long enough for friends to reach, short enough for tension (Pending - Phase 3)
 - Spectator mode for perm death: Player can still watch friends, stays in session (Pending - Phase 3)
-- Uninterruptible revival mechanic: 3 second revival completes regardless of damage/movement (Implemented - Phase 3)
-- Revival progress not persisted: Active revivals reset on server restart, intentional design (Implemented - Phase 3)
+- Satin API from Ladysnake maven: org.ladysnake:satin:1.17.0 for post-processing shaders (Implemented - Phase 3)
+- Custom UUID PacketCodec: Manual serialization for network packets using ByteBuf long read/write (Implemented - Phase 3)
+- Placeholder audio pattern: 54-byte OGG files consistent across all sound events (Implemented - Phase 3)
 
 ### Phase 1 Completion Summary
 
@@ -125,7 +126,6 @@ None yet.
 **Phase 3 Planning:**
 - Death event ordering has edge cases with Totem of Undying and other death-modifying mods
 - Camera control for cinematic requires network synchronization across client-server
-- Satin API dependency unavailable in Maven repositories - blocking cinematic post-processing shaders
 
 **General:**
 - Placeholder textures need proper art assets for final release
@@ -164,11 +164,11 @@ Next: Continue Phase 3 - Death & Revival System
 
 | Wave | Plan | Objective | Status |
 |------|------|-----------|--------|
-| 1 | 03-01 | Death sound and placeholder audio | ✓ Complete |
+| 1 | 03-01 | Satin API, death sound, network packets | ✓ Complete |
 | 1 | 03-02 | Persistent state management for downed players | ✓ Complete |
-| 2 | 03-03 | Death event handler and transition | In Progress |
+| 2 | 03-03 | Death event handler and transition | Pending |
 | 2 | 03-04 | Revival interaction mechanics | Pending |
 | 3 | 03-05 | Spectator transition and countdown UI | Pending |
 | 4 | 03-06 | Death system validation | Pending |
 
-**Phase 3 Status:** IN PROGRESS - Persistent state management complete
+**Phase 3 Status:** IN PROGRESS - Foundation complete (Satin API, networking, persistent state)
