@@ -1,0 +1,28 @@
+{
+  "targets": [
+    "swap",
+    "previous"
+  ],
+  "passes": [
+    {
+      "name": "dread:downed_blur",
+      "intarget": "minecraft:main",
+      "outtarget": "swap",
+      "uniforms": [
+        {
+          "name": "BlurRadius",
+          "values": [8.0]
+        },
+        {
+          "name": "VignetteIntensity",
+          "values": [0.7]
+        }
+      ]
+    },
+    {
+      "name": "blit",
+      "intarget": "swap",
+      "outtarget": "minecraft:main"
+    }
+  ]
+}
