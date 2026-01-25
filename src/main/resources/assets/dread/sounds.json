@@ -15,5 +15,14 @@
   },
   "danger_rising": {
     "sounds": ["dread:danger_rising"]
+  },
+  "dread_death": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "dread:dread_death",
+        "stream": false
+      }
+    ]
   }
 }

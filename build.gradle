@@ -49,8 +49,8 @@ dependencies {
     // GeckoLib
     modImplementation "software.bernie.geckolib:geckolib-fabric-${project.minecraft_version}:${project.geckolib_version}"
 
-    // Satin API for post-processing shaders
-    modImplementation "io.github.ladysnake:satin:1.17.0-1.21"
+    // Satin API for post-processing shaders (TODO: Uncomment when needed for Phase 3 cinematic)
+    // modImplementation "org.ladysnake:satin:1.17.0"
 }
 
 processResources {

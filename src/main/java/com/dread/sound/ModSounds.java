@@ -20,6 +20,9 @@ public class ModSounds {
     // Off-putting sound as spawn probability increases
     public static final SoundEvent DANGER_RISING = registerSound("danger_rising");
 
+    // Death sequence audio when killed by Dread
+    public static final SoundEvent DREAD_DEATH = registerSound("dread_death");
+
     private static SoundEvent registerSound(String id) {
         Identifier identifier = Identifier.of(DreadMod.MOD_ID, id);
         return Registry.register(
