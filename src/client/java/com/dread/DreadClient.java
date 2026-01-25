@@ -1,8 +1,16 @@
 package com.dread;
 
+import com.dread.client.DeathCinematicClientHandler;
+import com.dread.client.DownedHudOverlay;
+import com.dread.client.DownedStateClientHandler;
 import com.dread.client.DreadEntityRenderer;
+import com.dread.network.packets.CinematicTriggerS2C;
+import com.dread.network.packets.DownedStateUpdateS2C;
+import com.dread.network.packets.RemoveDownedEffectsS2C;
+import com.dread.network.packets.RevivalProgressS2C;
 import com.dread.registry.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +31,65 @@ public class DreadClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.DREAD, DreadEntityRenderer::new);
         LOGGER.info("Registered DreadEntityRenderer with AutoGlowingGeoLayer");
 
+        // Register death cinematic handler
+        DeathCinematicClientHandler.register();
+
+        // Register downed state handlers
+        DownedStateClientHandler.register();
+        DownedHudOverlay.register();
+
+        // Register packet receivers
+        registerPacketReceivers();
+
         LOGGER.info("Dread client initialized successfully");
+    }
+
+    private void registerPacketReceivers() {
+        // Cinematic trigger packet - starts death camera lock
+        ClientPlayNetworking.registerGlobalReceiver(
+            CinematicTriggerS2C.ID,
+            (payload, context) -> {
+                context.client().execute(() -> {
+                    DeathCinematicClientHandler.startCinematic(payload);
+                });
+            }
+        );
+
+        // Downed state update packet - applies shader effects and updates timer
+        ClientPlayNetworking.registerGlobalReceiver(
+            DownedStateUpdateS2C.ID,
+            (payload, context) -> {
+                context.client().execute(() -> {
+                    if (payload.isDowned()) {
+                        DownedStateClientHandler.applyDownedEffects(payload.remainingSeconds());
+                    } else {
+                        DownedStateClientHandler.updateCountdown(payload.remainingSeconds());
+                    }
+                });
+            }
+        );
+
+        // Remove downed effects packet - cleans up shader and HUD
+        ClientPlayNetworking.registerGlobalReceiver(
+            RemoveDownedEffectsS2C.ID,
+            (payload, context) -> {
+                context.client().execute(() -> {
+                    DownedStateClientHandler.removeDownedEffects();
+                });
+            }
+        );
+
+        // Revival progress packet - for future use (shows progress bar to reviver)
+        ClientPlayNetworking.registerGlobalReceiver(
+            RevivalProgressS2C.ID,
+            (payload, context) -> {
+                context.client().execute(() -> {
+                    // TODO: Implement revival progress UI in future plan
+                    LOGGER.debug("Revival progress: {} - {}", payload.downedPlayerUUID(), payload.progress());
+                });
+            }
+        );
+
+        LOGGER.info("Registered packet receivers for death cinematics and downed state");
     }
 }

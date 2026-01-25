@@ -52,6 +52,14 @@ public class DownedStateClientHandler {
     }
 
     /**
+     * Applies the downed state shader effect with default timer.
+     * Called from death cinematic when transitioning to downed state.
+     */
+    public static void applyDownedEffects() {
+        applyDownedEffects(300); // Default 300 seconds from DOWNED_DURATION_TICKS
+    }
+
+    /**
      * Removes all downed state effects.
      * Called when RemoveDownedEffectsS2C packet is received.
      */
