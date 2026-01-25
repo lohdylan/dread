@@ -47,6 +47,9 @@ public class DreadDeathHandler {
         // Transition to downed state
         state.setDowned(player);
 
+        // Apply crawl movement penalty
+        RevivalInteractionHandler.applyMovementPenalty(player);
+
         // Trigger death cinematic
         DeathCinematicController.triggerDeathCinematic(player, dread);
 
