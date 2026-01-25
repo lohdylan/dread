@@ -25,15 +25,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **SOUND-01**: Ambient tension soundscape
 - [x] **SOUND-02**: Jump scare audio when Dread appears
-- [ ] **SOUND-03**: Death sequence audio
+- [x] **SOUND-03**: Death sequence audio
 - [x] **SOUND-04**: Sound intensity based on Dread proximity
 
 ### Death System
 
-- [ ] **DEATH-01**: Unskippable cinematic death sequence
-- [ ] **DEATH-02**: Downed state (300 seconds, blurred/dark screen)
-- [ ] **DEATH-03**: Permanent death to spectator mode if not revived
-- [ ] **DEATH-04**: Revive mechanic (friend crouches near downed player)
+- [x] **DEATH-01**: Unskippable cinematic death sequence
+- [x] **DEATH-02**: Downed state (300 seconds, blurred/dark screen)
+- [x] **DEATH-03**: Permanent death to spectator mode if not revived
+- [x] **DEATH-04**: Revive mechanic (friend crouches near downed player)
 
 ### Configuration
 
@@ -89,12 +89,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-04 | Phase 2 | Complete |
 | SOUND-01 | Phase 2 | Complete |
 | SOUND-02 | Phase 2 | Complete |
-| SOUND-03 | Phase 3 | Pending |
+| SOUND-03 | Phase 3 | Complete |
 | SOUND-04 | Phase 2 | Complete |
-| DEATH-01 | Phase 3 | Pending |
-| DEATH-02 | Phase 3 | Pending |
-| DEATH-03 | Phase 3 | Pending |
-| DEATH-04 | Phase 3 | Pending |
+| DEATH-01 | Phase 3 | Complete |
+| DEATH-02 | Phase 3 | Complete |
+| DEATH-03 | Phase 3 | Complete |
+| DEATH-04 | Phase 3 | Complete |
 | CONFIG-01 | Phase 4 | Pending |
 | CONFIG-02 | Phase 4 | Pending |
 | CONFIG-03 | Phase 4 | Pending |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-24 after Phase 2 completion*
+*Last updated: 2026-01-24 after Phase 3 completion*

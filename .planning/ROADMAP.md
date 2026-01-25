@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Entity** - Fabric mod skeleton with Dread entity model and animations
 - [x] **Phase 2: AI & Horror Experience** - Turn-around jump scares, stalking AI, and complete soundscape
-- [ ] **Phase 3: Death & Revival System** - Downed state, cinematic death, and multiplayer revival
+- [x] **Phase 3: Death & Revival System** - Downed state, cinematic death, and multiplayer revival
 - [ ] **Phase 4: Configuration & Release Prep** - User customization and final polish
 
 ## Phase Details
@@ -71,12 +71,12 @@ Plans:
 **Plans**: 6 plans in 4 waves
 
 Plans:
-- [ ] 03-01-PLAN.md — Satin API dependency, death sound, network packets
-- [ ] 03-02-PLAN.md — DownedPlayersState server-side persistence
-- [ ] 03-03-PLAN.md — Death event interception and cinematic controller
-- [ ] 03-04-PLAN.md — Downed state shaders and HUD timer
-- [ ] 03-05-PLAN.md — Revival mechanics and spectator transition
-- [ ] 03-06-PLAN.md — Human verification checkpoint
+- [x] 03-01-PLAN.md — Satin API dependency, death sound, network packets
+- [x] 03-02-PLAN.md — DownedPlayersState server-side persistence
+- [x] 03-03-PLAN.md — Death event interception and cinematic controller
+- [x] 03-04-PLAN.md — Downed state shaders and HUD timer
+- [x] 03-05-PLAN.md — Revival mechanics and spectator transition
+- [x] 03-06-PLAN.md — Human verification checkpoint
 
 ### Phase 4: Configuration & Release Prep
 **Goal**: Players can customize mod behavior and mod is release-ready with full documentation
@@ -103,7 +103,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation & Entity | 4/4 | Complete | 2026-01-24 |
 | 2. AI & Horror Experience | 6/6 | Complete | 2026-01-24 |
-| 3. Death & Revival System | 0/6 | Planned | - |
+| 3. Death & Revival System | 6/6 | Complete | 2026-01-24 |
 | 4. Configuration & Release Prep | 0/TBD | Not started | - |
 
 ---
