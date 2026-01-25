@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 4 of 4 (Configuration & Release Prep)
-Plan: 1 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-25 — Completed 04-01-PLAN.md (Configuration system)
+Last activity: 2026-01-25 — Completed 04-03-PLAN.md (Shader compatibility)
 
-Progress: [████████████████░░░░] 89% (16/18 plans complete)
+Progress: [█████████████████░░░] 94% (17/18 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: 4.2 min
-- Total execution time: 1.49 hours
+- Total plans completed: 17
+- Average duration: 4.1 min
+- Total execution time: 1.56 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████████████████░░░░] 89% (16
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
 | 02-ai-horror-experience | 6/6 | 19.6 min | 3.3 min |
 | 03-death-revival-system | 6/6 | 22.5 min | 3.8 min |
-| 04-configuration-release-prep | 1/3 | 2.1 min | 2.1 min |
+| 04-configuration-release-prep | 2/3 | 5.9 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-04 (6.4 min), 03-05 (5.0 min), 03-06 (0 min - checkpoint), 04-01 (2.1 min)
-- Trend: Phase 4 started, fast config system implementation
+- Last 5 plans: 03-05 (5.0 min), 03-06 (0 min - checkpoint), 04-01 (2.1 min), 04-03 (3.8 min)
+- Trend: Phase 4 progressing, compatibility implementation complete
 
 *Updated after each plan completion*
 
@@ -83,6 +83,9 @@ Recent decisions affecting current work:
 - Validation clamps values to safe ranges: Invalid config values auto-corrected without crashing mod (Implemented - Phase 4)
 - Auto-save after validation: Persists clamped values back to file so user sees corrections (Implemented - Phase 4)
 - Config loads first in onInitialize(): Ensures all features have access to config values (Implemented - Phase 4)
+- Iris/OptiFine detection via FabricLoader: isModLoaded("iris") and isModLoaded("optifabric") for runtime shader compatibility (Implemented - Phase 4)
+- Config override precedence: disableDownedEffects=true forces post-processing off regardless of shader mod detection (Implemented - Phase 4)
+- HUD vs shader separation: Countdown timer remains visible when shaders disabled for compatibility (Implemented - Phase 4)
 
 ### Phase 1 Completion Summary
 
@@ -149,9 +152,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-25 (current session)
-Stopped at: Completed 04-01-PLAN.md (Config system complete)
+Stopped at: Completed 04-03-PLAN.md (Shader compatibility complete)
 Resume file: None
-Next: Continue Phase 4 - Config integration and release prep
+Next: Phase 4 nearly complete - one plan remaining (04-04 release validation)
 
 ## Phase 1 Results
 
@@ -193,8 +196,9 @@ Next: Continue Phase 4 - Config integration and release prep
 | Wave | Plan | Objective | Status |
 |------|------|-----------|--------|
 | 1 | 04-01 | GSON-based config with validation and persistence | ✓ Complete |
+| 2 | 04-03 | Shader mod compatibility detection and fallback | ✓ Complete |
 
-**Phase 4 Status:** IN PROGRESS - 1 of 3 plans complete
+**Phase 4 Status:** IN PROGRESS - 2 of 3 plans complete
 
 ### Phase 3 Completion Summary
 
