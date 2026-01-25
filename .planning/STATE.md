@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 3 of 4 (Death & Revival System)
-Plan: 3 of 6 in current phase
+Plan: 4 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 03-03-PLAN.md (Death event interception and cinematic)
+Last activity: 2026-01-24 — Completed 03-04-PLAN.md (Downed state visual effects)
 
-Progress: [█████████████░░░░░░░] 67% (12/18 plans complete)
+Progress: [█████████████░░░░░░░] 72% (13/18 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 4.4 min
-- Total execution time: 1.23 hours
+- Total plans completed: 13
+- Average duration: 4.5 min
+- Total execution time: 1.34 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [█████████████░░░░░░░] 67% (12
 |-------|-------|-------|----------|
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
 | 02-ai-horror-experience | 6/6 | 19.6 min | 3.3 min |
-| 03-death-revival-system | 3/6 | 11.1 min | 3.7 min |
+| 03-death-revival-system | 4/6 | 17.5 min | 4.4 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-05 (2.3 min), 02-06 (0 min - checkpoint), 03-02 (6.0 min), 03-03 (5.1 min)
-- Trend: Phase 3 maintaining steady pace, 3-6 min per plan
+- Last 5 plans: 02-06 (0 min - checkpoint), 03-02 (6.0 min), 03-03 (5.1 min), 03-04 (6.4 min)
+- Trend: Phase 3 maintaining steady pace, 5-6 min per plan
 
 *Updated after each plan completion*
 
@@ -71,6 +71,9 @@ Recent decisions affecting current work:
 - ALLOW_DEATH event pattern: Return false to cancel vanilla death, set health to 1.0f to prevent next-tick death (Implemented - Phase 3)
 - 4.5 second cinematic duration: 90 ticks for jump scare impact without disrupting gameplay flow (Implemented - Phase 3)
 - Face-to-face teleport calculation: Player rotation vector * 1.5 blocks for cinematic Dread positioning (Implemented - Phase 3)
+- Gaussian blur radius 8.0: Heavy blur creates claustrophobic near-blind downed vision (Implemented - Phase 3)
+- Vignette intensity 0.7: Darkens screen edges for tunnel vision effect during downed state (Implemented - Phase 3)
+- Timer color interpolation yellow-to-red: Visual urgency increases as countdown approaches zero (Implemented - Phase 3)
 
 ### Phase 1 Completion Summary
 
@@ -137,9 +140,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24 (current session)
-Stopped at: Completed 03-03-PLAN.md (Death event interception and cinematic)
+Stopped at: Completed 03-04-PLAN.md (Downed state visual effects)
 Resume file: None
-Next: Continue Phase 3 - Death & Revival System (Plan 03-04: Revival interaction mechanics)
+Next: Continue Phase 3 - Death & Revival System (Plan 03-05: Revival mechanics and spectator transition)
 
 ## Phase 1 Results
 
@@ -170,8 +173,8 @@ Next: Continue Phase 3 - Death & Revival System (Plan 03-04: Revival interaction
 | 1 | 03-01 | Satin API, death sound, network packets | ✓ Complete |
 | 1 | 03-02 | Persistent state management for downed players | ✓ Complete |
 | 2 | 03-03 | Death event handler and transition | ✓ Complete |
-| 2 | 03-04 | Revival interaction mechanics | Pending |
-| 3 | 03-05 | Spectator transition and countdown UI | Pending |
+| 2 | 03-04 | Downed state shaders and HUD | ✓ Complete |
+| 3 | 03-05 | Revival mechanics and spectator transition | Pending |
 | 4 | 03-06 | Death system validation | Pending |
 
-**Phase 3 Status:** IN PROGRESS - Core death mechanics complete (event interception, cinematic, state management)
+**Phase 3 Status:** IN PROGRESS - Downed state fully implemented (event, cinematic, shaders, HUD, state management)
