@@ -1,14 +1,17 @@
 package com.dread.entity;
 
 import com.dread.DreadMod;
+import com.dread.config.DreadConfigLoader;
 import com.dread.entity.ai.StareStandoffGoal;
 import com.dread.entity.ai.VanishGoal;
 import com.dread.sound.DreadSoundManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -85,6 +88,26 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
 
         // Target players
         this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+    }
+
+    @Override
+    public boolean tryAttack(Entity target) {
+        var config = DreadConfigLoader.getConfig();
+
+        // Skip attack if mod disabled
+        if (!config.modEnabled) {
+            return false;
+        }
+
+        // Apply configured damage
+        float damage = config.dreadAttackDamage;
+
+        if (target instanceof LivingEntity living) {
+            living.damage(this.getDamageSources().mobAttack(this), damage);
+            return true;
+        }
+
+        return super.tryAttack(target);
     }
 
     @Override
