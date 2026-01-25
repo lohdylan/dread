@@ -1,554 +1,831 @@
-# Architecture Patterns: Fabric 1.21.x Horror Mod
+# Architecture Integration: v1.1 Enhancements
 
-**Domain:** Minecraft Horror Mod (Fabric 1.21.x)
-**Researched:** 2026-01-23
-**Confidence:** MEDIUM (official docs verified, specific horror patterns from ecosystem survey)
+**Project:** Dread Entity Mod
+**Milestone:** v1.1 Polish & Immersion Features
+**Researched:** 2026-01-25
+**Confidence:** HIGH
 
-## Recommended Architecture
+## Executive Summary
 
-Fabric mods follow a modular, event-driven architecture with strict client/server separation. For a horror mod like Dread, the architecture consists of five core systems that communicate through Fabric's networking and event APIs.
+v1.1 enhancements integrate cleanly with existing Dread architecture through well-established extension points. All five features use standard Forge/GeckoLib patterns:
 
+1. **Crawl pose** → Entity pose system + client-side rendering
+2. **Attack prevention** → Event cancellation in existing handlers
+3. **Dread texture** → GeckoLib texture override (file replacement)
+4. **Cinematic enhancement** → Extend existing client timer system
+5. **Audio replacement** → OGG file swap (no code changes)
+
+**Key finding:** Most work is additive (new event handlers, extended timers) rather than modification of existing systems. Only one existing file needs substantial changes (DownedStateClientHandler for pose).
+
+---
+
+## Existing Architecture Overview
+
+### Server-Side Components
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     FABRIC MOD LOADER                        │
-└─────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┴─────────────────────┐
-        │                                           │
-   ┌────▼────┐                                 ┌────▼────┐
-   │ SERVER  │◄────── Networking ──────────────┤ CLIENT  │
-   │  SIDE   │        (Packets)                │  SIDE   │
-   └────┬────┘                                 └────┬────┘
-        │                                           │
-   ┌────▼────────────────────┐          ┌──────────▼─────────────┐
-   │ Entity System           │          │ Rendering System       │
-   │ - Dread Entity          │          │ - Entity Renderer      │
-   │ - AI Goals/Pathfinding  │          │ - HUD Overlays         │
-   │ - Spawn Logic           │          │ - Screen Effects       │
-   │ - Attack Logic          │          │ - Cinematic Sequence   │
-   └─────────────────────────┘          └────────────────────────┘
+DreadEntity.java
+├─ GeckoLib animated entity
+├─ AI goals for behavior
+└─ Form variant system (already supports multiple forms)
 
-   ┌─────────────────────────┐          ┌────────────────────────┐
-   │ Game State System       │          │ Audio System           │
-   │ - Player State Manager  │          │ - Sound Events         │
-   │ - Downed State Logic    │          │ - Ambient Sounds       │
-   │ - Revive Mechanics      │          │ - Jump Scare Audio     │
-   │ - Spawn Ticker          │          │ - Spatial Audio        │
-   └─────────────────────────┘          └────────────────────────┘
-```
+DeathCinematicController.java
+├─ Triggers on player death event
+├─ Teleports Dread face-to-face
+└─ Server-authoritative positioning
 
-### Component Boundaries
+DownedPlayersState.java
+├─ Persistent map of downed players
+├─ World-saved state
+└─ Tracks respawn eligibility
 
-| Component | Responsibility | Communicates With | Side |
-|-----------|---------------|-------------------|------|
-| **Entity System** | Custom Dread entity with AI, pathfinding, attack behavior | Game State (spawn checks), Audio (triggers), Client (via tracking) | Server |
-| **Game State System** | Player state tracking, downed state, revive timer, spawn ticker | Entity System (spawn events), Networking (state sync), Client (HUD data) | Server |
-| **Audio System** | Sound registration, playback control, spatial audio | Game State (events), Client (playback), Entity System (entity sounds) | Both |
-| **Rendering System** | Entity visuals, HUD overlays, screen effects, cinematic | Audio (synchronized playback), Networking (state data) | Client |
-| **Networking System** | Client/server state synchronization | All systems (as bridge) | Both |
-
-### Data Flow
-
-**Spawn Flow (Server → Client):**
-```
-1. Game State System ticks spawn probability
-2. Spawn check passes → Entity System creates Dread entity
-3. Entity spawns behind player (server-side positioning)
-4. Entity tracking automatically syncs to client
-5. Client receives entity data → Rendering System displays entity
-6. Audio System plays tension/jump scare sounds
+RevivalInteractionHandler.java
+├─ Handles teammate revival
+└─ Movement speed modifier during revival
 ```
 
-**Kill Flow (Server → Client):**
+### Client-Side Components
 ```
-1. Dread entity attacks player (server-side)
-2. Game State System transitions player to "downed" state
-3. Custom packet sent to client with state data
-4. Client Rendering System triggers cinematic sequence
-5. Audio System plays death sounds (synchronized)
-6. HUD updates to show downed timer and blur effect
-7. Server starts 300-second countdown
-```
+DreadEntityModel.java
+├─ GeoModel implementation
+├─ Returns geometry resource
+└─ getTextureResource() → selects texture by form variant
 
-**Revive Flow (Client → Server → All Clients):**
-```
-1. Player crouches near downed player (client input)
-2. Client sends revive request packet to server
-3. Server validates proximity and state
-4. Game State System removes downed state
-5. Server broadcasts state change to all clients
-6. All clients update rendering (remove effects)
-```
+DreadEntityRenderer.java
+├─ GeoEntityRenderer
+└─ AutoGlowingGeoLayer for glowing eyes
 
-## Standard Fabric Project Structure
+DeathCinematicClientHandler.java
+├─ 90-tick timer (4.5 seconds)
+├─ Camera switches to Dread entity
+└─ Client-side rendering state
 
-Based on official Fabric documentation, the recommended structure for this mod:
-
-```
-dread-mod/
-├── src/
-│   ├── main/
-│   │   ├── java/com/example/dread/
-│   │   │   ├── DreadMod.java              # ModInitializer (common init)
-│   │   │   ├── entity/
-│   │   │   │   ├── DreadEntity.java       # Custom entity class
-│   │   │   │   └── DreadEntityAI.java     # AI goals and behaviors
-│   │   │   ├── state/
-│   │   │   │   ├── PlayerStateManager.java # Downed state logic
-│   │   │   │   ├── SpawnTickerManager.java # Spawn probability system
-│   │   │   │   └── DownedPlayerComponent.java # Cardinal Components API
-│   │   │   ├── network/
-│   │   │   │   ├── DreadNetworking.java   # Packet registration
-│   │   │   │   └── payloads/
-│   │   │   │       ├── DownedStatePayload.java
-│   │   │   │       └── RevivePayload.java
-│   │   │   ├── sound/
-│   │   │   │   └── DreadSounds.java       # Sound event registration
-│   │   │   └── mixin/
-│   │   │       └── ServerPlayerMixin.java # Player state hooks
-│   │   └── resources/
-│   │       ├── fabric.mod.json             # Mod metadata
-│   │       ├── dread.mixins.json          # Mixin configuration
-│   │       └── assets/dread/
-│   │           ├── sounds.json             # Sound definitions
-│   │           ├── sounds/
-│   │           │   ├── ambient_tension.ogg
-│   │           │   ├── jumpscare.ogg
-│   │           │   └── death_sequence.ogg
-│   │           ├── textures/entity/
-│   │           │   └── dread.png
-│   │           └── models/entity/
-│   │               └── dread.json
-│   └── client/
-│       ├── java/com/example/dread/client/
-│       │   ├── DreadClientMod.java         # ClientModInitializer
-│       │   ├── render/
-│       │   │   ├── DreadEntityRenderer.java
-│       │   │   ├── DreadEntityModel.java
-│       │   │   └── CinematicRenderer.java  # Death sequence rendering
-│       │   ├── hud/
-│       │   │   └── DownedStateHud.java     # Timer + blur overlay
-│       │   └── mixin/
-│       │       └── GameRendererMixin.java  # Screen shake/effects
-│       └── resources/
-│           └── assets/dread/
-│               └── shaders/                # Post-processing effects
-│                   └── blur.json
-└── gradle/                                  # Build configuration
+DownedStateClientHandler.java
+├─ Blur shader application
+├─ Vignette effects
+└─ Client visual feedback
 ```
 
-## Patterns to Follow
+### Resources
+```
+assets/dread/
+├─ models/entity/dread.geo.json (GeckoLib geometry)
+├─ animations/entity/dread.animation.json (GeckoLib animations)
+├─ textures/entity/
+│   ├─ dread_base.png
+│   ├─ dread_variant2.png
+│   └─ dread_variant3.png
+└─ sounds.json (sound event definitions)
 
-### Pattern 1: Client/Server Separation
-**What:** Strictly separate client-only code from server/common code using Fabric's dual entrypoint system.
+assets/dread/sounds/
+└─ [placeholder OGG files]
+```
 
-**When:** Always. Mixing client and server code causes crashes on dedicated servers.
+---
 
-**Example:**
+## v1.1 Feature Integration
+
+### 1. Crawl Pose for Downed Players
+
+**Implementation Location:** `DownedStateClientHandler.java` (modify) + new server-side handler
+
+**Architecture Pattern:**
+```
+Server-side:
+PlayerTickEvent handler
+├─ Check if player is downed (query DownedPlayersState)
+├─ Call player.setPose(Pose.SWIMMING)
+└─ Auto-syncs to client via SynchedEntityData
+
+Client-side (DownedStateClientHandler):
+├─ RenderPlayerEvent.Pre handler (NEW)
+├─ Modify player model rotation if downed
+└─ Apply crawl-specific rendering adjustments
+```
+
+**Key Technical Details:**
+
+- **Pose.SWIMMING** is Minecraft's built-in crawl pose (used for 1-block-high spaces)
+- **`setPose()` synchronizes automatically** via Forge's `SynchedEntityData` system (no custom packets needed)
+- **Server authoritative:** Server sets pose, clients render it
+- Player hitbox automatically shrinks to 0.6 blocks high (vanilla behavior)
+
+**Code Changes Required:**
+
+1. **New file:** `DownedPoseHandler.java` (server-side)
+   - Subscribe to `TickEvent.ServerTickEvent` or `LivingEvent.LivingTickEvent`
+   - Check `DownedPlayersState` for downed players
+   - Apply `player.setPose(Pose.SWIMMING)` while downed
+   - Reset to `Pose.STANDING` on revival/respawn
+
+2. **Modify:** `DownedStateClientHandler.java`
+   - Add `@SubscribeEvent` for `RenderPlayerEvent.Pre`
+   - Adjust camera angle/model rotation for crawl pose
+   - Coordinate with existing blur/vignette effects
+
+**Sources:**
+- [SetPose implementation - Forge Forums](https://forums.minecraftforge.net/topic/83874-setpose-implementation/)
+- [Forge entity synchronization docs](https://docs.minecraftforge.net/en/latest/networking/entities/)
+- [Pose JavaDocs (1.18.2)](https://nekoyue.github.io/ForgeJavaDocs-NG/javadoc/1.18.2/net/minecraft/world/entity/Pose.html)
+
+---
+
+### 2. Attack Prevention for Downed Players
+
+**Implementation Location:** New event handler class `DownedPlayerProtectionHandler.java`
+
+**Architecture Pattern:**
+```
+Event-driven protection:
+LivingAttackEvent (Forge event bus)
+├─ Check if victim is downed player
+├─ event.setCanceled(true) if downed
+└─ Optionally play feedback sound/particles
+```
+
+**Integration Points:**
+
+- **Query existing state:** `DownedPlayersState.isPlayerDowned(player)`
+- **Event precedence:** HIGHEST priority to override other mods
+- **Server-side only:** Register handler without `Dist.CLIENT` restriction
+
+**Code Changes Required:**
+
+1. **New file:** `DownedPlayerProtectionHandler.java`
+   ```java
+   @Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE)
+   public class DownedPlayerProtectionHandler {
+       @SubscribeEvent(priority = EventPriority.HIGHEST)
+       public static void onLivingAttack(LivingAttackEvent event) {
+           if (event.getEntity() instanceof Player player) {
+               if (DownedPlayersState.isPlayerDowned(player)) {
+                   event.setCanceled(true);
+                   // Optional: Play "invulnerable" sound
+               }
+           }
+       }
+   }
+   ```
+
+2. **Alternative approach:** Use `LivingHurtEvent` instead
+   - Fired later in damage pipeline
+   - Allows damage calculation but prevents actual hurt
+   - Choice depends on desired feedback (knockback vs no reaction)
+
+**Edge Cases to Handle:**
+- Void damage (allow fall death to prevent softlock)
+- /kill command (bypass protection for admin intervention)
+- Environmental damage during revival (fire, lava)
+
+**Sources:**
+- [LivingAttackEvent JavaDocs](https://skmedix.github.io/ForgeJavaDocs/javadoc/forge/1.9.4-12.17.0.2051/net/minecraftforge/event/entity/living/LivingAttackEvent.html)
+- [LivingHurtEvent code examples](https://www.tabnine.com/code/java/classes/net.minecraftforge.event.entity.living.LivingHurtEvent)
+- [Event cancellation patterns](https://gist.github.com/Bricktricker/9ecec23188a2fcd0e54e817be8ce8d8d)
+
+---
+
+### 3. Dread Texture Replacement
+
+**Implementation Location:** `assets/dread/textures/entity/` (resource files only)
+
+**Architecture Pattern:**
+```
+GeckoLib texture system:
+DreadEntityModel.getTextureResource()
+├─ Already returns ResourceLocation based on form variant
+├─ Points to texture files in assets/
+└─ NO CODE CHANGES NEEDED for file replacement
+
+File replacement:
+assets/dread/textures/entity/
+├─ dread_base.png → Replace with new texture
+├─ dread_variant2.png → Replace with new texture
+└─ dread_variant3.png → Replace with new texture
+```
+
+**Integration Details:**
+
+- **Existing system:** `DreadEntityModel.getTextureResource()` already selects textures by form
+- **No code modifications:** Texture paths are hardcoded ResourceLocations
+- **Drop-in replacement:** New PNG files with same names override placeholders
+- **Variant support:** Multiple forms already supported in existing architecture
+
+**Process:**
+
+1. Export new textures from Blockbench/art tool
+2. Ensure same dimensions as current textures (GeckoLib doesn't require power-of-2)
+3. Replace files in `assets/dread/textures/entity/`
+4. Test in-game to verify all form variants display correctly
+
+**Advanced: Runtime Texture Swapping (Optional Enhancement):**
+
+If future features need dynamic texture changes beyond form variants:
+
 ```java
-// src/main/java - Common/Server code
-public class DreadMod implements ModInitializer {
-    @Override
-    public void onInitialize() {
-        // Register entity, sounds, networking
-        DreadEntity.register();
-        DreadSounds.register();
-        DreadNetworking.register();
+// In DreadEntityModel.java
+@Override
+public ResourceLocation getTextureResource(DreadEntity entity) {
+    // Now receives renderer parameter in GeckoLib 4.7.3+
+    if (entity.isEnraged()) {
+        return ENRAGED_TEXTURE;
+    } else if (entity.getFormVariant() == 2) {
+        return VARIANT2_TEXTURE;
     }
-}
-
-// src/client/java - Client-only code
-public class DreadClientMod implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
-        // Register renderers, HUD elements
-        EntityRendererRegistry.register(DreadEntity.TYPE, DreadEntityRenderer::new);
-        HudRenderCallback.EVENT.register(new DownedStateHud());
-    }
-}
-```
-
-### Pattern 2: Event-Driven State Management
-**What:** Use Fabric's event callbacks for lifecycle hooks rather than polling or mixins when events exist.
-
-**When:** State changes, tick events, rendering callbacks, networking events.
-
-**Example:**
-```java
-// Register server tick event for spawn ticker
-ServerTickEvents.END_SERVER_TICK.register(server -> {
-    SpawnTickerManager.tick(server);
-});
-
-// Register HUD rendering (deprecated in 1.21.6+, use HudElementRegistry)
-HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-    if (PlayerStateManager.isPlayerDowned(client.player)) {
-        renderDownedOverlay(drawContext);
-    }
-});
-```
-
-### Pattern 3: Cardinal Components for Player State
-**What:** Use Cardinal Components API (Fabric's recommended component system) to attach custom data to players.
-
-**When:** Need to store custom state (downed status, timer) that persists and syncs automatically.
-
-**Example:**
-```java
-public class DownedPlayerComponent implements Component {
-    private boolean isDowned = false;
-    private int downedTicksRemaining = 0;
-
-    @Override
-    public void writeToNbt(NbtCompound tag) {
-        tag.putBoolean("downed", isDowned);
-        tag.putInt("downedTicks", downedTicksRemaining);
-    }
-
-    @Override
-    public void readFromNbt(NbtCompound tag) {
-        isDowned = tag.getBoolean("downed");
-        downedTicksRemaining = tag.getInt("downedTicks");
-    }
-}
-```
-
-### Pattern 4: Custom Packets for State Synchronization
-**What:** Define typed payloads using Java Records implementing `CustomPacketPayload` for client/server communication.
-
-**When:** Syncing game state that doesn't fit vanilla tracking (downed state, revive events).
-
-**Example:**
-```java
-public record DownedStatePayload(UUID playerId, int ticksRemaining)
-    implements CustomPacketPayload {
-
-    public static final Identifier ID = Identifier.of("dread", "downed_state");
-    public static final PacketCodec<ByteBuf, DownedStatePayload> CODEC =
-        PacketCodec.tuple(
-            Uuids.PACKET_CODEC, DownedStatePayload::playerId,
-            PacketCodecs.INTEGER, DownedStatePayload::ticksRemaining,
-            DownedStatePayload::new
-        );
-
-    @Override
-    public Id<? extends CustomPacketPayload> getId() {
-        return new Id<>(ID);
-    }
-}
-
-// Registration
-PayloadTypeRegistry.playS2C().register(
-    new PayloadType<>(DownedStatePayload.ID, DownedStatePayload.CODEC)
-);
-```
-
-### Pattern 5: Entity AI Using Goals
-**What:** Extend `PathAwareEntity` and use Minecraft's goal system for AI behaviors.
-
-**When:** Creating custom mobs with complex behaviors (stalking, attacking, pathfinding).
-
-**Example:**
-```java
-public class DreadEntity extends PathAwareEntity {
-    @Override
-    protected void initGoals() {
-        this.goalSelector.add(1, new SwimGoal(this));
-        this.goalSelector.add(2, new StalkPlayerGoal(this));  // Custom goal
-        this.goalSelector.add(3, new JumpScareAttackGoal(this));  // Custom goal
-        this.goalSelector.add(4, new WanderAroundGoal(this, 0.8));
-    }
-
-    public static DefaultAttributeContainer.Builder createAttributes() {
-        return MobEntity.createMobAttributes()
-            .add(EntityAttributes.GENERIC_MAX_HEALTH, 100.0)
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.3);
-    }
+    return BASE_TEXTURE;
 }
 ```
 
-### Pattern 6: Mixin for Unavoidable Hooks
-**What:** Use Spongepowered Mixins to inject code into vanilla classes when no event exists.
+**Sources:**
+- [GeckoLib texture variants discussion](https://mcreator.net/forum/95047/texture-variants-geckolib-entity)
+- [GeckoLib 4.7.3 changelog - getTextureResource receives renderer](https://modrinth.com/mod/geckolib/version/4.7.3)
+- [GeckoLib animated textures wiki](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib4))
 
-**When:** Need to hook player death, game mode switching, or other vanilla behavior without events.
+---
 
-**Example:**
+### 4. Intense Cinematic Enhancement
+
+**Implementation Location:** `DeathCinematicClientHandler.java` (modify)
+
+**Architecture Pattern:**
+```
+Existing system:
+DeathCinematicClientHandler
+├─ 90-tick timer (4.5 seconds)
+├─ Minecraft.getInstance().setCameraEntity(dreadEntity)
+└─ Resets camera after timer expires
+
+Enhanced system:
+DeathCinematicClientHandler (extended)
+├─ Longer timer (120-180 ticks = 6-9 seconds)
+├─ Camera effects (shake, lerp, zoom)
+├─ Post-processing shader intensification
+└─ Coordinate with Dread animation triggers
+```
+
+**Code Changes Required:**
+
+1. **Modify:** `DeathCinematicClientHandler.java`
+   - Increase `CINEMATIC_DURATION` from 90 to 120-180 ticks
+   - Add camera manipulation during cinematic:
+     ```java
+     @SubscribeEvent
+     public static void onClientTick(TickEvent.ClientTickEvent event) {
+         if (cinematicTicks > 0) {
+             cinematicTicks--;
+
+             // NEW: Camera effects
+             if (cinematicTicks > 100) {
+                 // Zoom phase
+                 applyFOVTransition(90f, 60f); // Zoom in
+             } else if (cinematicTicks > 80) {
+                 // Shake phase
+                 applyCameraShake(0.05f);
+             }
+
+             // Existing: Camera entity positioning
+             Minecraft.getInstance().setCameraEntity(dreadEntity);
+
+             // Reset at end (existing logic)
+             if (cinematicTicks == 0) {
+                 Minecraft.getInstance().setCameraEntity(player);
+             }
+         }
+     }
+     ```
+
+2. **New helper methods:**
+   - `applyFOVTransition(float from, float to)` - Smooth FOV changes
+   - `applyCameraShake(float intensity)` - Small random offsets
+   - Consider using RenderTickEvent for smoother transitions (60+ FPS vs 20 TPS)
+
+3. **Coordinate with DownedStateClientHandler:**
+   - Intensify blur/vignette during cinematic
+   - Gradual fade-in rather than instant application
+
+**Camera Manipulation Techniques:**
+
+- **FOV changes:** Modify `GameRenderer.fov` during RenderTickEvent
+- **Position offsets:** Small `camera.setPos()` adjustments for shake
+- **Third-person distance:** Modify camera distance attribute for pull-back effect
+
+**Limitations:**
+- Client-side only (cosmetic, no gameplay impact)
+- Must handle edge cases (player quits during cinematic, server disconnect)
+- Smooth camera mods may interfere (test compatibility)
+
+**Sources:**
+- [CMDCam smooth camera transitions](https://www.curseforge.com/minecraft/mc-mods/cmdcam)
+- [CameraLerp mod - smooth FOV](https://www.9minecraft.net/cameralerp-mod/)
+- [Bedrock Edition camera command (reference)](https://minecraft.wiki/w/Commands/camera)
+
+---
+
+### 5. Real Audio Replacement
+
+**Implementation Location:** `assets/dread/sounds/` (resource files only)
+
+**Architecture Pattern:**
+```
+Forge sound system:
+ModSounds.java (existing)
+├─ Registers SoundEvents
+└─ References sounds.json entries
+
+assets/dread/sounds.json
+├─ Maps sound event IDs to file paths
+└─ Points to OGG files in assets/dread/sounds/
+
+File replacement:
+assets/dread/sounds/
+├─ Replace placeholder OGG files
+└─ NO CODE CHANGES NEEDED
+```
+
+**Integration Details:**
+
+- **Zero code changes required** - sound file paths are in sounds.json
+- **Format requirement:** Ogg Vorbis (.ogg) only
+- **Mono vs Stereo:**
+  - **Mono** (1 channel): Required for positional audio with distance attenuation
+  - **Stereo** (2 channels): Always plays at player's head (no distance falloff)
+- **Streaming:** For long audio (music, ambient), set `"stream": true` in sounds.json
+
+**Process:**
+
+1. **Export audio as Ogg Vorbis:**
+   - Use Audacity: File → Export → Export as OGG
+   - Use ffmpeg: `ffmpeg -i input.mp3 -c:a libvorbis output.ogg`
+   - Ensure mono channel for positional sounds (Dread growl, jumpscare)
+
+2. **Replace files:**
+   ```
+   assets/dread/sounds/
+   ├─ dread_ambient.ogg → Replace
+   ├─ dread_jumpscare.ogg → Replace
+   ├─ dread_growl.ogg → Replace
+   └─ [any other registered sounds]
+   ```
+
+3. **Verify sounds.json references:**
+   ```json
+   {
+     "dread_jumpscare": {
+       "subtitle": "dread.subtitle.jumpscare",
+       "sounds": [ "dread:dread_jumpscare" ]
+     }
+   }
+   ```
+   - `"dread:dread_jumpscare"` resolves to `assets/dread/sounds/dread_jumpscare.ogg`
+
+4. **Test in-game:** Trigger sound events to verify playback
+
+**Advanced Configuration (Optional):**
+
+- **Volume/pitch variation:**
+  ```json
+  "sounds": [
+    {
+      "name": "dread:dread_jumpscare",
+      "volume": 1.0,
+      "pitch": 1.0
+    }
+  ]
+  ```
+- **Multiple variants:** Array of sound files for random selection
+- **Attenuation distance:** Controlled by SoundEvent type (not in sounds.json)
+
+**Sources:**
+- [Forge sounds documentation](https://docs.minecraftforge.net/en/latest/gameeffects/sounds/)
+- [Forge Community Wiki - Sounds](https://forge.gemwire.uk/wiki/Sounds)
+- [Ogg Vorbis format requirement](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/modification-development/2735552-is-it-possible-to-use-sound-files-aside-from-ogg)
+
+---
+
+## Component Modification Summary
+
+| Component | Modification Type | Changes Required |
+|-----------|------------------|------------------|
+| **DownedStateClientHandler.java** | MODIFY | Add RenderPlayerEvent handler for crawl pose rendering |
+| **DeathCinematicClientHandler.java** | EXTEND | Add camera effects, increase timer duration |
+| **DownedPoseHandler.java** | NEW | Server-side pose management for downed players |
+| **DownedPlayerProtectionHandler.java** | NEW | Event handler to cancel attacks on downed players |
+| **assets/dread/textures/entity/*.png** | REPLACE | Drop-in texture replacements (no code changes) |
+| **assets/dread/sounds/*.ogg** | REPLACE | Drop-in audio replacements (no code changes) |
+
+**Files NOT Modified:**
+- `DreadEntity.java` - No changes (existing AI/behavior sufficient)
+- `DreadEntityModel.java` - No changes (texture system already supports variants)
+- `DreadEntityRenderer.java` - No changes (rendering layer already correct)
+- `DeathCinematicController.java` - No changes (server logic unchanged)
+- `DownedPlayersState.java` - No changes (state management sufficient)
+- `RevivalInteractionHandler.java` - No changes (revival mechanics unchanged)
+- `ModSounds.java` - No changes (sound events already registered)
+
+---
+
+## Data Flow Diagrams
+
+### Crawl Pose Flow
+```
+Server Tick
+    ↓
+DownedPoseHandler checks DownedPlayersState
+    ↓
+player.setPose(Pose.SWIMMING)
+    ↓
+SynchedEntityData auto-syncs to client
+    ↓
+Client renders player in crawl pose
+    ↓
+DownedStateClientHandler.RenderPlayerEvent adjusts rotation
+```
+
+### Attack Prevention Flow
+```
+Entity takes damage
+    ↓
+LivingAttackEvent fired (Forge event bus)
+    ↓
+DownedPlayerProtectionHandler checks victim
+    ↓
+Is victim downed? → Query DownedPlayersState
+    ↓
+YES: event.setCanceled(true) → No damage
+NO: Event proceeds → Normal damage
+```
+
+### Cinematic Enhancement Flow
+```
+Player dies to Dread
+    ↓
+DeathCinematicController (server) teleports Dread
+    ↓
+Network packet → Client
+    ↓
+DeathCinematicClientHandler starts timer (120 ticks)
+    ↓
+Every tick:
+    - Set camera to Dread entity
+    - Apply FOV/shake effects
+    - Intensify blur/vignette
+    ↓
+Timer expires → Reset camera to player
+```
+
+### Texture/Audio Flow
+```
+Resource pack load
+    ↓
+GeckoLib reads assets/dread/textures/entity/*.png
+    ↓
+DreadEntityModel.getTextureResource() returns ResourceLocation
+    ↓
+Renderer applies texture to model
+
+Sound event triggered
+    ↓
+Forge reads assets/dread/sounds.json
+    ↓
+Resolves to assets/dread/sounds/*.ogg
+    ↓
+OpenAL plays audio (mono = positional, stereo = centered)
+```
+
+---
+
+## Event Registration Architecture
+
+### Existing Event Registration (Assume Already Present)
 ```java
-@Mixin(ServerPlayerEntity.class)
-public class ServerPlayerMixin {
-    @Inject(method = "onDeath", at = @At("HEAD"), cancellable = true)
-    private void onPlayerDeath(DamageSource source, CallbackInfo ci) {
-        if (source.getAttacker() instanceof DreadEntity) {
-            // Transition to downed state instead of death
-            PlayerStateManager.setDowned((ServerPlayerEntity)(Object)this);
-            ci.cancel();  // Prevent vanilla death
-        }
+// Likely in mod main class or dedicated event registrar
+MinecraftForge.EVENT_BUS.register(DeathCinematicController.class);
+MinecraftForge.EVENT_BUS.register(RevivalInteractionHandler.class);
+// etc.
+```
+
+### New Event Registrations Required
+
+**Client-Side Only:**
+```java
+@Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE, value = Dist.CLIENT)
+public class DownedStateClientHandler {
+    // Existing blur/vignette handling
+
+    @SubscribeEvent
+    public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
+        // NEW: Crawl pose rendering adjustments
+    }
+
+    @SubscribeEvent
+    public static void onRenderTick(TickEvent.RenderTickEvent event) {
+        // NEW: Cinematic camera effects
     }
 }
 ```
 
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Client Code in Common Classes
-**What:** Importing client-only classes (like `MinecraftClient`) in common/server code.
-
-**Why bad:** Crashes dedicated servers with ClassNotFoundException because client classes don't exist on server JARs.
-
-**Instead:** Use Fabric's `@Environment(EnvType.CLIENT)` or separate source sets entirely.
-
-**Example:**
+**Server-Side Only:**
 ```java
-// BAD - Will crash servers
-public class DreadMod implements ModInitializer {
-    public void onInitialize() {
-        MinecraftClient.getInstance().player.sendMessage(...);  // CRASH!
+@Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE)
+public class DownedPoseHandler {
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        // Manage downed player poses
     }
 }
 
-// GOOD - Client code in client source set
-// src/client/java
-public class DreadClientMod implements ClientModInitializer {
-    public void onInitializeClient() {
-        MinecraftClient.getInstance();  // Safe, only loaded on client
+@Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE)
+public class DownedPlayerProtectionHandler {
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onLivingAttack(LivingAttackEvent event) {
+        // Cancel attacks on downed players
     }
 }
 ```
 
-### Anti-Pattern 2: Trusting Client Data
-**What:** Accepting client packets without server-side validation.
+**Why Dist.CLIENT Matters:**
+- Client-only events (RenderPlayerEvent, RenderTickEvent) crash dedicated servers if registered
+- Server-only logic (pose management, attack prevention) wastes resources on client
+- `@Mod.EventBusSubscriber(value = Dist.CLIENT)` ensures class only loads on physical client
 
-**Why bad:** Players can send malicious packets (instant revive, teleport to downed player from across map).
+**Sources:**
+- [Forge events documentation](https://docs.minecraftforge.net/en/latest/concepts/events/)
+- [Client-side event registration](https://forums.minecraftforge.net/topic/104094-1171-registering-client-sided-event-handler/)
+- [EventBusSubscriber with Dist](https://forge.gemwire.uk/wiki/Events)
 
-**Instead:** Always validate on server: check proximity, state validity, cooldowns.
+---
 
-**Example:**
-```java
-// BAD - No validation
-ServerPlayNetworking.registerGlobalReceiver(RevivePayload.ID, (payload, context) -> {
-    PlayerStateManager.revivePlayer(payload.targetId());  // Exploitable!
-});
+## Build Order & Dependencies
 
-// GOOD - Validate everything
-ServerPlayNetworking.registerGlobalReceiver(RevivePayload.ID, (payload, context) -> {
-    ServerPlayerEntity reviver = context.player();
-    ServerPlayerEntity target = server.getPlayerManager().getPlayer(payload.targetId());
+### Phase 1: Audio/Texture Replacement (No Code)
+**Why first:** Zero code changes, immediate visual/audio upgrade
 
-    if (target == null || !PlayerStateManager.isDowned(target)) return;
-    if (reviver.squaredDistanceTo(target) > 9.0) return;  // 3 block radius
-    if (!reviver.isSneaking()) return;
+1. Replace texture PNGs in `assets/dread/textures/entity/`
+2. Replace OGG files in `assets/dread/sounds/`
+3. Test in-game to verify resources load correctly
+4. **Deliverable:** Dread looks and sounds final
 
-    PlayerStateManager.revivePlayer(target);  // Safe
-});
+**Dependencies:** None (resource-only)
+
+---
+
+### Phase 2: Attack Prevention (Simple Event Handler)
+**Why second:** Simplest code change, critical gameplay protection
+
+1. Create `DownedPlayerProtectionHandler.java`
+2. Implement `LivingAttackEvent` handler with cancellation logic
+3. Register event subscriber (add `@Mod.EventBusSubscriber`)
+4. Test: Verify downed players cannot be damaged
+5. **Deliverable:** Downed players are invulnerable
+
+**Dependencies:**
+- Existing `DownedPlayersState` (already present)
+- Forge event bus (core Forge)
+
+---
+
+### Phase 3: Crawl Pose (Moderate Complexity)
+**Why third:** Requires both server and client changes
+
+1. Create `DownedPoseHandler.java` (server-side)
+   - Implement `TickEvent.ServerTickEvent` handler
+   - Query `DownedPlayersState` and apply `setPose(Pose.SWIMMING)`
+
+2. Modify `DownedStateClientHandler.java` (client-side)
+   - Add `RenderPlayerEvent.Pre` handler
+   - Adjust camera/model rotation for crawl pose
+
+3. Test: Verify downed players render in crawl pose
+4. **Deliverable:** Downed players visually crawl on ground
+
+**Dependencies:**
+- Forge entity pose system (vanilla Minecraft)
+- `SynchedEntityData` auto-sync (Forge)
+- Existing `DownedStateClientHandler` visual effects
+
+---
+
+### Phase 4: Cinematic Enhancement (Complex, Camera Manipulation)
+**Why fourth:** Most complex, requires careful testing
+
+1. Modify `DeathCinematicClientHandler.java`
+   - Increase `CINEMATIC_DURATION` constant
+   - Add camera shake logic in tick handler
+   - Add FOV transition logic
+   - Intensify blur/vignette during cinematic
+
+2. Add helper methods:
+   - `applyFOVTransition(float from, float to)`
+   - `applyCameraShake(float intensity)`
+
+3. Test: Verify smooth camera effects without motion sickness
+4. Iterate on timing/intensity based on playtesting
+5. **Deliverable:** Cinematic death sequence is intense and polished
+
+**Dependencies:**
+- Existing `DeathCinematicClientHandler` timer system
+- `DownedStateClientHandler` blur/vignette effects
+- Client-side camera manipulation APIs
+
+---
+
+### Dependency Graph
+```
+Audio/Texture Replacement (Phase 1)
+    ↓
+    [Independent, no code dependencies]
+
+Attack Prevention (Phase 2)
+    ↓
+    Depends on: DownedPlayersState (existing)
+
+Crawl Pose (Phase 3)
+    ↓
+    Depends on: DownedPlayersState (existing)
+    Builds on: DownedStateClientHandler (existing)
+
+Cinematic Enhancement (Phase 4)
+    ↓
+    Depends on: DeathCinematicClientHandler (existing)
+    Enhances: DownedStateClientHandler effects (existing)
+    Can reference: Crawl pose rendering (Phase 3)
 ```
 
-### Anti-Pattern 3: Manual Entity Tracking
-**What:** Manually sending entity spawn packets to clients.
+**No circular dependencies.** Each phase can be tested independently before proceeding to the next.
 
-**Why bad:** Fabric/Minecraft handles entity tracking automatically based on view distance.
+---
 
-**Instead:** Just spawn the entity server-side. Tracking syncs it to nearby clients automatically.
+## Architecture Patterns & Anti-Patterns
 
-**Example:**
-```java
-// BAD - Unnecessary manual sync
-DreadEntity dread = new DreadEntity(world);
-world.spawnEntity(dread);
-// Then manually sending custom packets to clients... NO!
+### Pattern 1: Event-Driven State Changes
+**What:** Use Forge event bus for all state changes (pose, protection, cinematic)
+**Why:** Decouples features from core entity logic, allows easy enable/disable via config
+**Example:** `DownedPlayerProtectionHandler` cancels damage via `LivingAttackEvent` rather than modifying `DreadEntity` attack code
 
-// GOOD - Let Minecraft handle it
-DreadEntity dread = new DreadEntity(EntityType.DREAD, world);
-dread.setPosition(x, y, z);
-world.spawnEntity(dread);  // Tracking handles client sync automatically
-```
+### Pattern 2: Client-Server Separation
+**What:** Server manages authoritative state, client handles rendering/effects
+**Why:** Prevents cheating, reduces network traffic, follows Minecraft's architecture
+**Example:** Server sets `Pose.SWIMMING`, `SynchedEntityData` syncs automatically, client renders
 
-### Anti-Pattern 4: Polling Instead of Events
-**What:** Checking conditions every tick in a loop instead of using event callbacks.
+### Pattern 3: Resource-Driven Content
+**What:** Textures/audio as drop-in replacements, not hardcoded in Java
+**Why:** Enables resource packs, easier iteration, no recompilation for art changes
+**Example:** Replace `dread_base.png` file, no code changes needed
 
-**Why bad:** Performance overhead, harder to maintain, misses edge cases.
+### Anti-Pattern 1: Mixing Rendering and Logic
+**What:** DON'T put game logic in client-side event handlers
+**Why:** Client can be modified (cheating), server won't see changes, desync issues
+**Example:** ❌ Don't check if player is downed in `RenderPlayerEvent` and apply effects from there
+**Instead:** ✅ Server sets pose via `DownedPoseHandler`, client renders existing pose
 
-**Instead:** Use Fabric's event system or entity goals for behavior.
+### Anti-Pattern 2: Hardcoded Resource Paths
+**What:** DON'T build file paths with string concatenation in code
+**Why:** Breaks resource pack overrides, difficult to maintain
+**Example:** ❌ `new ResourceLocation("dread", "textures/entity/dread_" + variant + ".png")`
+**Instead:** ✅ Use constants: `private static final ResourceLocation VARIANT2_TEXTURE = new ResourceLocation("dread", "textures/entity/dread_variant2.png");`
 
-**Example:**
-```java
-// BAD - Polling every tick
-ServerTickEvents.END_SERVER_TICK.register(server -> {
-    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-        if (/* check if player should be attacked */) {
-            // Attack logic
-        }
-    }
-});
+### Anti-Pattern 3: Tick-Heavy Operations
+**What:** DON'T perform expensive calculations every tick (20 times/second)
+**Why:** Performance impact, especially on servers with many players
+**Example:** ❌ Iterating all players every tick to check downed state
+**Instead:** ✅ Event-driven: Only check player when `LivingAttackEvent` fires
 
-// GOOD - Entity AI handles it
-public class JumpScareAttackGoal extends Goal {
-    @Override
-    public boolean canStart() {
-        PlayerEntity target = this.mob.world.getClosestPlayer(this.mob, 3.0);
-        return target != null && canJumpScare(target);
-    }
+---
 
-    @Override
-    public void tick() {
-        executeJumpScare();
-    }
-}
-```
+## Scalability Considerations
 
-### Anti-Pattern 5: Hardcoded Sound Paths
-**What:** Playing sounds using string literals scattered throughout code.
+### At 10 Players (Typical Server)
+- **Pose management:** Negligible overhead (only downed players, typically 0-1)
+- **Attack prevention:** Event-based, only fires on actual attacks
+- **Cinematic:** Client-side only, no server impact
+- **Textures/audio:** Loaded once at startup, no runtime cost
 
-**Why bad:** Typos cause silent failures, hard to maintain, no compile-time safety.
+**Performance:** Excellent
 
-**Instead:** Register `SoundEvent` constants and reference them.
+### At 100 Players (Large Server)
+- **Pose management:** Still negligible (max 100 checks per tick, only if all downed)
+- **Attack prevention:** Scales linearly with PvP frequency, typically low
+- **Cinematic:** Client-side, no server overhead
+- **Network traffic:** `setPose()` sync is minimal (1 byte per pose change)
 
-**Example:**
-```java
-// BAD
-world.playSound(null, pos, Identifier.of("dread", "jumpscare"), ...);  // Typo risk
+**Performance:** Good
+**Optimization:** Consider caching downed player list rather than querying map every tick
 
-// GOOD
-public class DreadSounds {
-    public static final SoundEvent JUMPSCARE = register("jumpscare");
-    public static final SoundEvent AMBIENT = register("ambient_tension");
+### At 1000 Players (Massive Server)
+- **Pose management:** Potential bottleneck if many players downed simultaneously
+- **Mitigation:** Batch pose updates, use `WorldTickEvent` instead of `ServerTickEvent`
+- **Attack prevention:** Still event-driven, scales with actual attacks not player count
+- **Cinematic:** Client-side, unaffected by server population
 
-    private static SoundEvent register(String id) {
-        Identifier identifier = Identifier.of("dread", id);
-        return Registry.register(BuiltInRegistries.SOUND_EVENT, identifier,
-            SoundEvent.createVariableRangeEvent(identifier));
-    }
-}
+**Performance:** Acceptable with optimizations
+**Critical optimization:** Only iterate downed players (maintained list) rather than all players
 
-// Usage
-world.playSound(null, pos, DreadSounds.JUMPSCARE, ...);  // Type-safe
-```
+---
 
-## Build Order and Dependencies
+## Testing Checkpoints
 
-Based on component dependencies, recommended implementation order:
+### Crawl Pose Testing
+- [ ] Downed player renders in crawl pose (0.6 blocks tall)
+- [ ] Pose persists while downed, even after re-logging
+- [ ] Pose resets to standing on revival
+- [ ] Pose resets on respawn after death
+- [ ] Multiplayer: Other players see downed player crawling
+- [ ] Camera angle is appropriate (not clipping through ground)
 
-### Phase 1: Foundation (No Dependencies)
-1. **Project Structure** - Set up Fabric mod skeleton with proper source sets
-2. **Networking System** - Define payload types and registration (needed by all systems)
-3. **Sound System** - Register sound events and create placeholder audio files
+### Attack Prevention Testing
+- [ ] Downed player takes no damage from mobs
+- [ ] Downed player takes no damage from other players (PvP)
+- [ ] Downed player can still die to void damage (anti-softlock)
+- [ ] Admin /kill command bypasses protection (server management)
+- [ ] Damage sounds/particles don't play (clean feedback)
+- [ ] Protection ends immediately on revival
 
-**Why first:** These are foundational. Other systems depend on networking and sounds.
+### Cinematic Testing
+- [ ] Camera switches to Dread entity on death
+- [ ] Camera effects are smooth (no jarring jumps)
+- [ ] FOV transition feels cinematic (not nauseating)
+- [ ] Camera shake is subtle (not disorienting)
+- [ ] Timer duration feels appropriate (not too long/short)
+- [ ] Camera resets to player correctly after cinematic
+- [ ] Works in multiplayer (client-side only, no interference)
+- [ ] Handles edge case: Player quits during cinematic (no crash)
 
-### Phase 2: Entity System (Depends on: Foundation)
-4. **Entity Class** - Create `DreadEntity` extending `PathAwareEntity`
-5. **Entity Registration** - Register entity type, attributes, spawn egg (optional)
-6. **Client Renderer** - Model, texture, and renderer (client-side)
+### Texture/Audio Testing
+- [ ] All Dread texture variants display correctly
+- [ ] Textures have correct resolution (no stretching/blurring)
+- [ ] Animated texture frames play at correct speed (if applicable)
+- [ ] Sounds play at correct volume
+- [ ] Positional audio has correct attenuation (distance falloff)
+- [ ] Sounds don't overlap/cut off incorrectly
+- [ ] Subtitles display correctly (if configured)
 
-**Why second:** Entity is the core mechanic. Once visible, you can test rendering and movement.
+---
 
-### Phase 3: Game State (Depends on: Entity, Networking)
-7. **Player State Component** - Cardinal Components API for downed state
-8. **Downed State Logic** - Server-side state transitions (death → downed → spectator)
-9. **Spawn Ticker** - Probability system that increases over time
+## Confidence Assessment
 
-**Why third:** Requires entity to exist (for kill events) and networking (for state sync).
+| Feature | Confidence | Reasoning |
+|---------|-----------|-----------|
+| **Crawl Pose** | HIGH | Standard Forge pose system, well-documented, many mods use SWIMMING pose for crawling |
+| **Attack Prevention** | HIGH | Event cancellation is core Forge pattern, extensively documented |
+| **Texture Replacement** | HIGH | GeckoLib texture system already supports variants, drop-in replacement confirmed |
+| **Audio Replacement** | HIGH | Forge sound system explicitly designed for OGG file replacement |
+| **Cinematic Enhancement** | MEDIUM | Camera manipulation is well-known, but smooth effects require iteration/playtesting |
 
-### Phase 4: Client Rendering (Depends on: Game State, Networking)
-10. **HUD Overlays** - Downed state timer, blur effect
-11. **Screen Effects** - Post-processing shaders for blur/darkness
-12. **Cinematic Sequence** - Camera control and synchronized rendering
+**Overall Project Confidence:** HIGH
 
-**Why fourth:** Needs game state data from server to know what to render.
+**Risks:**
+- **Cinematic camera effects:** May require tuning based on playtesting feedback (motion sickness concerns)
+- **Multiplayer edge cases:** Pose/cinematic behavior when players join mid-death sequence (low probability, mitigable)
+- **Mod compatibility:** Other mods that modify player rendering/pose may conflict (consider compatibility testing)
 
-### Phase 5: AI and Behavior (Depends on: Entity, Game State)
-13. **Custom AI Goals** - Stalking behavior, jump scare positioning
-14. **Attack Logic** - Trigger downed state on successful attack
-15. **Spawn Logic Integration** - Connect spawn ticker to entity spawning
+---
 
-**Why fifth:** Entity must exist, game state must handle transitions. AI brings it all together.
+## Open Questions & Future Considerations
 
-### Phase 6: Revive System (Depends on: All Above)
-16. **Revive Detection** - Server-side proximity and crouch detection
-17. **Revive Networking** - Client request, server validation, broadcast
-18. **Multiplayer Testing** - Ensure state syncs correctly across clients
+### Optional Enhancements (Post-v1.1)
+1. **Configurable cinematic duration:** Allow players to adjust timer length via config file
+2. **Sound variation:** Multiple OGG files for same event (random selection per trigger)
+3. **Texture animation:** GeckoLib supports animated textures (UV scrolling, frame-based)
+4. **Camera path system:** Bezier curve camera movement instead of static position
+5. **Revival UI improvement:** Integrate crawl pose with HUD display (show nearby teammates)
 
-**Why last:** Most complex system, depends on everything else working correctly.
+### Compatibility Considerations
+- **PlayerAnimator mod:** May override pose system, test compatibility
+- **Smooth camera mods:** May interfere with cinematic effects, document known issues
+- **Resource packs:** Ensure texture/audio overrides work correctly with modpack distributions
 
-## Multiplayer Synchronization Strategy
+### Performance Profiling Targets
+- Tick time impact of `DownedPoseHandler` (target: <0.01ms per tick)
+- Memory footprint of cinematic timer (target: <1KB per active cinematic)
+- Network bandwidth for pose synchronization (target: <10 bytes per pose change)
 
-For a horror mod with critical timing (jump scares, death sequences), synchronization is essential.
-
-### What Needs Syncing
-
-| Data | Sync Method | Direction | Frequency |
-|------|-------------|-----------|-----------|
-| Dread entity position/rotation | Automatic tracking | Server → Client | Every tick (in view distance) |
-| Player downed state | Custom packet | Server → All Clients | On state change |
-| Downed timer | Custom packet | Server → Client | Every 20 ticks (1 second) |
-| Revive request | Custom packet | Client → Server | On crouch input |
-| Spawn ticker value | No sync needed | Server only | N/A |
-| Jump scare trigger | Entity attack event | Server → Client | On attack |
-| Cinematic playback | Custom packet | Server → Client | On kill |
-
-### Synchronization Patterns
-
-**State Change Pattern:**
-```
-1. Server changes player state (downed = true)
-2. Server sends DownedStatePayload to all tracking clients
-3. Clients receive packet, update local state cache
-4. Client rendering system queries cache, shows HUD
-```
-
-**Timer Update Pattern:**
-```
-1. Server ticks downed timer (every tick)
-2. Every 20 ticks (1 second), send updated value to affected client
-3. Client interpolates display to smooth out network jitter
-```
-
-**Client Action Pattern:**
-```
-1. Client detects input (crouch near downed player)
-2. Client sends RevivePayload to server
-3. Server validates request (proximity, state, cooldown)
-4. If valid: Server updates state, broadcasts to all clients
-5. If invalid: Server ignores (no response = failed)
-```
-
-### Desync Prevention
-
-Common desync scenarios and solutions:
-
-| Scenario | Problem | Solution |
-|----------|---------|----------|
-| Client disconnects while downed | State lost on rejoin | Use Cardinal Components with NBT serialization |
-| Packet loss during revive | Client thinks they're revived but aren't | Server is authoritative; client must wait for confirmation packet |
-| Cinematic interrupted by lag | Sequence desyncs from audio | Use server tick count as timeline reference, client interpolates |
-| Entity spawns behind player | Client renders before turn | Server sends spawn packet with initial rotation aligned to player view |
-
-## Performance Considerations
-
-Horror mods have unique performance requirements (jump scares can't lag).
-
-| System | Performance Strategy | Rationale |
-|--------|---------------------|-----------|
-| **Entity Spawning** | Limit to 1 Dread entity per player max | Prevents spawn spam, reduces AI load |
-| **AI Goals** | Use cached target searches (every 10 ticks, not every tick) | Pathfinding is expensive, stalking doesn't need tick-perfect precision |
-| **Audio System** | Preload jump scare sounds during tension phase | Prevents disk I/O lag during critical moment |
-| **Cinematic Rendering** | Use interpolated camera movements, not per-tick calculations | Smooth 60fps playback even on 20 TPS server |
-| **HUD Overlays** | Only render when player is downed | Avoid rendering overhead for non-downed players |
-| **Networking** | Batch state updates (1 packet/second for timer) | Reduce network bandwidth, 1-second precision is sufficient |
+---
 
 ## Sources
 
-**HIGH CONFIDENCE (Official Documentation):**
-- [Project Structure - Fabric Documentation](https://docs.fabricmc.net/develop/getting-started/project-structure)
-- [Networking - Fabric Documentation](https://docs.fabricmc.net/develop/networking)
-- [Creating an Entity - Fabric Wiki](https://wiki.fabricmc.net/tutorial:entity)
-- [Creating Custom Sounds - Fabric Documentation](https://docs.fabricmc.net/develop/sounds/custom)
-- [Mixin Injects - Fabric Wiki](https://wiki.fabricmc.net/tutorial:mixin_injects)
-- [Rendering in the HUD - Fabric Documentation](https://docs.fabricmc.net/develop/rendering/hud)
+**Minecraft Forge Documentation:**
+- [Events - Forge Documentation](https://docs.minecraftforge.net/en/latest/concepts/events/)
+- [Sounds - Forge Documentation](https://docs.minecraftforge.net/en/latest/gameeffects/sounds/)
+- [Synchronizing Entities - Forge Documentation](https://docs.minecraftforge.net/en/latest/networking/entities/)
+- [Sounds - Forge Community Wiki](https://forge.gemwire.uk/wiki/Sounds)
+- [Events - Forge Community Wiki](https://forge.gemwire.uk/wiki/Events)
 
-**MEDIUM CONFIDENCE (Official APIs with examples):**
-- [Registry Synchronization - FabricMC DeepWiki](https://deepwiki.com/FabricMC/fabric/4-registry-synchronization)
-- [Event Index - Fabric Wiki](https://fabricmc.net/wiki/tutorial:event_index)
-- [SmartBrainLib - Advanced AI System](https://www.curseforge.com/minecraft/mc-mods/smartbrainlib)
+**GeckoLib Documentation:**
+- [GeckoLib Wiki - Custom Entity](https://github.com/bernie-g/geckolib/wiki/Custom-GeckoLib-Entity)
+- [GeckoLib Wiki - Animated Textures (Geckolib4)](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib4))
+- [GeckoLib Wiki - Render Layers (Geckolib5)](https://github.com/bernie-g/geckolib/wiki/Render-Layers-(Geckolib5))
+- [GeckoLib Changelog](https://modrinth.com/mod/geckolib/changelog)
 
-**LOW CONFIDENCE (Community patterns, unverified for 1.21.x):**
-- Horror mod ecosystem survey from CurseForge (design patterns, not technical architecture)
-- Community mods for spectator mode handling (implementation-specific)
+**Minecraft Official:**
+- [Shader - Minecraft Wiki](https://minecraft.wiki/w/Shader)
+- [Attribute - Minecraft Wiki](https://minecraft.wiki/w/Attribute)
+- [Third Person View - Minecraft Wiki](https://minecraft.wiki/w/Third-person_view)
+
+**Community Resources:**
+- [Not Enough Animations - CurseForge](https://www.curseforge.com/minecraft/mc-mods/not-enough-animations) (crawl animation reference)
+- [playerAnimator - CurseForge](https://www.curseforge.com/minecraft/mc-mods/playeranimator) (player animation library)
+- [LivingAttackEvent JavaDocs](https://skmedix.github.io/ForgeJavaDocs/javadoc/forge/1.9.4-12.17.0.2051/net/minecraftforge/event/entity/living/LivingAttackEvent.html)
+- [Pose JavaDocs (1.18.2)](https://nekoyue.github.io/ForgeJavaDocs-NG/javadoc/1.18.2/net/minecraft/world/entity/Pose.html)
+- [SetPose implementation - Forge Forums](https://forums.minecraftforge.net/topic/83874-setpose-implementation/)
+
+**LOW Confidence (WebSearch-only):**
+- Camera manipulation specifics (requires direct testing)
+- GeckoLib 5 API changes (recent version, may have undocumented features)

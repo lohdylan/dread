@@ -1,379 +1,335 @@
 # Project Research Summary
 
-**Project:** Dread - Minecraft Horror Mod
-**Domain:** Fabric 1.21.x Minecraft Modding
-**Researched:** 2026-01-23
+**Project:** Dread Horror Mod v1.1 Polish & Immersion
+**Domain:** Minecraft Horror Mod Enhancement (Fabric 1.21.1)
+**Researched:** 2026-01-25
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Minecraft horror mods are a mature domain with well-established patterns for creating sustained psychological dread. The most successful mods (Cave Dweller Reimagined, From The Fog, The Obsessed) prioritize intelligent stalking AI and atmospheric tension-building over cheap jump scares. Dread's planned approach—turn-around jump scares with Cthulhu-inspired entity, mining activity triggers, and unskippable death cinematics—aligns well with proven horror mechanics while offering unique differentiators.
+The Dread v1.1 enhancements add critical polish to an existing horror mod through five focused improvements: crawl pose when downed, attack prevention while downed, scary dread texture, intense cinematic kill, and real horror audio. Research reveals these features integrate cleanly with the existing v1.0 architecture through well-established Fabric API extension points, requiring **zero new runtime dependencies**. The existing stack (Minecraft 1.21.1, Fabric Loader 0.18.2, Fabric API, GeckoLib 4.7.1, Satin API 1.17.0) already provides all necessary capabilities. Development shifts from technology acquisition to asset creation workflows using Blockbench for textures and Audacity for audio.
 
-The recommended technical stack is modern Fabric 1.21.11 with GeckoLib for complex entity animations, Cardinal Components API for multiplayer state synchronization, and vanilla sound systems for positional audio. This is a HIGH confidence recommendation based on official Fabric documentation and verified horror mod references. Critical warning: Minecraft 1.21.11 is the last obfuscated version—Yarn mappings will not be available after this release, requiring migration to Mojang Mappings for future versions.
+The recommended approach prioritizes **asset creation first** (textures and audio file replacements require zero code changes), followed by **simple event handlers** (attack prevention), then **moderate complexity features** (crawl pose with client-server sync), and finally **complex cinematic enhancements** (camera effects with accessibility concerns). This sequencing enables early visual/audio wins while deferring integration complexity. Most work is additive through new event handlers rather than modifying existing systems.
 
-Key risks center on multiplayer synchronization (client-server side confusion, packet validation, state persistence) and performance (entity memory leaks, sound channel limits, animation overhead). These pitfalls have well-documented solutions but require strict adherence to Fabric architectural patterns from day one. The horror genre amplifies the impact of technical bugs—entity despawning mid-scare or audio cutting out destroys immersion instantly. Prioritize bug-free core mechanics over feature count.
+Key risks center on **client-server synchronization** for crawl pose (multiplayer desync can cause position rubberbanding and immersion breaks), **sound channel saturation** when adding v1.1 audio on top of v1.0's existing system (Minecraft's ~28 channel limit), and **GeckoLib animation conflicts** between pose overrides and existing entity animations. Mitigation requires integrating with v1.0's proven client-server separation patterns, extending the existing sound priority system rather than bypassing it, and coordinating animation controllers from day one.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Fabric 1.21.11 provides a modern, lightweight modding platform with recent API rewrites (networking payloads, data components) that streamline development. The ecosystem has matured significantly since 1.20.5, with standard patterns for all core horror mod requirements.
+**No runtime dependency changes required.** All v1.1 enhancements leverage existing Fabric API capabilities: crawl pose uses Entity API's `setPose(EntityPose.SWIMMING)`, attack prevention uses `ServerLivingEntityEvents.ALLOW_DAMAGE`, texture improvements are PNG file replacements in the existing GeckoLib resource structure, camera shake can optionally use fabric-camera-shake library, and audio replacement is standard OGG Vorbis file swapping in the existing sound system.
 
-**Core technologies:**
-- **Fabric 1.21.11 + API 0.139.4**: Modern APIs with payload-based networking (1.20.5+ rewrite), HudElementRegistry for screen effects (replacing deprecated HudRenderCallback), and superior performance vs Forge
-- **GeckoLib 8.x**: Industry standard for complex 3D entity animations with concurrent animation support, sound/particle keyframes, and Blockbench integration—essential for multi-state horror creature
-- **Cardinal Components API 7.3.0+**: Automatic entity/world data persistence with save/sync/tick handling—critical for multiplayer downed/revive state that vanilla data components don't support
-- **Java 21**: Required for Minecraft 1.20.5+, full JDK needed for compilation and debugging
-- **Blockbench**: Model and animation creation with GeckoLib export capability
+**Core technologies (unchanged from v1.0):**
+- **Minecraft 1.21.1**: Target version with stable Fabric support
+- **Fabric API (latest for 1.21.1)**: Provides all necessary event callbacks and entity manipulation APIs
+- **GeckoLib 4.7.1**: Existing entity animation system supports texture variants through file replacement
+- **Satin API 1.17.0**: Existing shader compatibility for visual effects remains unchanged
 
-**Critical version warning:** 1.21.11 is the last Yarn-mapped version. Plan migration to Mojang Mappings if targeting post-1.21.11 versions.
+**Development tools (new for v1.1 asset creation):**
+- **Blockbench (latest 2026)**: Industry standard for Minecraft entity textures with direct 3D painting, eliminates UV misalignment — free, open-source, no alternatives needed
+- **Audacity 3.x+**: Professional audio editing with native OGG Vorbis mono export for Minecraft's positional audio requirements — GPL, free
+- **fabric-camera-shake (optional)**: Library for cinematic screen shake with multi-mod compatibility — evaluate during implementation if shake fits horror tone
+
+**Asset sources:**
+- Royalty-free horror audio from Pixabay (CC0) or Mixkit (no attribution), processed in Audacity for pitch shift, reverb, distortion
+- Audio format requirements: OGG Vorbis, mono channel (critical for directional sound), 44100 Hz sample rate, quality 5-7 (~160-192 kbps)
 
 ### Expected Features
 
-Horror mod success hinges on balancing psychological dread with playability. Jump scares are expected but must feel earned, not cheap.
+Research identified clear table stakes (features users expect without which v1.1 feels incomplete) versus differentiators (features that elevate from working to terrifying).
 
 **Must have (table stakes):**
-- **Unique horror entity with distinctive design** — Core threat must be recognizable and unsettling (Cthulhu-inspired for Dread)
-- **Stalking AI behavior** — Entity actively hunts player, spawns out of FOV, exhibits intelligent movement patterns
-- **Atmospheric sound design** — Tension music, ambient echoes, proximity-based audio intensity that signals danger without spoiling surprise
-- **Darkness/light mechanics** — Horror leverages darkness, entities extinguish torches/light sources, shadows as tactical element
-- **Jump scare moments** — Well-timed scares as tension release after buildup (not constant spam)
-- **Spawn progression** — Threat escalates over game days to prevent overwhelming new players while building dread
-- **Configuration options** — Spawn rates, damage, difficulty customizable (players have different fear tolerances)
+- **Prone/crawling pose during downed state**: Visual feedback for game state change — Dead by Daylight established 240-second bleed-out with slow crawl as genre standard; visual state must match mechanical state
+- **Input blocking during death cinematic**: Prevents immersion break — players expect control loss during death sequence; continuing to attack during own death breaks horror
+- **Non-default Dread appearance**: Visual identity distinct from vanilla mobs — baseline for custom entity, must evoke cosmic horror theme
+- **Death cinematic audio**: Synchronized sound for 4.5-second sequence — silent death is immersion break, needs kill sound/scream
+- **Dread presence audio**: Entity awareness cue — breathing, footsteps, or ambient sound indicating Dread is near
 
-**Should have (competitive differentiators):**
-- **Turn-around jump scare mechanic** — Dread's core value prop; entity spawns when player turns around (requires precise timing)
-- **Unskippable death cinematic** — Forces player to experience consequence (5-10 seconds max, must be visually compelling)
-- **Multi-phase stalking system** — Unpredictable escalation prevents pattern recognition that kills fear
-- **Base-centric tension** — Entity knows where you live, makes "safe spaces" feel vulnerable
-- **Mining activity trigger** — Turns safe activity dangerous, creates tension during core gameplay loop
-- **Multiplayer downed/revive system** — Cooperative mechanic that maintains fear even with friends
+**Should have (high-value differentiators):**
+- **Emissive texture elements**: Glowing eyes/runes visible in darkness — prevents invisibility frustration while signaling otherworldly nature (cosmic horror identity)
+- **Ambient soundscape**: Background drones/atmosphere — professional audio feel, transforms from "working" to "terrifying"
+- **Proximity-based audio intensity**: Sounds intensify as Dread approaches — escalating tension, creates dread before visual spawn
 
-**Defer (v2+):**
-- **ARG-inspired storytelling** — Environmental messages, sign manipulation, meta-horror elements (nice polish but not core scare loop)
-- **Multiple entity forms/variants** — Single terrifying form sufficient for MVP; variants add complexity without proportional value
-- **Advanced fake-out behaviors** — Turn-around mechanic already creates surprise; fake-outs are polish
-- **Environmental manipulation** — Entity building structures or moving blocks not aligned with Dread's theme (more Herobrine-style)
+**Defer to post-v1.1:**
+- **Animated textures**: Requires shader research, high complexity for replayability benefit not critical for v1.1
+- **Multiple camera angles**: Increases scope significantly, better to nail fundamentals first
+- **Blood trail visuals**: Nice-to-have environmental storytelling, not essential for horror impact
+- **Dynamic crawl speed based on recovery**: Mechanical complexity, minor gameplay benefit
 
 ### Architecture Approach
 
-Fabric mods follow modular, event-driven architecture with strict client/server separation. For multiplayer horror with critical timing, synchronization architecture is paramount.
+v1.1 enhancements integrate through well-established extension points in the existing v1.0 architecture. Most work is **additive** (new event handlers, extended client timers) rather than modification of existing systems. Only one existing file needs substantial changes: `DownedStateClientHandler.java` for pose rendering adjustments.
 
 **Major components:**
-1. **Entity System (Server)** — Custom Dread entity with AI goals (stalking, positioning, attack), pathfinding, spawn logic. Communicates spawn events to clients via automatic entity tracking
-2. **Game State System (Server)** — Player state manager for downed status, revive timers, death counters, spawn ticker with probability curves. Uses Cardinal Components for automatic save/sync
-3. **Networking System (Both)** — Custom packet payloads (Java Records) for state synchronization: downed state updates, revive requests, cinematic triggers. Server validates all client requests
-4. **Rendering System (Client)** — Entity renderer with GeckoLib model, HUD overlays for downed state (timer, blur effect), cinematic camera control, screen effects
-5. **Audio System (Both)** — Sound event registration, spatial 3D audio playback, priority management to prevent channel exhaustion during jump scares
+1. **Crawl pose system** — Server-side `DownedPoseHandler.java` applies `setPose(EntityPose.SWIMMING)` while downed (auto-syncs via `SynchedEntityData`); client-side extends `DownedStateClientHandler.java` with `RenderPlayerEvent.Pre` handler for visual adjustments
+2. **Attack prevention** — New `DownedPlayerProtectionHandler.java` cancels `LivingAttackEvent` with HIGHEST priority when victim is downed; server-authoritative with no client modifications needed
+3. **Texture/audio replacement** — Zero code changes; drop-in PNG replacements in `assets/dread/textures/entity/` and OGG replacements in `assets/dread/sounds/` leverage existing GeckoLib texture system and Forge sound registration
+4. **Cinematic enhancement** — Extend existing `DeathCinematicClientHandler.java` timer from 90 to 120-180 ticks, add camera effects (FOV transition, subtle shake) during tick handler; coordinate with existing blur/vignette effects
 
-**Data flow patterns:**
-- **Spawn:** Server spawn ticker → Entity creation → Automatic tracking sync → Client rendering + audio
-- **Kill:** Server attack → Game state transition (downed) → S2C packet → Client cinematic trigger + HUD + audio sync
-- **Revive:** Client input → C2S packet → Server validation (proximity, state) → State update → S2C broadcast → All clients update rendering
-
-**Critical architectural rules:**
-- Server is authoritative—all game logic server-side, clients only render
-- Never exchange data directly between logical sides—always use packets
-- Validate all client packets server-side (range, state, permissions)
-- Use Cardinal Components for persistent state with automatic NBT serialization
-- Implement entity cleanup in `remove()` to prevent memory leaks
+**Key architectural patterns:**
+- **Event-driven state changes**: Use Forge event bus for all state changes (pose, protection, cinematic) to decouple features from core entity logic
+- **Client-server separation**: Server manages authoritative state, client handles rendering/effects to prevent cheating and reduce network traffic
+- **Resource-driven content**: Textures/audio as drop-in replacements enables resource pack support and easier iteration without recompilation
 
 ### Critical Pitfalls
 
-Based on documented Fabric mod failures and horror-specific requirements, these pitfalls can cause catastrophic failures or rewrites.
+**Top 5 from PITFALLS.md that directly threaten v1.1 success:**
 
-1. **Client-Server Side Confusion** — Mixing client and server code causes `ClassNotFoundException` crashes on dedicated servers and multiplayer desync. Prevention: Strict source set separation, use packets for all communication, server is authoritative for all game logic.
+1. **Client-Server Animation Desync (Crawl Pose)** — Forcing pose on client without packet-based synchronization causes position desync, rubberbanding, and multiplayer glitches where other players see wrong positions. **Prevention:** Use Fabric's networking API to sync pose state changes, track pose in both logical client AND server, send C2S and S2C packets, verify server acknowledgment before applying visual effects. **Test:** Dedicated server with 2+ clients, not just singleplayer integrated server.
 
-2. **Missing Packet Validation** — Trusting client data allows exploits (remote revives, teleporting while downed). Prevention: Validate entity existence, range-check distances, verify player permissions on server before applying effects.
+2. **Sound Channel Saturation (v1.1 Audio Expansion)** — Adding cinematic and ambient sounds on top of v1.0 exceeds Minecraft's ~28 channel limit, causing critical entity sounds to be dropped. **Prevention:** Extend v1.0's existing sound priority system (Priority 1: jump scares, Priority 2: cinematic audio, Priority 3: entity sounds, Priority 4: ambient), stop looping sounds when switching states, implement sound pooling (max 1 cinematic, max 2 ambient loops). **Test:** Multiple Dread entities + cinematic effects + ambient sounds simultaneously.
 
-3. **NBT Data Not Marked Dirty** — Downed state vanishes on server restart if not marked dirty. Prevention: Call `markDirty()` immediately after every persistent state change, create wrapper methods that auto-mark.
+3. **GeckoLib Animation Conflicts** — v1.0's GeckoLib entity animations break when player pose override is active, causing frozen animations, stretched limbs, or visual artifacts. **Prevention:** Check GeckoLib animation state before applying pose override, pause/adjust animations during pose-forced states using GeckoLib's event keyframes, test with v1.0 entities present while pose override active. **Test:** Trigger Dread entity spawn while in crawl pose, enable shaders (Complementary/BSL) to amplify conflicts.
 
-4. **Entity Memory Leak on Death/Despawn** — Minecraft bug MC-260605 causes entity memories to leak, compounding with respawning stalker entities. Prevention: Manually clear brain/memories in entity's `remove()` method from day one.
+4. **Attack Prevention Server-Only Execution** — Canceling attacks server-side without client feedback allows weapon swing animations and sounds to play with no effect, breaking immersion. **Prevention:** Cancel attack at packet level BEFORE damage calculation, send client notification for UI/audio feedback, suppress client-side animations/sounds when blocked, handle both melee AND projectile attacks. **Test:** Enable prevention, spam attack button, verify no sounds/animations play.
 
-5. **Sound Channel Limit Exceeded** — OpenAL has 247 channel limit; layered horror atmospherics (ambient + tension + jump scare) can exhaust channels, causing jump scare audio to fail. Prevention: Implement sound priority system, stop ambient sounds before critical scares, limit concurrent atmospheric loops to 2-3.
-
-6. **Jump Scare Becomes "Cheap"** — Loud noise without buildup causes annoyance not fear, no replay value. Prevention: Multi-stage tension system (30-60s subtle cues, proximity + time trigger, audio layering, visual staging in peripheral vision before full reveal).
+5. **Texture UV Mapping Breaks on Model Changes** — UV coordinates designed for standing state don't translate to crawling pose, causing stretched/misaligned textures during pose transitions. **Prevention:** Design UV maps for all animation states upfront (standing, crawling, downed), use consistent UV scale, stick to entity-appropriate resolutions (64x64, 128x128, 256x256 multiples of 16), test in Blockbench across all states before creating final texture. **Apply v1.0 lessons:** No gray textures, no invalid placeholders.
 
 ## Implications for Roadmap
 
-Based on research findings, component dependencies, and pitfall prevention requirements, recommended phase structure:
+Based on research, the optimal phase structure separates zero-code asset work from code integration, sequences by complexity, and enables parallelization where features are independent.
 
-### Phase 1: Foundation & Core Entity
-**Rationale:** Entity is the centerpiece of horror experience. Must be visible, animated, and functional before building mechanics around it. Foundational systems (networking, sounds) required by all subsequent phases.
-
-**Delivers:**
-- Fabric mod skeleton with proper client/server source sets
-- Network payload system with registration infrastructure
-- Sound event registration with placeholder audio
-- Dread entity with GeckoLib model, texture, basic animations
-- Entity registration with attributes, tracking range 128+
-- Client renderer with shader compatibility testing
-
-**Addresses:**
-- Table stakes: Unique horror entity with distinctive design
-- Stack: Fabric 1.21.11, GeckoLib 8.x, Java 21
-
-**Avoids:**
-- Pitfall #1 (client-server confusion): Proper source set separation from start
-- Pitfall #4 (memory leaks): Implement `remove()` cleanup in initial entity class
-- Pitfall #7 (z-fighting): Test rendering with Iris/Optifine shaders during model creation
-- Pitfall #9 (tracking range): Set 128+ blocks in registration
-
-**Research flag:** Standard patterns, skip detailed research. Use Fabric entity tutorial + GeckoLib docs.
-
-### Phase 2: Stalking AI & Jump Scare Mechanics
-**Rationale:** Core value proposition is turn-around jump scare. AI must intelligently position entity behind player based on FOV calculations and spawn timing. This is the highest-risk phase (timing makes or breaks horror experience).
+### Phase 1: Real Audio + Dread Texture
+**Rationale:** Zero code changes required — both are drop-in file replacements. Starting here delivers immediate visual/audio upgrade and validates asset creation workflows before code complexity. Builds early momentum with tangible horror improvements.
 
 **Delivers:**
-- Custom AI goals: StalkPlayerGoal (out-of-FOV spawn positioning), JumpScareAttackGoal
-- FOV raycasting and line-of-sight calculations
-- Turn detection and precise entity placement behind player
-- Mining activity trigger system (detects mining blocks → increases spawn probability)
-- Multi-stage tension system: subtle audio cues (30s) → visual hint (10s) → random trigger (20-40s)
-- Sound priority management system
-- Jump scare audio with ambient sound stopping before critical moment
+- Improved Dread entity texture (PNG replacement in `assets/dread/textures/entity/`)
+- Complete audio implementation (OGG Vorbis mono 44.1kHz files in `assets/dread/sounds/`)
 
-**Addresses:**
-- Table stakes: Stalking AI behavior, jump scare moments
-- Differentiators: Turn-around mechanic, mining activity trigger
-- Features deferred: Keep to single entity form, no fake-outs (add in v2)
+**Addresses features:**
+- Non-default Dread appearance (table stakes)
+- Death cinematic audio (table stakes)
+- Dread presence audio (table stakes)
+- Ambient soundscape (differentiator)
 
-**Avoids:**
-- Pitfall #5 (sound channels): Priority system implemented before layering atmospheric sounds
-- Pitfall #15 (cheap scares): Multi-stage tension design from start, not retrofitted
-- Pitfall #10 (animation performance): Keep bone count under 30 for complex stalking animations
+**Avoids pitfalls:**
+- Texture UV mapping breaks (design UVs for all states from start)
+- Audio format incompatibility (OGG mono 44.1kHz only)
+- Invalid placeholder textures (apply v1.0 lessons: valid dimensions, proper naming)
 
-**Research flag:** NEEDS RESEARCH. FOV calculations, raycasting for spawn positioning, and jump scare timing are complex integrations. Plan `/gsd:research-phase` for "Turn-around spawn mechanics" and "Sound priority management."
+**Dependencies:** None (asset creation independent of code)
 
-### Phase 3: Spawn Progression & Configuration
-**Rationale:** Prevents overwhelming new players while maintaining long-term tension. Configuration is table stakes for horror mods (different fear tolerances). Relatively low-risk phase with well-documented patterns.
+**Research flag:** Standard patterns — texture and audio format requirements are well-documented in Minecraft Wiki and Blockbench guides. Skip phase-specific research.
 
-**Delivers:**
-- Spawn ticker system with increasing probability over game days
-- Random spawn ticker (Poisson distribution or similar for unpredictability)
-- Configuration file with Fabric Config API: spawn rates, damage, health, enable/disable features, cinematic skippable option
-- Day counter integration with world save data (PersistentState)
-- Spawn cooldown management (prevent spam)
+---
 
-**Addresses:**
-- Table stakes: Spawn progression, configuration options
-- Features: Escalation over time to prevent adaptation
-
-**Avoids:**
-- Pitfall #3 (NBT dirty): Mark spawn ticker state dirty after every increment
-- Complexity: Keep config simple—don't over-engineer early
-
-**Research flag:** Standard patterns. Fabric Config API docs + PersistentState tutorial sufficient.
-
-### Phase 4: Downed State & Death Mechanics
-**Rationale:** Requires entity and game state systems working correctly. Downed state is core multiplayer feature and foundation for revive system. Death event handling is notoriously tricky—must get ordering correct before adding revive complexity.
+### Phase 2: Attack Prevention
+**Rationale:** Simplest code change with highest gameplay value. Single event handler class, straightforward logic, critical for downed state mechanics. Proves event-driven architecture before more complex pose implementation.
 
 **Delivers:**
-- Cardinal Components API integration for player state (downed status, timer, death counter)
-- Server-side downed state logic: transition from death → downed (prevent vanilla death)
-- Death event handling with `ServerLivingEntityEvents.ALLOW_DEATH` (fires before totems)
-- Downed timer countdown (300 seconds / 5 minutes)
-- Downed → spectator mode transition after timeout
-- S2C packet for downed state synchronization to all clients
-- Client-side state cache for rendering decisions
-- Totem of Undying compatibility testing
+- New `DownedPlayerProtectionHandler.java` with `LivingAttackEvent` cancellation
+- Protection for both melee and projectile attacks
+- Client feedback for blocked attacks (no ghost animations/sounds)
 
-**Addresses:**
-- Differentiators: Downed state as alternative to instant death
-- Architecture: Game State System with Cardinal Components
+**Addresses features:**
+- Input blocking during death cinematic (table stakes)
 
-**Avoids:**
-- Pitfall #3 (NBT dirty): markDirty() in all state change wrapper methods
-- Pitfall #8 (client-only data): Sync state to clients via packets, never access PersistentState on client
-- Pitfall #14 (death event order): Use ALLOW_DEATH, test with totems, verify respawn button works
+**Avoids pitfalls:**
+- Attack prevention server-only execution (cancel at packet level with client feedback)
+- Projectile edge case (handle both melee AND projectile events)
 
-**Research flag:** NEEDS RESEARCH. Death event ordering, totem interaction, and spectator mode transitions have edge cases. Plan `/gsd:research-phase` for "Death event handling & totem compatibility."
+**Dependencies:** Existing `DownedPlayersState` (already present in v1.0)
 
-### Phase 5: Client Rendering & HUD
-**Rationale:** Depends on downed state data from Phase 4. Visual feedback for downed players and observers. Relatively straightforward rendering with HudElementRegistry.
+**Research flag:** Standard patterns — Fabric event cancellation is core pattern, extensively documented. Skip phase-specific research.
+
+---
+
+### Phase 3: Crawl Pose
+**Rationale:** Moderate complexity requiring both server and client changes. Dependencies on existing systems (DownedPlayersState, DownedStateClientHandler) are now validated. Builds on proven event-driven pattern from Phase 2.
 
 **Delivers:**
-- HudElementRegistry integration (replaces deprecated HudRenderCallback)
-- Downed state HUD overlay: timer display, blur shader effect
-- GuiGraphics rendering for translucent overlay
-- Visual feedback for nearby downed players (icon, distance indicator)
-- Screen shake/distortion effects during jump scare (optional polish)
+- Server-side `DownedPoseHandler.java` for pose management
+- Client-side `DownedStateClientHandler.java` extensions for rendering
+- Fabric networking sync for multiplayer compatibility
 
-**Addresses:**
-- Table stakes: Visual feedback for downed state
-- Stack: Fabric HUD API (modern HudElementRegistry)
+**Addresses features:**
+- Prone/crawling pose during downed state (table stakes)
 
-**Avoids:**
-- Pitfall #8 (client data): HUD reads from client-side state cache (synced via packets)
-- Complexity: Use GuiGraphics for blur (simpler than Canvas Renderer shaders)
+**Avoids pitfalls:**
+- Client-server animation desync (implement Fabric networking sync from day one)
+- GeckoLib animation conflicts (coordinate with v1.0 entity rendering, test early)
+- Pose animation conflicts with other mods (integrate playerAnimator API for compatibility)
 
-**Research flag:** Standard patterns. HudElementRegistry docs sufficient.
+**Dependencies:**
+- `DownedPlayersState` (v1.0)
+- `DownedStateClientHandler` (v1.0, modified)
+- GeckoLib entity rendering (v1.0, must not break)
 
-### Phase 6: Multiplayer Revive System
-**Rationale:** Most complex system, depends on all previous phases. Requires client input → server validation → state update → broadcast to all clients. Final phase before polish.
+**Research flag:** **Needs phase-specific research** — playerAnimator integration patterns for broad mod compatibility (117M+ downloads, must coordinate with popular animation mods). Research focus: event keyframe coordination with GeckoLib, dedicated server sync patterns.
 
-**Delivers:**
-- Revive detection: server-side proximity check (3 block radius), crouch input detection
-- C2S revive request packet with target player UUID
-- Server validation: verify proximity, verify target is downed, verify reviver is alive and not in cooldown
-- Revive execution: remove downed state, restore health to 50%, clear timer
-- S2C broadcast to all tracking clients with state update
-- Revive cooldown per player (prevent spam)
-- Progress bar for reviving player (visual feedback during hold)
+---
 
-**Addresses:**
-- Differentiators: Multiplayer cooperative mechanics
-- Architecture: Full networking stack (C2S request, server validation, S2C broadcast)
-
-**Avoids:**
-- Pitfall #2 (packet validation): Validate ALL conditions server-side before revive
-- Pitfall #12 (hardcoded delays): Use scheduled tasks for progress bar, not Thread.sleep()
-- Pitfall #1 (desync): Server is authoritative, clients wait for confirmation packet
-
-**Research flag:** NEEDS RESEARCH. Proximity detection with moving players, crouch input in multiplayer, and validation edge cases (what if reviver attacked mid-revive?). Plan `/gsd:research-phase` for "Multiplayer revive validation & edge cases."
-
-### Phase 7: Unskippable Death Cinematic
-**Rationale:** Differentiator feature, highest production value requirement. Requires camera control, synchronized audio, and careful performance optimization to maintain 60 FPS. Final major feature before release prep.
+### Phase 4: Intense Cinematic
+**Rationale:** Most complex feature requiring camera manipulation with accessibility concerns. Deferred to end allows playtesting/iteration without blocking earlier features. Optionally adds camera shake library (only external dependency decision).
 
 **Delivers:**
-- Camera manipulation: pan around entity, zoom to entity face, first-person POV lock
-- Synchronized audio playback (death scream, entity sounds, ominous music)
-- Cinematic timeline system (server tick count as reference, client interpolates)
-- 5-10 second sequence (short enough to avoid frustration)
-- Optional skip via config (respects player preference)
-- Performance optimization: preload assets during tension phase, target 60 FPS minimum
-- Motion sickness prevention: smooth interpolation, no rapid camera movements
+- Extended `DeathCinematicClientHandler.java` with camera effects
+- FOV transition and subtle camera shake during 4.5-second sequence
+- Config options for shake intensity and enable/disable (accessibility)
+- Optional fabric-camera-shake integration (if shake fits horror tone)
 
-**Addresses:**
-- Differentiators: Unskippable death cinematic (unique to Dread)
-- Table stakes: Make death meaningful vs instant respawn
+**Addresses features:**
+- Intense death cinematic (enhancement to existing v1.0 feature)
 
-**Avoids:**
-- Pitfall #10 (performance): Test FPS during cinematic on low-end hardware, optimize before launch
-- Pitfall #15 (cheap design): Cinematic must be visually compelling, not just black screen
-- Frustration: Keep SHORT, make skippable via config
+**Avoids pitfalls:**
+- Cinematic camera motion sickness (exponential decay, config options, test at 30/60/144 FPS)
+- Sound channel saturation (coordinate with Phase 1 audio, respect v1.0 priority system)
 
-**Research flag:** NEEDS RESEARCH. Camera manipulation APIs, synchronized audio/video playback across network latency, and interpolation for smooth 60 FPS. Plan `/gsd:research-phase` for "Camera control & cinematic synchronization."
+**Dependencies:**
+- `DeathCinematicClientHandler` (v1.0, extended)
+- Phase 1 audio (cinematic sound must not saturate channels)
+- Optional: fabric-camera-shake library (evaluate during implementation)
 
-### Phase 8: Polish & Release Prep
-**Rationale:** Testing, compatibility, optimization before public release.
+**Research flag:** **Needs phase-specific research** — fabric-camera-shake version compatibility with Fabric 1.21.1 (repository accessible but version verification needed). Accessibility testing with motion-sensitive users (external playtesters). Research focus: camera shake config patterns from Camera Overhaul mod, exponential decay implementations.
+
+---
+
+### Phase 5: Integration Testing & Polish
+**Rationale:** All features implemented, final phase validates combined behavior and performance. Tests interactions between features that couldn't be validated during individual phases.
 
 **Delivers:**
-- Full multiplayer testing (2-4 players, dedicated server)
-- Shader compatibility verification (Iris, Optifine)
-- Memory leak testing (1+ hour continuous play)
-- Sound channel stress testing (multiple players, layered audio)
-- Fabric API version compatibility range testing
-- Configuration validation (all options functional)
-- Documentation: README, CurseForge/Modrinth descriptions, feature showcase video
+- Performance profiling with all features active (5+ entities + cinematic + audio)
+- Shader compatibility validation (Complementary, BSL with all features)
+- Multiplayer stress testing (dedicated server, 2+ clients)
+- v1.0 regression testing (ensure no existing features broke)
+- Community playtesting feedback incorporation
 
-**Addresses:**
-- All pitfalls: Final validation before release
-- Table stakes: Mod must work reliably with popular mod combinations
+**Addresses features:**
+- All table stakes validated together
+- Differentiators validated for combined horror impact
+
+**Avoids pitfalls:**
+- Performance impact from high-res textures (test with multiple entities + shaders)
+- Sound channel saturation (verify Phase 1 + Phase 4 audio coexist within limits)
+- GeckoLib animation conflicts (verify Phase 3 pose + v1.0 entities work together)
+- Volume imbalance (normalize audio relative to vanilla and v1.0 sounds)
+
+**Dependencies:** All prior phases complete
+
+**Research flag:** Standard patterns — integration testing follows established QA practices. Skip phase-specific research.
+
+---
 
 ### Phase Ordering Rationale
 
-**Dependency-driven order:**
-- Foundation must precede all features (networking, entity)
-- AI/jump scare requires entity to exist but can develop before state systems
-- Downed state blocks revive system (can't revive without downed state)
-- HUD requires downed state data to display
-- Cinematic is last major feature (depends on entity, state, rendering)
+- **Phase 1 (Assets) first:** Enables parallel asset creation while planning code implementation, delivers early visual/audio wins, validates creation workflows with zero risk
+- **Phase 2 (Attack Prevention) before Phase 3 (Crawl Pose):** Proves event-driven architecture with simplest case before tackling client-server sync complexity
+- **Phase 3 (Crawl Pose) before Phase 4 (Cinematic):** Validates multiplayer sync and GeckoLib coordination before adding camera manipulation complexity
+- **Phase 4 (Cinematic) last:** Most complex, requires playtesting iteration, optional library decision can be deferred, depends on Phase 1 audio being stable
 
-**Risk-based prioritization:**
-- Phase 2 (AI/jump scare) is highest-risk—core value prop, complex timing. Tackle early while budget/motivation high
-- Phase 6 (revive) is most complex networking—defer until patterns proven in simpler systems
-- Phase 7 (cinematic) is highest production value—save for when core loop proven fun
+**Parallelization opportunities:**
+- Phase 1 assets (texture + audio) can be created simultaneously by separate contributors
+- Phase 2 + Phase 3 code can overlap if different developers (attack prevention doesn't depend on crawl pose)
+- Phase 4 camera shake library research can happen during Phase 3 implementation
 
-**Pitfall prevention:**
-- Client-server separation (Phase 1) prevents rewrites later
-- Memory leak cleanup (Phase 1) must be in initial entity code
-- Sound priority (Phase 2) must be designed before layering audio
-- Death event order (Phase 4) must be correct before adding revive complexity
-
-**Horror-specific considerations:**
-- Entity appearance (Phase 1) is first impression—must be high quality
-- Jump scare timing (Phase 2) is make-or-break—can't ship if this fails
-- Configuration (Phase 3) respects different fear tolerances—table stakes for accessibility
-- Bugs that break immersion (entity despawning, sound cutting out) are 10x worse for horror—prioritize stability over features
+**Dependency chain:**
+```
+Phase 1 (Assets) ──────┐
+                       ├──> Phase 4 (Cinematic) ──> Phase 5 (Integration)
+Phase 2 (Attack) ──┐   │
+                   ├───┘
+Phase 3 (Crawl) ───┘
+```
 
 ### Research Flags
 
 **Phases needing deeper research during planning:**
-- **Phase 2 (Jump Scare Mechanics):** Complex integration of FOV raycasting, spawn positioning, and timing. Research topics: "Turn-around spawn mechanics," "Sound priority management"
-- **Phase 4 (Downed State):** Death event ordering has edge cases with totems, other mods. Research topic: "Death event handling & totem compatibility"
-- **Phase 6 (Multiplayer Revive):** Validation edge cases in networked environment. Research topic: "Multiplayer revive validation & edge cases"
-- **Phase 7 (Death Cinematic):** Camera APIs and network synchronization for smooth playback. Research topic: "Camera control & cinematic synchronization"
+
+- **Phase 3 (Crawl Pose):** playerAnimator integration patterns for broad mod compatibility — research focus: event keyframe coordination with GeckoLib, dedicated server sync patterns, animation blend modes vs replacement modes. **Reason:** 117M+ downloads, must coordinate with popular animation mods; client-server sync is critical path.
+
+- **Phase 4 (Intense Cinematic):** fabric-camera-shake library version compatibility verification and accessibility testing — research focus: compatible versions for Fabric 1.21.1, camera shake config patterns from Camera Overhaul mod, exponential decay implementations, motion-sensitive user testing. **Reason:** Library version compatibility needs verification, accessibility features must be designed in from start.
 
 **Phases with standard patterns (skip research-phase):**
-- **Phase 1 (Foundation):** Well-documented Fabric tutorials for entity creation, networking, sounds
-- **Phase 3 (Spawn Progression):** Standard config + PersistentState patterns
-- **Phase 5 (Client Rendering):** HudElementRegistry has official docs and examples
-- **Phase 8 (Polish):** Testing methodology, no novel technical patterns
+
+- **Phase 1 (Assets):** Texture and audio format requirements are well-documented in Minecraft Wiki, Blockbench guides, Audacity manual. Asset creation workflows are straightforward with established tools.
+
+- **Phase 2 (Attack Prevention):** Fabric event cancellation is core pattern, extensively documented in Fabric API docs and community examples. Event registration patterns are proven.
+
+- **Phase 5 (Integration Testing):** QA practices follow established integration testing patterns. No novel research required.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | **HIGH** | Verified from official Fabric docs, example mod build.gradle, API changelogs. GeckoLib confirmed as industry standard for complex entity animations. Cardinal Components verified as recommended solution for entity data. |
-| Features | **MEDIUM** | Based on WebSearch analysis of popular horror mods (Cave Dweller, From The Fog, The Obsessed) and horror game design articles. Cross-referenced across multiple sources but not authoritative domain expertise. Table stakes vs differentiators validated by community consensus. |
-| Architecture | **MEDIUM** | Official Fabric documentation for networking, entity system, HUD rendering patterns (HIGH confidence). Specific horror mod architecture patterns inferred from ecosystem survey and community mods (MEDIUM confidence). Client/server separation and synchronization patterns verified in official docs. |
-| Pitfalls | **HIGH** | Client-server confusion, packet validation, NBT persistence verified in official Fabric docs and wiki. Entity memory leak documented in Minecraft bug MC-260605 and MemoryLeakFix mod. Sound channel limits documented in OpenAL specifications. Horror-specific design pitfalls from game design research (MEDIUM confidence but cross-validated). |
+| Stack | **HIGH** | No changes needed to v1.0 runtime dependencies; Fabric API events verified in official docs for 1.21.5 (backwards compatible with 1.21.1); development tools (Blockbench, Audacity) have official Microsoft documentation |
+| Features | **MEDIUM-HIGH** | Horror design principles verified with authoritative sources (Fatal Frame creator, Red Barrels, industry analysis); Dead by Daylight Wiki provides detailed mechanical specifications; artistic interpretation varies but patterns clear |
+| Architecture | **HIGH** | v1.0 architecture already handles client-server separation, sound priority system, shader compatibility; integration points are standard Forge patterns (event handlers, resource file replacement); GeckoLib texture system confirmed to support variants |
+| Pitfalls | **MEDIUM-HIGH** | Client-server sync patterns from Fabric official docs; animation conflicts from mod compatibility reports and community patterns; audio/texture issues from Minecraft Wiki and v1.0 lessons learned; motion sickness from camera mod best practices |
 
-**Overall confidence:** **HIGH** for technical implementation, **MEDIUM** for horror game design specifics.
+**Overall confidence:** **HIGH**
+
+Research provides actionable implementation guidance with minimal gaps. The decision to use existing v1.0 stack without new dependencies significantly reduces risk. Most uncertainty centers on aesthetic choices (texture design, audio balancing) which are inherently subjective and require iteration.
 
 ### Gaps to Address
 
-**Version migration path:**
-- Minecraft 1.21.11 is last obfuscated version; Yarn mappings will not be available after this release
-- How to handle: Complete initial development on 1.21.11, monitor for 26.1 release timeline, plan migration to Mojang Mappings when next version releases. Not urgent for Phase 1-8 but flag for future roadmap.
+**During Phase 3 planning/implementation:**
+- **playerAnimator integration specifics:** Research provides library recommendation (117M+ downloads, compatibility-focused) but implementation patterns need detailed investigation. **Handling:** Dedicate spike during Phase 3 to playerAnimator API documentation and example mods using it.
+- **GeckoLib event keyframe coordination:** Research identifies need to coordinate animation controllers but specific implementation unclear. **Handling:** Test early prototype with v1.0 entities present, iterate based on actual conflicts observed.
 
-**Jump scare timing calibration:**
-- Research provides principles (buildup, multi-stage, timing unpredictability) but exact timing values (how long before entity spawns? how long for tension phase?) require playtesting
-- How to handle: Implement configurable timing parameters in Phase 2, conduct internal playtesting to calibrate values, gather external playtester feedback before Phase 8 release
+**During Phase 4 planning/implementation:**
+- **fabric-camera-shake version compatibility:** Research identifies library but version compatibility with Fabric 1.21.1 needs verification. **Handling:** Evaluate during Phase 4 start; if compatibility issues discovered, fallback to manual camera transformation (Camera Overhaul patterns).
+- **Motion sickness thresholds:** Research provides best practices (exponential decay, config options) but optimal intensity levels are subjective. **Handling:** External playtesting with motion-sensitive users during Phase 4; default to moderate intensity, allow user adjustment.
 
-**Multiplayer fear dynamics:**
-- Research indicates horror works differently in groups (1-3 players: amplified fear, 4+ players: becomes comedy)
-- How to handle: Design scares for 1-3 players (Phase 2-7). If targeting larger groups, shift emphasis from jump scares to atmosphere in post-launch updates. Flag for Phase 6 multiplayer testing.
+**Asset quality (Phase 1):**
+- **Audio quality subjective:** Royalty-free sources identified (Pixabay, Mixkit) but quality varies per file. **Handling:** Import multiple candidates, test in-game, iterate with community feedback post-release if needed.
+- **Texture artistic direction:** Cosmic horror principles clear (incomprehensible forms, emissive elements, "off" not gory) but execution subjective. **Handling:** Create multiple iterations in Blockbench, test with shaders enabled, gather feedback from horror game community.
 
-**Shader compatibility edge cases:**
-- Research identifies z-fighting risk with Iris/Optifine but specific entity rendering mode for Dread model unknown until model created
-- How to handle: Test with shaders during Phase 1 entity creation, iterate rendering mode if issues found. Budget extra time in Phase 1 for shader troubleshooting.
-
-**Performance baseline for cinematic:**
-- Target is 60 FPS minimum on low-end hardware, but "low-end" spec unknown (what GPU/CPU?)
-- How to handle: Define performance baseline during Phase 7 planning (e.g., "Minecraft runs at 60 FPS with vanilla at normal render distance" as minimum spec). Test cinematic on baseline hardware before Phase 8.
-
-**Death event mod compatibility:**
-- Research identifies totem interaction as known pitfall, but compatibility with other death-modifying mods (corpse mods, gravestone mods) unknown
-- How to handle: Test with popular death mods during Phase 4. If conflicts found, document incompatibilities or add compatibility layer based on popularity.
+**Performance validation (Phase 5):**
+- **Sound channel limits in practice:** Research identifies ~28 channel limit and priority system, but actual saturation threshold with v1.0 + v1.1 sounds needs empirical testing. **Handling:** Profile during Phase 5 integration with audio debug overlay, adjust pooling if needed.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Fabric Development Portal](https://fabricmc.net/develop/) — Modern API documentation, networking, HUD rendering
-- [Fabric Wiki](https://wiki.fabricmc.net/) — Entity creation, persistent states, mixin tutorials, side separation
-- [Fabric Example Mod](https://github.com/FabricMC/fabric-example-mod) — build.gradle, gradle.properties, mod structure
-- [Cardinal Components API - GitHub](https://github.com/Ladysnake/Cardinal-Components-API) — Entity/world data persistence
-- [GeckoLib Wiki](https://github.com/bernie-g/geckolib/wiki) — Entity animations (GeckoLib4)
-- [Fabric Documentation - Custom Sounds](https://docs.fabricmc.net/develop/sounds/custom) — OGG Vorbis format, sound registration
-- [Fabric Documentation - Networking](https://docs.fabricmc.net/develop/networking) — 1.20.5+ payload system
+
+**Fabric Official Documentation:**
+- [Fabric Wiki: Side Tutorial](https://wiki.fabricmc.net/tutorial:side) — Client-server separation patterns
+- [Fabric Documentation: Networking](https://docs.fabricmc.net/develop/networking) — Packet-based synchronization for pose state
+- [Fabric Documentation: Events](https://docs.fabricmc.net/develop/events) — Event system guide for attack prevention
+- [ServerLivingEntityEvents](https://maven.fabricmc.net/docs/fabric-api-0.119.2+1.21.5/net/fabricmc/fabric/api/entity/event/v1/ServerLivingEntityEvents.html) — Damage prevention events (verified for 1.21.5, backwards compatible)
+
+**Minecraft Official:**
+- [Minecraft Wiki: Sounds](https://minecraft.wiki/w/Sounds) — Audio format requirements, sound categories
+- [Minecraft Wiki: Textures](https://minecraft.wiki/w/Textures) — Texture format and resolution standards
+- [Entity Yarn Docs](https://maven.fabricmc.net/docs/yarn-1.21+build.2/net/minecraft/entity/Entity.html) — Entity pose API documentation
+
+**Development Tools:**
+- [Blockbench Official](https://www.blockbench.net/) — Download and official documentation
+- [Microsoft Learn: Blockbench](https://learn.microsoft.com/en-us/minecraft/creator/documents/vibrantvisuals/useblockbenchtocreatemodelswithtextures?view=minecraft-bedrock-stable) — Official texture tutorial
+- [Audacity Manual: OGG Export](https://manual.audacityteam.org/man/ogg_vorbis_export_options.html) — Export settings for Minecraft compatibility
+
+**GeckoLib:**
+- [GeckoLib GitHub](https://github.com/bernie-g/geckolib) — Animation engine documentation
+- [GeckoLib Wiki: Custom Entity](https://github.com/bernie-g/geckolib/wiki/Custom-GeckoLib-Entity) — Texture variant system
+- [GeckoLib 4.7.3 changelog](https://modrinth.com/mod/geckolib/version/4.7.3) — getTextureResource receives renderer parameter
 
 ### Secondary (MEDIUM confidence)
-- [Top Minecraft Horror Mods - CurseForge](https://blog.curseforge.com/top-minecraft-horror-mods/) — Feature landscape research
-- [Cave Dweller Reimagined - CurseForge](https://www.curseforge.com/minecraft/mc-mods/cave-dweller-reimagined) — Stalking AI patterns
-- [From The Fog Official Site](https://lunareclipse.studio/creations/from-the-fog) — Environmental manipulation, ARG elements
-- [The Obsessed Mod - CurseForge](https://www.curseforge.com/minecraft/mc-mods/obsessed) — Multi-phase stalking system
-- [Horror Game Design - Game Developer](https://www.gamedeveloper.com/design/creating-horror-through-level-design-tension-jump-scares-and-chase-sequences) — Jump scare theory
-- [Jump Scare Design - Game Developer](https://www.gamedeveloper.com/design/a-lack-of-fright-examining-jump-scare-horror-game-design) — What makes scares cheap vs effective
-- [MemoryLeakFix - GitHub](https://github.com/FxMorin/MemoryLeakFix) — Entity memory leak bug MC-260605
-- [Audio Engine Tweaks - Modrinth](https://modrinth.com/mod/audio-engine-tweaks) — Sound channel limits, priority system
+
+**Horror Game Design Principles:**
+- [Fatal Frame creator interview](https://www.gamesradar.com/games/survival-horror/fatal-frames-iconic-camera-exists-to-force-players-to-look-straight-at-something-scary-says-series-creator-we-thought-it-would-really-bring-out-the-scariness-of-the-ghosts/) — Forced perspective creates vulnerability
+- [A Lack of Fright: Examining Jump Scare Horror Game Design](https://www.gamedeveloper.com/design/a-lack-of-fright-examining-jump-scare-horror-game-design) — Effective vs cheap jump scares
+- [Silence is Scary: Sound Design in Horror Games](https://www.wayline.io/blog/silence-is-scary-sound-design-horror-games) — Silence as active element, layered soundscapes
+
+**Mod Compatibility & Best Practices:**
+- [playerAnimator mod](https://modrinth.com/mod/playeranimator) — 117M+ downloads, animation compatibility library
+- [Audio Engine Tweaks mod](https://modrinth.com/mod/audio-engine-tweaks) — Sound channel management patterns
+- [Camera Overhaul mod](https://modrinth.com/mod/cameraoverhaul) — Cinematic camera best practices with config options
+- [Entity Desync Viewer mod](https://modrinth.com/mod/entity-desync-viewer) — Debug tool for client-server position sync validation
+
+**Game Mechanics Research:**
+- [Dead by Daylight Wiki: Health States](https://deadbydaylight.fandom.com/wiki/Health_States) — Dying state crawling, 240s bleed-out, recovery mechanics (genre standard)
+- [Go Down! Mod](https://www.curseforge.com/minecraft/mc-mods/go-down) — Example of crawl pose forcing in Minecraft
+
+**Asset Sources:**
+- [Pixabay Horror SFX](https://pixabay.com/sound-effects/search/horror/) — CC0 royalty-free horror sounds
+- [Mixkit Horror SFX](https://mixkit.co/free-sound-effects/horror/) — 31 royalty-free effects, high quality
 
 ### Tertiary (LOW confidence, needs validation)
-- Community horror mod surveys — Ecosystem patterns, not verified technical implementations
-- Horror game design articles — General principles, not Minecraft-specific
-- Forge Forums — Rendering z-fighting discussions (Forge not Fabric, patterns may differ)
+
+**Community Knowledge:**
+- [Entity Texture Features performance impact analysis](https://modern.cansoft.com/time-to-retire-etf-why-entity-texture-features-has-run-its-course/) — Performance concerns with high-resolution entity textures, needs empirical testing
+- [fabric-camera-shake GitHub](https://github.com/LoganDark/fabric-camera-shake) — Library source code accessible, version compatibility needs verification
+- [Minecraft Forums: Texture resolution FPS impact](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/resource-packs/resource-pack-discussion/2853251-does-going-lower-than-16x-actually-improve-fps) — Community discussion, needs benchmarking
 
 ---
-*Research completed: 2026-01-23*
+*Research completed: 2026-01-25*
 *Ready for roadmap: yes*

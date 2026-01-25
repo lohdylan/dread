@@ -1,235 +1,444 @@
-# Feature Landscape: Minecraft Horror Mods
+# Feature Landscape: Dread Mod v1.1 Polish Enhancements
 
-**Domain:** Minecraft Horror Mods
-**Researched:** 2026-01-23
-**Confidence:** MEDIUM (WebSearch-based, cross-verified across multiple sources)
+**Domain:** Horror Game/Mod Polish & Immersion Features
+**Researched:** 2026-01-25
+**Confidence:** MEDIUM (WebSearch verified with horror design principles)
 
-## Executive Summary
+## Context
 
-Minecraft horror mods transform the familiar blocky world into a terrifying experience through **intelligent stalking AI**, **atmospheric tension-building**, and **environmental manipulation**. The most successful horror mods (Cave Dweller Reimagined, From The Fog, The Obsessed) prioritize **sustained psychological dread over cheap jump scares**, using sophisticated entity behaviors that make players feel watched, hunted, and unsafe even in their own bases.
+This research focuses on five specific enhancement features for the Dread mod v1.1:
+1. **Crawl pose** (downed state visual)
+2. **Attack prevention** (gameplay mechanic during death cinematic)
+3. **Dread texture improvements** (visual horror design)
+4. **Intense death cinematic** (camera and pacing)
+5. **Real audio implementation** (atmospheric soundscape)
 
-The horror ecosystem has evolved beyond simple hostile mobs to feature:
-- ARG-inspired environmental storytelling
-- Multi-phase stalking behaviors that escalate over time
-- Light-manipulation mechanics that weaponize darkness
-- Base-invasion features that eliminate safe zones
-- Configurable difficulty to balance fear with playability
+These enhancements build on existing v1.0 features:
+- Dread entity with turn-around spawn mechanic
+- 4.5-second death cinematic with camera POV switch to Dread
+- Downed state (300-second timer, -90% movement speed, blur/vignette)
+- Crouch-to-revive mechanic
+- Sound event infrastructure (currently silent placeholders)
 
-**Critical insight:** Jump scares are table stakes, but **timing and buildup** separate scary from annoying. Players tolerate—even enjoy—being terrified, but hate feeling cheated by instant deaths or overly punishing mechanics.
+---
 
 ## Table Stakes
 
-Features players expect. Missing = mod feels incomplete or not scary.
+Features users expect. Missing these = features feel incomplete or broken.
+
+### 1. Downed State: Prone Pose Visual
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Unique Horror Entity** | Core of any horror mod; players expect a distinctive threat (humanoid, cryptid, or Lovecraftian) | Medium | Must have recognizable design and lore. Examples: Cave Dweller (humanoid stalker), Herobrine (ghostly legend), Dread (Cthulhu-inspired) |
-| **Stalking AI Behavior** | Entities must actively hunt the player, not just spawn and attack | High | AI should track player location, spawn out of FOV, and exhibit intelligent movement patterns. Cave Dweller "stalks from shadows" and "remains silent until last moment" |
-| **Atmospheric Sound Design** | Ambient sounds signal danger and build dread | Medium | Tense music, cave echoes, footsteps, whispers. Mods like "Tense Ambience" add biome-specific scary sounds. Without this, scares feel cheap |
-| **Darkness/Light Mechanics** | Horror entities should leverage darkness; torches/light as defense | Medium | Entities "draw power from darkness" (The Wilted), or extinguish light sources. Shaders make nights darker with smaller visibility cones |
-| **Jump Scare Moments** | Climactic scare events (not constant spam) | Medium | Well-timed jump scares as tension release. Must have buildup. Cave Dweller "silent until last moment" then sudden attack |
-| **Environmental Manipulation** | Entity leaves traces: broken blocks, extinguished torches, structures | Low-Medium | From The Fog: removes leaves, builds pyramids, douses candles. Creates "something is wrong" feeling without constant encounters |
-| **Spawn Progression** | Threat escalates over time (game days, player actions) | Medium | Prevents overwhelming new players while building tension. From The Fog: 3 in-game days before major events. Guilt: ramps over 5-7 hours |
-| **Configuration Options** | Players must customize difficulty/spawn rates | Low | Spawn weights, cooldowns, damage, health configurable. ArPhEx has "insanity mode" for fast-paced intensity vs casual horror |
+| **Prone/crawling animation** | Visual feedback for game state change | Medium | Dead by Daylight establishes 240-second bleed-out timer with slow crawl as genre standard. Visual state must match mechanical state. |
+| **Distinct from standing pose** | Clear status communication | Low | Player must instantly recognize incapacitated state. Crouch ≠ downed. |
+| **Persistent during timer** | State consistency | Low | Pose active for full 300-second duration unless revived. |
+| **Movement animation** | Matches -90% speed penalty | Medium | If player can move while downed, crawl animation should reflect slow speed. |
+
+**Design principle:** "Changes in game state should be visually intuitive" - players need immediate visual confirmation that they're in downed state, not just crouching.
+
+### 2. Death Cinematic: Attack Prevention
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| **Input blocking during cinematic** | Prevents immersion break | Low | Players expect control loss during death sequence. Continuing to attack Dread during own death breaks horror. |
+| **Camera control lock** | Cinematic framing control | Low | Forced perspective maintains intended horror experience. |
+| **Movement prevention** | Death state finality | Low | Cannot escape after death trigger. |
+
+**Design principle:** "Forced perspective creates vulnerability" - Fatal Frame creator states forcing players to look at something scary "brings out the scariness."
+
+### 3. Creature Texture: Basic Unsettling Elements
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| **Non-default appearance** | Visual identity | Low | Must not look like vanilla mob. Baseline for "custom entity." |
+| **Visible in darkness** | Horror visibility balance | Medium | Too dark = invisible (frustrating). Too bright = not scary. |
+| **Consistent with cosmic horror theme** | Thematic coherence | Medium | Should evoke Cthulhu mythos, not generic monster. |
+
+**Design principle:** Cosmic horror emphasizes "the unknowable and incomprehensible more than gore." Texture should hint at otherworldliness.
+
+### 4. Death Cinematic: Basic Camera Work
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| **POV switch to Dread** | Already implemented in v1.0 | Low | Maintains existing camera behavior. |
+| **4.5-second duration** | Already implemented in v1.0 | Low | Timing already established. |
+| **Smooth transition** | Prevents motion sickness | Medium | Jarring camera cuts can break immersion. |
+
+**Design principle:** "Intimate scares" from first-person perspective - Resident Evil 7/Village established first-person POV as intensely scary for modern horror.
+
+### 5. Audio: Essential Sound Layers
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| **Dread presence audio** | Entity awareness cue | Medium | Breathing, footsteps, or ambient sound indicating Dread is near. |
+| **Death cinematic audio** | Synchronized with 4.5s sequence | Medium | Silent death = immersion break. Needs kill sound/scream. |
+| **Downed state audio** | Feedback for injured state | Low | Heavy breathing, pain sounds. Dead by Daylight standard. |
+| **Ambient environment layer** | Baseline horror atmosphere | Medium | Background drones/ambience. Silence alone not sufficient. |
+
+**Design principle:** "Silence is not merely the absence of sound but an active element" - strategic silence requires intentional ambient layers to punctuate.
+
+---
 
 ## Differentiators
 
-Features that set horror mods apart. Not expected, but highly valued.
+Features that set Dread apart. Not expected, but highly valued for horror impact.
+
+### 1. Advanced Downed State Mechanics
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Multi-Phase Stalking System** | Creates unpredictable, evolving threat instead of repetitive encounters | High | The Obsessed: stalking intensity increases gradually over an hour. Entity Director AI monitors player activity and triggers spawning protocols based on conditions |
-| **Base-Centric Tension** | Makes player's "safe space" feel vulnerable | Medium | Entities "know where you live," spawn near base, show up during sleep. GoatMan breaks doors/trapdoors/glass/fences. Eliminates camping strategy |
-| **Fake-Out Behaviors** | AI that bluffs, retreats, or misdirects before real attack | High | GoatMan "can fake attacks." Masked has "erratic AI with behavior that varies each run." Prevents pattern recognition that kills fear |
-| **ARG-Inspired Storytelling** | Meta-horror elements: signs with messages, paintings changed, subtle clues | Medium | From The Fog leaves signs with ominous messages, changes paintings to haunted versions, slips messages into subtitles. Guilt mod described as "ARG-flavored horror" |
-| **Psychological Horror Layers** | Sanity mechanics, hallucinations, mind games | High | Guilt mod "plays mind games." Sanity mod in multiplayer lets players affect each other's mental state. Goes beyond physical threat |
-| **Unskippable Death Cinematic** | Forces player to experience consequence of failure | Low-Medium | Makes death meaningful vs instant respawn. Dread's planned feature. Aligns with permadeath horror philosophy where "death means something" |
-| **Multiplayer-Specific Mechanics** | Cooperative features: revive system, shared fear, entity targeting multiple players | Medium | Downed/revive system (Dread's plan). Obsessed can target one or multiple players (config). "Less terrifying with friends" but adds strategic cooperation |
-| **Environmental Sensing AI** | Entity reacts to player context: light levels, isolation, activity type | High | The Wilted targets player as world's "light source." Entity Director triggers on "low light and player isolation." Mining activity triggers (Dread) |
-| **Particle Effects & Visual Warnings** | Fog, particles, visual distortion before attacks | Medium | The Wilted uses "ominous sounds and fog before attack night." Cave Horror Project features "deforming structures and warning sounds." Gives perceptive players chance to prepare |
-| **Varied Entity Forms** | Multiple appearances or possessed mobs | Medium-High | From The Fog: Herobrine "possesses common passive mobs to better blend in." Guilt "stalks in multiple forms." Prevents visual recognition pattern |
-| **Sound-Based Proximity System** | Cave sounds/music intensity correlates with entity distance | Medium | "As Cave Dweller gets closer, cave sounds get more intense." Gives informed players tension gradient vs binary surprise |
+| **Dynamic crawl speed based on recovery** | Increased tension over time | High | Dead by Daylight's Tenacity perk allows crawl during recovery. Could vary speed 0-50% as recovery progresses. |
+| **Blood trail visual** | Environmental storytelling | Medium | Leaves blood particles/blocks behind while crawling. Increases vulnerability (Dread can track). |
+| **Proximity-based revival speed** | Cooperative gameplay depth | Medium | Allies closer to downed player = faster revive. Encourages risk/reward. |
+| **Downed state sounds heard by Dread** | Strategic vulnerability | Low | Amplifies "dying survivors make sounds killers can hear" design from DBD. |
+
+**Why this stands out:** Most Minecraft mods have binary alive/dead states. Dread's downed state already differentiates - enhancing it compounds uniqueness.
+
+### 2. Cinematic Kill Execution
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| **Camera angle variation** | Replayability, reduces predictability | High | Resident Evil Requiem (2026) allows perspective switching. Multiple death camera angles prevent stale repetition. |
+| **Slow zoom during 4.5s** | Building dread, not just shock | Medium | "Slowly zoom out until respawn" technique from Third Person Death mod. Creates lingering horror. |
+| **Screen effects intensification** | Visceral fear escalation | Low | Vignette/blur already present - could pulse or intensify during cinematic. |
+| **Final frame freeze** | Memorable horror moment | Low | Hold final frame 0.5s before respawn. Cements image in memory. |
+
+**Why this stands out:** Jump scares are "one-time use" - making death cinematic varied and memorable ensures it stays scary on repeat encounters.
+
+### 3. Eldritch Texture Design
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| **Emissive/glowing texture elements** | Otherworldly presence | Medium | Entity Texture Features mod enables emissive textures. Eyes/runes glow in darkness. |
+| **Animated texture components** | Living, unsettling appearance | High | Vanilla Entity Shader Effects allows animated textures (flowing, pulsing). Non-Euclidean feel. |
+| **Impossible geometry hints** | Cosmic horror incomprehensibility | Medium | Texture suggests forms that "shouldn't exist" - recursive patterns, self-similar fractals. |
+| **Color outside normal spectrum** | Alien nature | Low | Use saturated purples/greens rare in Minecraft. Signals wrongness. |
+
+**Why this stands out:** Most horror mobs use dark/creepy textures. Cosmic horror's "incomprehensible" design philosophy creates unique visual identity.
+
+### 4. Multi-Layered Audio Atmosphere
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| **3-layer soundscape** | Professional horror depth | High | Foreground (Dread sounds), midground (ambient drones), background (subtle reverb/rumbles). |
+| **Proximity-based audio intensity** | Escalating tension | Medium | Dread's breathing/presence sounds intensify as it approaches. Creates dread before visual. |
+| **Directional audio cues** | Spatial awareness and fear | Medium | Footsteps in water, scraping sounds from specific directions. Player can track but not see. |
+| **Post-death audio continuation** | Lingering horror | Low | Ambient sounds continue 2-3s after respawn. Death doesn't "reset" atmosphere. |
+
+**Why this stands out:** Outlast's heavy breathing and ambient density set modern standard. Layered soundscape elevates mod from "has sounds" to "has audio design."
+
+### 5. Psychological Pacing
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| **Anticipation before jump scare** | Effective vs cheap scare | Medium | "What leads up to the big scream" matters more than volume. Build tension before turn-around spawn. |
+| **Tension/release rhythm** | Sustainable horror | High | Jump scares as "spice, not main course." Alternate Dread encounters with ambient dread periods. |
+| **Environmental audio tells** | Player-controlled tension | Medium | Distant sounds let player know "something is near" - allows hiding/preparation. Not always instant kill. |
+
+**Why this stands out:** "Good jump scares balance tension buildup and release" - Dread's turn-around mechanic is already a strong setup, enhancing pacing makes it genuinely terrifying vs cheap.
+
+---
 
 ## Anti-Features
 
-Features to explicitly NOT build. Common mistakes that ruin horror.
+Features to explicitly NOT build. Common mistakes in horror domain.
+
+### 1. Over-Reliance on Jump Scares
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **Constant Jump Scares** | "When used frequently, they become cheap and overused gimmick." Players become desensitized; "mentally prepares you for future ones" | Use jump scares as **climactic release** after tension buildup. Guilt mod uses "screamers and loud sounds" sparingly over 5-7 hour campaign |
-| **Instant Death Without Warning** | "Instant death in horror games isn't scary." Creates frustration, not fear. "The more often you try, the less scary it gets" | Telegraph threats subtly (sound cues, particles). Give player **chance to react** but make reaction difficult. Choice creates stress over frustration |
-| **Zero Configuration** | Players have different fear tolerances; forcing hardcore mode alienates casual players | Always provide config for spawn rates, damage, frequency. ArPhEx, DISTURBED, Cave Dweller all highly configurable |
-| **Predictable Patterns** | Once players learn the pattern, fear evaporates | Randomized behaviors, varied spawn conditions, fake-out attacks. "Sophisticated AI almost unpredictable" (tier-two entities) |
-| **Pure Helplessness** | "Many players hate being helpless." Crosses line from scary to frustrating | Player should have **defensive options** (light sources, shields block once, running/hiding) but feel under-equipped, not powerless |
-| **Overly Punishing Death** | "If too punishing, leads to player frustration" not fear | Make death memorable/scary (unskippable cinematic) but don't erase hours of progress. Permadeath works in narrative games (Song of Horror) but risky in sandbox |
-| **Light Spam Negates Threat** | If placing 100 torches makes entity trivial, ruins horror | Entities should **manipulate light** (extinguish torches, break light sources). Cave Dweller "knocks out light sources, targeting torches" |
-| **Daytime Safety** | If threat only exists at night, players just skip nights or avoid caves | Entities should spawn during day (Siren Head), or invade safe spaces regardless of time. Horror shouldn't have convenient on/off switch |
-| **Telegraphing Exact Timing** | "Telegraphing a jump scare seconds before drains it of scariness" | **Foreshadow possibility** (sounds, fog) but keep **exact timing** secret. Misdirect attention (focus one area, scare from another) |
-| **No Escalation** | If threat stays constant, players adapt and boredom sets in | Progressive difficulty: From The Fog waits 3 days before major events. Obsessed "stalking intensity increases gradually." Keeps players off-balance |
+| **Frequent guaranteed kills** | "Jump scares used frequently become cheap gimmick that runs out very quickly" | Make some encounters escapable. Dread presence ≠ guaranteed death. Build tension that doesn't always pay off. |
+| **Loud = scary** | "Doesn't take much to scare someone like that" - considered bad practice | Use silence, ambient drones, and dynamic range. Loud moments earn impact through contrast. |
+| **Predictable spawn patterns** | "When you expect them, you're no longer scared" | Vary spawn conditions, timing, and locations. Unpredictability sustains fear. |
+
+**Design principle:** Amnesia uses "jump scares without cheap tricks, just building tension and releasing it at the right moment."
+
+### 2. Visual Clarity Issues
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Invisible/too-dark entity** | Frustration, not fear | Dread must be visible in darkness (emissive eyes, subtle glow). Horror requires seeing the threat. |
+| **Overly complex texture** | Minecraft's block aesthetic limits detail | Suggest complexity with strategic details (glowing eyes, key features) rather than photorealism. |
+| **Gore-focused design** | Cosmic horror is about incomprehensibility, not gore | Focus on wrongness - impossible angles, alien forms - not blood/viscera. |
+
+**Design principle:** "Physically, the Eldritch Abomination is only defined by seeming somehow 'off'" - subtlety > shock value.
+
+### 3. Audio Overload
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Constant loud ambience** | Desensitization, exhaustion | Use dynamic range. "Silence as active element" - quiet moments make loud ones impactful. |
+| **Every sound layer competing** | Muddy mix, no clarity | Frequency layering: low (rumbles), mid (drones), high (distant echoes). Keep layers complementary. |
+| **Music during gameplay** | Reduces player tension control | Reserve music for death cinematic. Ambient soundscape during gameplay lets footsteps/breathing create dread. |
+
+**Design principle:** "Ambient environments contain incredibly dense soundscapes with multiple layers AND randomized one-shot sounds that stick out" - density with clarity.
+
+### 4. Immersion Breaking Mechanics
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Player control during death** | Breaks cinematic impact | Complete input lock. Death is non-negotiable. |
+| **Instant respawn** | No consequence weight | Brief black screen or hold final frame. Let death sink in. |
+| **Silent cinematic** | Undermines horror investment | Synchronized audio for full 4.5s sequence. Silence here is missed opportunity. |
+
+**Design principle:** "Forced perspective creates vulnerability" - giving player control during death sequence undermines the horror of helplessness.
+
+### 5. Generic Horror Tropes
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Generic monster design** | Could be any horror mob | Lean into cosmic horror identity - Cthulhu-style incomprehensibility, not zombie/skeleton. |
+| **Standard hurt sounds** | Minecraft vanilla feel | Custom audio that matches Dread's otherworldly nature. Deep, unsettling, alien. |
+| **Immediate threat visibility** | Reduces mystery | Some audio cues (breathing, footsteps) before visual. Let imagination work first. |
+
+**Design principle:** "Lovecraftian horror emphasizes the unknowable and incomprehensible" - Dread should feel fundamentally alien, not just dangerous.
+
+---
 
 ## Feature Dependencies
 
-Critical build order based on what depends on what:
+### Dependency Flow
 
 ```
-Core Entity (model, animations)
-  ↓
-Basic AI (pathfinding, targeting)
-  ↓
-Stalking Intelligence (out-of-FOV spawning, tracking)
-  ↓
-Environmental Manipulation (break blocks, extinguish lights)
-  ↓
-Sound Design (proximity-based, atmospheric)
-  ↓
-Spawn Progression System (time-based, action-triggered)
-  ↓
-Advanced Behaviors (fake-outs, multi-phase, varied forms)
-  ↓
-Configuration System (spawn rates, difficulty, toggles)
-  ↓
-Multiplayer Features (targeting, revive system)
+CORE v1.0 FEATURES (Already Built)
+    |
+    ├── Downed State Mechanics
+    |   ├── Crawl Pose Animation → depends on movement state
+    |   ├── Blood Trail Effects → depends on crawl movement
+    |   └── Downed Audio → depends on state trigger
+    |
+    ├── Death Cinematic (4.5s, POV switch)
+    |   ├── Input Blocking → depends on cinematic trigger
+    |   ├── Camera Enhancements → depends on existing POV switch
+    |   ├── Screen Effects → depends on existing blur/vignette
+    |   └── Cinematic Audio → depends on timing system
+    |
+    ├── Dread Entity
+    |   ├── Texture Improvements → independent (texture swap)
+    |   ├── Emissive Elements → depends on shader support
+    |   └── Animated Texture → depends on ETF/shader mods
+    |
+    └── Sound Event System (exists, silent)
+        ├── Entity Presence Audio → depends on proximity detection
+        ├── Ambient Soundscape → independent layer
+        ├── Death Cinematic Audio → depends on cinematic trigger
+        └── Environmental Audio → depends on world state
 
-Parallel Tracks:
-- Visual Effects (particles, fog, shaders) can develop alongside AI
-- Death Cinematics can develop alongside spawn system
-- ARG Elements (signs, messages) can add after core loop proven
+ENHANCEMENT SEQUENCING
+Phase 1 (Foundation): Audio infrastructure, attack blocking
+Phase 2 (Visual Polish): Crawl pose, texture improvements
+Phase 3 (Immersion): Layered soundscape, cinematic refinement
 ```
 
-**Critical Path:** Entity → AI → Stalking → Sounds. Without these four, the mod isn't scary.
+### Critical Dependencies
 
-**Deferrable:** ARG elements, multiplayer-specific features, advanced visual effects. Nice-to-have but not core horror loop.
+1. **Audio System** - All sound features depend on functional audio playback
+2. **State Detection** - Crawl pose, audio cues depend on accurate state recognition (downed vs standing vs dead)
+3. **Camera Control** - Cinematic enhancements depend on ability to manipulate camera during death sequence
+4. **Texture Support** - Advanced texture features depend on mod/shader compatibility (ETF, shaders)
 
-## MVP Recommendation
+### Independent Features (Can Build in Parallel)
 
-For Dread mod MVP, prioritize:
+- Attack prevention (input blocking)
+- Ambient soundscape base layer
+- Basic texture improvements (non-animated)
+- Downed state audio
 
-1. **Dread Entity with Distinctive Design** - Cthulhu-style horror must be immediately recognizable and unsettling
-2. **Turn-Around Jump Scare Mechanic** - Core value prop; must nail the timing and buildup
-3. **Stalking AI (Out-of-FOV Spawning)** - Entity appears when player turns around, requires intelligent positioning
-4. **Atmospheric Soundscape** - Proximity-based sound intensity, ambient dread sounds, climactic scare audio
-5. **Mining Activity Trigger** - Ties into gameplay loop; makes safe activity (mining) dangerous
-6. **Random Spawn Ticker (Increasing)** - Game days mechanic ensures escalation
-7. **Unskippable Death Cinematic** - Differentiator; makes the consequence genuinely terrifying
-8. **Basic Configuration** - At minimum: spawn rate, damage, enable/disable. Respects player preferences
+---
 
-Defer to post-MVP:
-- **Multiplayer Downed/Revive System** - Complex, test single-player first (Medium complexity)
-- **Environmental Manipulation** - Dread doesn't need to build structures; focus on presence (Low priority for this mod's theme)
-- **ARG Elements** - Signs, messages, meta-horror. Great for v2 but not core scare loop (Low priority)
-- **Multiple Dread Forms** - Single terrifying form is enough for MVP; variants add complexity (Medium priority)
-- **Advanced Fake-Out Behaviors** - Jump scare mechanic already creates surprise; fake-outs are polish (Low priority)
+## MVP Recommendation for v1.1
 
-## Complexity Analysis
+### Must-Have (Table Stakes)
 
-| Feature Category | Implementation Complexity | Why |
-|-----------------|-------------------------|-----|
-| Basic Entity (model, texture, animations) | Medium | Fabric 1.21.x has good entity API; Cthulhu design needs quality modeling |
-| Stalking AI (out-of-FOV spawn) | High | Requires raycasting, FOV calculations, world position logic, spawn safety checks |
-| Sound Design | Medium | Fabric has sound API; challenge is creating/sourcing quality horror audio |
-| Jump Scare Timing | High | Must detect player turn, position entity precisely, trigger at perfect moment. Timing is everything |
-| Spawn Progression System | Low-Medium | Tick counter, day tracking, probability curves. Logic-heavy but well-documented |
-| Unskippable Death Cinematic | Medium | Custom death handling, camera control, prevent respawn UI. May conflict with other mods |
-| Multiplayer Revive System | High | Server-client sync, player state management, custom health system, UI elements |
-| Configuration System | Low | Fabric Config API or similar. Mostly boilerplate |
-| Light Manipulation | Medium | Detect nearby light sources, break blocks, handle different light types (torch, lantern, campfire) |
+Prioritize these to make existing features feel complete:
 
-**Highest Risk:** Jump scare timing and stalking AI. These make or break the core value proposition. If timing feels off or entity spawns obviously, the mod fails.
+1. **Attack prevention** - Input blocking during death cinematic (prevents immersion break)
+2. **Basic crawl pose** - Visual indication of downed state (state clarity)
+3. **Death cinematic audio** - Sound during 4.5s sequence (no silent deaths)
+4. **Dread presence audio** - Breathing/footsteps when near (entity awareness)
 
-**Lowest Risk:** Configuration, spawn progression, sound integration. Well-documented patterns in Fabric ecosystem.
+**Rationale:** These four address the biggest gaps in current implementation. Without them, existing features feel unfinished.
 
-## What Makes Horror Mods Scary: Evidence-Based Analysis
+### Should-Have (High-Value Differentiators)
 
-Based on community discussion and mod popularity analysis:
+Add these if time permits - highest ROI for horror impact:
 
-### Effective Scare Mechanics
+5. **Emissive texture elements** - Glowing eyes in darkness (cosmic horror identity)
+6. **Ambient soundscape** - Background drones/atmosphere (professional audio feel)
+7. **Proximity-based audio intensity** - Sounds intensify as Dread approaches (escalating tension)
 
-1. **Intelligent, Unpredictable AI** - "Smart, unpredictable entities that stalk players in multiple forms, track movements, and 'know where you live'" (Source: Godlike hosting analysis)
+**Rationale:** These three transform Dread from "working" to "terrifying." Emissive eyes especially signal otherworldly nature.
 
-2. **Atmospheric Design Over Jump Scares** - "ARG-inspired mods use random environmental events to create feeling that 'something is wrong' without constant jump-scare chases" (Source: Top Horror Mods analysis)
+### Defer to Post-v1.1
 
-3. **Psychological Tension** - "Eerie feelings through creepy echoing sounds, dangerous abilities like knocking out light sources, subtle sightings, escalating encounters" (Source: Best Horror Mods 2026)
+Enhance these after core polish is complete:
 
-4. **Disrupting Safe Spaces** - "Stalkers can show up during sleep, making houses feel less like safe zones. Base-centric tension where entities know where you live" (Source: Horror mod mechanics analysis)
+- **Animated textures** - Requires shader research, high complexity
+- **Multiple camera angles** - Increases scope significantly, replayability benefit not critical for v1.1
+- **Blood trail visuals** - Nice-to-have, not essential for horror impact
+- **Dynamic crawl speed** - Mechanical complexity, minor gameplay benefit
 
-5. **Perfect Timing** - "Unpredictable AI, disturbing sounds, and **perfect timing** for maximum scares. Timing can feel almost fated" (Source: Jump Scare Design analysis)
+**Rationale:** These features increase production time disproportionately. Better to nail fundamentals first, then enhance.
 
-### What Ruins Horror
+---
 
-1. **Predictability** - "Overused jump scares become gimmick. Once you know what to expect, tension is lost"
+## Implementation Complexity Assessment
 
-2. **Frustration Over Fear** - "If too punishing, leads to player frustration not fear. Players want to feel scared, not cheated"
+### Low Complexity (Quick Wins)
 
-3. **No Player Agency** - "Complete helplessness crosses line to frustrating. Choice turns frustrations into stress"
+| Feature | Estimated Effort | Notes |
+|---------|-----------------|-------|
+| Input blocking during cinematic | Low | Simple input override during death state |
+| Basic downed state audio | Low | Play sound on state trigger |
+| Basic Dread presence audio | Low | Proximity-triggered sound playback |
+| Screen effect intensification | Low | Modify existing blur/vignette values |
 
-4. **Cheap Scares** - "Scares with no buildup, no foreshadowing, no narrative justification feel cheap and arbitrary"
+### Medium Complexity (Core Features)
 
-## Domain-Specific Insights for Dread Mod
+| Feature | Estimated Effort | Notes |
+|---------|-----------------|-------|
+| Crawl pose animation | Medium | Requires pose change on downed state |
+| Texture improvements (static) | Medium | Texture art + implementation |
+| Ambient soundscape (3 layers) | Medium | Audio mixing + layered playback |
+| Proximity-based audio intensity | Medium | Distance calculation + volume scaling |
+| Death cinematic audio sync | Medium | Timing coordination with 4.5s sequence |
 
-### Alignment with Best Practices
+### High Complexity (Stretch Goals)
 
-Dread's planned features align well with proven horror mechanics:
+| Feature | Estimated Effort | Notes |
+|---------|-----------------|-------|
+| Emissive/animated textures | High | Depends on shader mod compatibility research |
+| Camera angle variation | High | Multiple camera paths + randomization |
+| Dynamic soundscape mixing | High | Real-time audio layer management |
+| Blood trail particle effects | High | Particle system + state tracking |
 
-- **Turn-around jump scare** = Perfect timing + surprise direction (misdirection principle)
-- **Mining trigger** = Scare during goal-oriented activity (proven effective in FNAF-style horror)
-- **Increasing spawn ticker** = Escalation over time (prevents adaptation)
-- **Unskippable cinematic** = Meaningful death consequence (aligned with permadeath horror philosophy)
-- **Cthulhu design** = Distinctive entity with lore (table stakes)
+---
 
-### Recommended Additions
+## Alignment with v1.0 Feature Set
 
-1. **Sound Proximity System** - Make ambient sounds intensify as Dread gets closer (like Cave Dweller). Rewards attentive players
+### Building on Existing Strengths
 
-2. **Subtle Visual Warnings** - Brief particle effect or screen distortion 2-3 seconds before spawn. Prevents "cheap" feeling while maintaining surprise
+Dread v1.0's proven horror mechanics align with research findings:
 
-3. **Fake-Out Occasionally** - 10% of the time, play tension sounds but don't spawn. Keeps players paranoid
+| v1.0 Feature | Research Validation | v1.1 Enhancement Opportunity |
+|--------------|---------------------|------------------------------|
+| **Turn-around jump scare** | Perfect timing + misdirection = effective horror | Add audio buildup before spawn |
+| **4.5s death cinematic** | Unskippable death = meaningful consequence | Add synchronized audio, camera refinement |
+| **Downed state (300s timer)** | DBD-style incapacitation = cooperative depth | Add crawl pose, blood trail |
+| **-90% movement speed** | Player agency prevents frustration | Match visual crawl animation to speed |
+| **Blur/vignette effects** | Visual state feedback = clear communication | Intensify during death cinematic |
+| **Crouch-to-revive** | Cooperative mechanic = multiplayer value | Add proximity-based speed variation |
 
-4. **Configuration is Critical** - Spawn rate, damage, and cinematic skippability MUST be configurable. Some players want casual spooks, others want nightmare difficulty
+### Gaps Addressed by v1.1
 
-5. **Light Interaction** - Dread should extinguish nearby torches when spawning or passing through. Weaponizes darkness
+| Current Gap | Player Experience Impact | v1.1 Solution |
+|-------------|--------------------------|---------------|
+| **Silent audio** | Immersion break, feels incomplete | Full audio implementation |
+| **No crawl visual** | State unclear, looks like crouch | Prone pose animation |
+| **Player can attack during death** | Breaks cinematic, undermines horror | Input blocking |
+| **Generic texture** | Doesn't convey cosmic horror | Improved texture with emissive eyes |
 
-### Risks to Mitigate
+---
 
-1. **Turn-around mechanic could become predictable** - "Every time I hear sounds, I spin around" becomes pattern. Vary timing and conditions
+## Domain-Specific Insights: Horror Polish
 
-2. **Unskippable cinematic could frustrate** - Make it SHORT (5-10 seconds max) and visually interesting, not just black screen. Config to skip if player hates it
+### What Makes Polish Features Effective
 
-3. **Mining trigger could discourage mining** - Balance frequency so players feel tension but don't avoid core gameplay. Config option essential
+Research reveals polish features succeed when they:
 
-4. **Multiplayer revive could trivialize** - If players can always revive, death loses meaning. Consider limited revives or downing consequences
+1. **Reinforce Core Horror Loop** - Audio/visuals that amplify existing scare mechanics, not distract
+2. **Communicate Game State Clearly** - Visual/audio feedback prevents confusion (downed = prone pose + breathing)
+3. **Respect Player Agency** - Control removed only when narratively justified (death cinematic)
+4. **Layer Atmosphere** - Multiple sensory channels (visual texture + audio ambience) compound immersion
+
+### Horror Game Audio Design Principles (Applied to Dread)
+
+| Principle | Application to Dread v1.1 |
+|-----------|---------------------------|
+| **3-layer soundscape** | Foreground: Dread footsteps/breathing; Midground: ambient drones; Background: subtle rumbles |
+| **Proximity intensification** | Breathing volume increases as Dread approaches turn-around spawn point |
+| **Directional audio** | Footstep sounds from behind player before visual spawn |
+| **Strategic silence** | Quiet ambient moments before turn-around scare amplify impact |
+
+### Texture Design for Cosmic Horror (Applied to Dread)
+
+| Principle | Application to Dread v1.1 |
+|-----------|---------------------------|
+| **Incomprehensible forms** | Texture hints at non-Euclidean geometry (recursive patterns, impossible angles) |
+| **Otherworldly color** | Saturated purples/greens rare in Minecraft = alien presence |
+| **Emissive elements** | Glowing eyes/runes visible in darkness = prevents invisibility frustration |
+| **"Off" not gory** | Subtle wrongness (too many eyes, limbs at wrong angles) > blood/viscera |
+
+---
 
 ## Sources
 
-### Primary Research Sources
+### Horror Game Design Principles
 
-- [Top Minecraft Horror Mods (CurseForge)](https://blog.curseforge.com/top-minecraft-horror-mods/)
-- [Cave Dweller Mod (CurseForge)](https://www.curseforge.com/minecraft/mc-mods/cave-dweller)
-- [Cave Dweller Reimagined (CurseForge)](https://www.curseforge.com/minecraft/mc-mods/cave-dweller-reimagined)
-- [From The Fog Official Site](https://lunareclipse.studio/creations/from-the-fog)
-- [From The Fog (CurseForge)](https://www.curseforge.com/minecraft/mc-mods/from-the-fog)
-- [The Obsessed Mod (CurseForge)](https://www.curseforge.com/minecraft/mc-mods/obsessed)
-- [Best Minecraft Horror Mods for Playing with Friends (DatHost)](https://dathost.net/blog/best-minecraft-horror-mods-for-playing-with-friends)
+- [Fatal Frame's iconic camera forces players to "look straight at something scary"](https://www.gamesradar.com/games/survival-horror/fatal-frames-iconic-camera-exists-to-force-players-to-look-straight-at-something-scary-says-series-creator-we-thought-it-would-really-bring-out-the-scariness-of-the-ghosts/) - Camera perspective and forced viewpoints in horror
+- [The Cinematography of Horror Games](https://newgameplus.co.uk/2018/05/22/cinematography-of-horror-games/) - Fixed cameras, dramatic framing, visual restriction
+- [A Lack of Fright: Examining Jump Scare Horror Game Design](https://www.gamedeveloper.com/design/a-lack-of-fright-examining-jump-scare-horror-game-design) - Effective vs cheap jump scares
+- [What horror game creators think about jump scares](https://www.pcgamer.com/what-horror-game-creators-think-about-jump-scares/) - Red Barrels on tension buildup
+- [Silence is Scary: The Power of Sound Design in Horror Games](https://www.wayline.io/blog/silence-is-scary-sound-design-horror-games) - Silence as active element
+- [Resident Evil: How the Franchise Mastered Horror Through Perspective](https://bloody-disgusting.com/video-games/3626501/resident-evil-franchise-mastered-art-horror-perspective/) - First-person intimacy
+- [Why Resident Evil Requiem has different camera angles](https://www.gamedeveloper.com/design/how-capcom-designed-resident-evil-requiem-with-different-camera-angles-in-mind) - Perspective switching in 2026 horror games
 
-### Horror Game Design Theory
+### Downed State Mechanics
 
-- [Creating Horror through Level Design (Game Developer)](https://www.gamedeveloper.com/design/creating-horror-through-level-design-tension-jump-scares-and-chase-sequences)
-- [A Lack of Fright: Examining Jump Scare Horror Game Design (Game Developer)](https://www.gamedeveloper.com/design/a-lack-of-fright-examining-jump-scare-horror-game-design)
-- [Mastering Jump Scares In Horror (BYU)](https://copyright-certificate.byu.edu/news/mastering-jump-scares-in-horror)
-- [What Makes Jump Scares Effective in Horror (Horror HQ)](https://thehorrorhq.com/blog/what-makes-jump-scares-effective-in-horror)
-- [6 Universally Hated Horror Game Mechanics (Ripout)](https://ripoutgame.com/6-horror-game-mechanics-most-gamers-hate/)
-- [Ingredients of Horror: Two-Factor Horror Game Design (Chris's Survival Horror Quest)](https://horror.dreamdawn.com/?p=7979)
+- [Health States - Dead by Daylight Wiki](https://deadbydaylight.fandom.com/wiki/Health_States) - Dying state crawling, 240s bleed-out, recovery mechanics
+- [Tenacity - Dead by Daylight Wiki](https://deadbydaylight.fandom.com/wiki/Tenacity) - Crawl during recovery mechanic
+- [Third Person Death mod](https://github.com/cintlep/ThirdPersonDeath) - Bedrock-styled cinematic death camera for Java
 
-### Death Mechanics Research
+### Audio Design
 
-- [Permadeath as Game Mechanic in Survival Horror (Game Developer)](https://www.gamedeveloper.com/design/permadeath-as-a-game-mechanic-in-a-survival-horror-the-song-of-horror-case)
-- [Instant Death in Horror Games Isn't Scary (OHSAT)](https://www.ohsat.com/post/instant-death-in-horror/)
-- [Why Horror Games Need to Quit Killing Us (PC Gamer)](https://www.pcgamer.com/why-horror-games-need-to-quit-killing-us/)
+- [Drones and ambient music in horror games](https://gamemusic.net/drones-and-ambient-music-in-horror-games/) - Ambient music vs orchestral, unsettling synthesizers
+- [How to Make Horror Game Music and Sound Effects](https://splice.com/blog/horror-video-games-sound-design/) - Sound design as critical element
+- [Horror Sound Design's Secrets](https://lbbonline.com/news/horror-sound-designs-secrets-how-audio-experts-craft-bone-chilling-scares) - 3D audio and spatial techniques
+- [Halloween Tutorial: Creating a Creepy Soundscape](https://modeaudio.com/magazine/halloween-tutorial-creating-a-creepy-soundscape) - Frequency layering (low/mid/high)
+- [Crafting Immersive Soundscapes](https://karanyisounds.com/blogs/production-tips/crafting-immersive-soundscapes-for-video-games-and-motion-pictures) - Foreground/midground/background layers
+- [Trapped in Terror: Sound Design with Strafekit](https://www.wayline.io/blog/foley-sound-design-for-claustrophobic-horror-with-strafekit) - Outlast's breathing and ambient density
+- [Best Gaming Setup for Horror Games to Hear Every Creeping Footstep](https://steelseries.com/blog/horror-games-setup) - Audio cues in horror games
+- [Sound Design in Horror Games: Crafting Audio to Induce Fear](https://horrorchronicles.com/horror-games-and-sound-design/) - Heavy breathing, distorted breathing, footsteps
 
-### Atmospheric & Technical
+### Cosmic Horror Creature Design
 
-- [Tense Ambience Mod (Modrinth)](https://modrinth.com/mod/tense-ambience)
-- [Horror Ambience Music: Echoes (CurseForge)](https://www.curseforge.com/minecraft/texture-packs/horror-ambience-music)
-- [Best Minecraft Horror Modpacks of 2025 (Sparked Host)](https://blog.sparkedhost.com/minecraft/best-minecraft-horror-modpacks-of-2025)
-- [Configuration Options - Arthropod Phobia Expansions](https://arphex.miraheze.org/wiki/Configurations)
+- [MAKING MONSTROUS: Designing Outsiders](https://www.thecloudcurio.com/post/making-monstrous-3) - Combining disparate elements, bizarre forms
+- [Lovecraftian horror - Wikipedia](https://en.wikipedia.org/wiki/Lovecraftian_horror) - Unknowable and incomprehensible emphasis
+- [Eldritch Abomination - TV Tropes](https://tvtropes.org/pmwiki/pmwiki.php/Main/EldritchAbomination) - Amorphous, formless, non-Euclidean geometry
+- [How to Write Cosmic Horror Stories](https://www.masterclass.com/articles/how-to-write-cosmic-horror-stories) - Incomprehensible greater beings
+- [Cosmicism - Wikipedia](https://en.wikipedia.org/wiki/Cosmicism) - Cosmic horror philosophy
 
-**Confidence Note:** All findings based on WebSearch results cross-referenced across multiple gaming and modding community sources. No official Mojang/Fabric documentation consulted as this is design research, not technical implementation research. Marked as MEDIUM confidence - validated by multiple community sources but not authoritative documentation.
+### Minecraft Technical Implementation
+
+- [Entity Texture Features mod](https://www.curseforge.com/minecraft/mc-mods/entity-texture-features-fabric) - Random, emissive, blinking textures
+- [Vanilla Entity Shader Effects](https://modrinth.com/resourcepack/vanilla-entity-shader-effects) - Animated shader effects, glowing/flowing textures
+- [Entity Texture Animation - Bedrock Wiki](https://wiki.bedrock.dev/visuals/animated-entity-texture) - Texture animation techniques
+- [Shader – Minecraft Wiki](https://minecraft.wiki/w/Shader) - Core and post-processing shaders
+
+### Horror Atmosphere & Soundscape Layering
+
+- [Sound of Terror! Technicality behind horror movie soundscapes](https://www.letsfame.com/blog/sound-of-terror-technicality-behind-horror-movie-soundscapes) - Layering structure and processing
+- [How to add ambience sound effects to a horror video](https://krotos.studio/guide/ambience-horror-scene-davinci-resolve-tutorial) - Ambient sound implementation
+- [Creating a Thrilling Audio Experience](https://epicstockmedia.com/designing-horror-sound-effects/) - Horror sound effect design
+
+---
+
+## Confidence Assessment
+
+| Area | Confidence | Reasoning |
+|------|-----------|-----------|
+| Horror Design Principles | **HIGH** | Multiple authoritative sources (Fatal Frame creator, Red Barrels, industry analysis) agree on core principles |
+| Downed State Mechanics | **HIGH** | Dead by Daylight Wiki provides detailed mechanical specifications (240s timer, 95% recovery, crawl speed) |
+| Audio Design Best Practices | **MEDIUM** | Strong industry sources but WebSearch-based, not Context7 verified |
+| Cosmic Horror Aesthetics | **MEDIUM** | Well-documented design philosophy but artistic interpretation varies |
+| Minecraft Implementation | **MEDIUM** | Mods exist (ETF, shader effects) but specific compatibility with Dread mod needs verification |
+
+## Open Questions for Phase-Specific Research
+
+1. **Shader Compatibility** - Does current Dread mod support Entity Texture Features / shader-based effects? Needs technical investigation.
+2. **Audio System Limitations** - What audio playback capabilities exist in current implementation? Can it handle layered/proximity-based audio?
+3. **Animation System** - What pose/animation control exists for players in downed state? Custom animations possible?
+4. **Camera Control Scope** - Can camera manipulation during death cinematic be extended (zoom, angle variation)?
+
+These questions should be addressed during requirements gathering and technical spike phases.
