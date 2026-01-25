@@ -16,6 +16,10 @@ repositories {
         name = 'GeckoLib'
         url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
     }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+    }
 }
 
 loom {
@@ -40,6 +44,9 @@ dependencies {
 
     // GeckoLib
     modImplementation "software.bernie.geckolib:geckolib-fabric-${project.minecraft_version}:${project.geckolib_version}"
+
+    // Satin API for post-processing shaders
+    modImplementation "maven.modrinth:satin:1.17.0-1.21"
 }
 
 processResources {
