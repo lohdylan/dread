@@ -37,10 +37,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Configuration
 
-- [ ] **CONFIG-01**: Spawn rate configuration
-- [ ] **CONFIG-02**: Damage settings
-- [ ] **CONFIG-03**: Enable/disable mod toggle
-- [ ] **CONFIG-04**: Option to skip death cinematic
+- [x] **CONFIG-01**: Spawn rate configuration
+- [x] **CONFIG-02**: Damage settings
+- [x] **CONFIG-03**: Enable/disable mod toggle
+- [x] **CONFIG-04**: Option to skip death cinematic
 
 ## v2 Requirements
 
@@ -95,10 +95,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEATH-02 | Phase 3 | Complete |
 | DEATH-03 | Phase 3 | Complete |
 | DEATH-04 | Phase 3 | Complete |
-| CONFIG-01 | Phase 4 | Pending |
-| CONFIG-02 | Phase 4 | Pending |
-| CONFIG-03 | Phase 4 | Pending |
-| CONFIG-04 | Phase 4 | Pending |
+| CONFIG-01 | Phase 4 | Complete |
+| CONFIG-02 | Phase 4 | Complete |
+| CONFIG-03 | Phase 4 | Complete |
+| CONFIG-04 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-24 after Phase 3 completion*
+*Last updated: 2026-01-25 after Phase 4 completion*

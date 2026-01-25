@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & Entity** - Fabric mod skeleton with Dread entity model and animations
 - [x] **Phase 2: AI & Horror Experience** - Turn-around jump scares, stalking AI, and complete soundscape
 - [x] **Phase 3: Death & Revival System** - Downed state, cinematic death, and multiplayer revival
-- [ ] **Phase 4: Configuration & Release Prep** - User customization and final polish
+- [x] **Phase 4: Configuration & Release Prep** - User customization and final polish
 
 ## Phase Details
 
@@ -92,10 +92,10 @@ Plans:
 **Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 04-01-PLAN.md — GSON config system with validation (DreadConfig, DreadConfigLoader)
-- [ ] 04-02-PLAN.md — Config integration into spawn, damage, and cinematic systems
-- [ ] 04-03-PLAN.md — Shader compatibility detection (Iris/OptiFine) with fallback
-- [ ] 04-04-PLAN.md — Human verification checkpoint
+- [x] 04-01-PLAN.md — GSON config system with validation (DreadConfig, DreadConfigLoader)
+- [x] 04-02-PLAN.md — Config integration into spawn, damage, and cinematic systems
+- [x] 04-03-PLAN.md — Shader compatibility detection (Iris/OptiFine) with fallback
+- [x] 04-04-PLAN.md — Human verification checkpoint
 
 ## Progress
 
@@ -107,7 +107,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation & Entity | 4/4 | Complete | 2026-01-24 |
 | 2. AI & Horror Experience | 6/6 | Complete | 2026-01-24 |
 | 3. Death & Revival System | 6/6 | Complete | 2026-01-24 |
-| 4. Configuration & Release Prep | 0/4 | Not started | - |
+| 4. Configuration & Release Prep | 4/4 | Complete | 2026-01-25 |
 
 ---
 *Roadmap created: 2026-01-23*
@@ -116,5 +116,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 *Phase 2 planned: 2026-01-24*
 *Phase 2 complete: 2026-01-24*
 *Phase 3 planned: 2026-01-24*
+*Phase 3 complete: 2026-01-24*
+*Phase 4 planned: 2026-01-24*
+*Phase 4 complete: 2026-01-25*
 *Depth: quick (4 phases)*
 *Coverage: 20/20 v1 requirements mapped*
+*Milestone complete: 2026-01-25*
