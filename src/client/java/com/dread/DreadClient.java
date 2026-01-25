@@ -5,6 +5,7 @@ import com.dread.client.DownedHudOverlay;
 import com.dread.client.DownedStateClientHandler;
 import com.dread.client.DreadEntityRenderer;
 import com.dread.client.RevivalProgressRenderer;
+import com.dread.client.ShaderCompatibilityDetector;
 import com.dread.network.packets.CinematicTriggerS2C;
 import com.dread.network.packets.DownedStateUpdateS2C;
 import com.dread.network.packets.RemoveDownedEffectsS2C;
@@ -27,6 +28,9 @@ public class DreadClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         LOGGER.info("Initializing Dread client...");
+
+        // Detect shader mods for compatibility (before downed state handler)
+        ShaderCompatibilityDetector.detect();
 
         // Register Dread entity renderer with GeckoLib
         EntityRendererRegistry.register(ModEntities.DREAD, DreadEntityRenderer::new);
