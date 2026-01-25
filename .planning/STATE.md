@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 3 of 4 (Death & Revival System)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 03-04-PLAN.md (Downed state visual effects)
+Last activity: 2026-01-24 — Completed 03-05-PLAN.md (Revival mechanics and spectator transition)
 
-Progress: [█████████████░░░░░░░] 72% (13/18 plans complete)
+Progress: [██████████████░░░░░░] 78% (14/18 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 4.5 min
-- Total execution time: 1.34 hours
+- Total execution time: 1.42 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [█████████████░░░░░░░] 72% (13
 |-------|-------|-------|----------|
 | 01-foundation-entity | 4/4 | 25.1 min | 6.3 min |
 | 02-ai-horror-experience | 6/6 | 19.6 min | 3.3 min |
-| 03-death-revival-system | 4/6 | 17.5 min | 4.4 min |
+| 03-death-revival-system | 5/6 | 22.5 min | 4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-06 (0 min - checkpoint), 03-02 (6.0 min), 03-03 (5.1 min), 03-04 (6.4 min)
+- Last 5 plans: 03-02 (6.0 min), 03-03 (5.1 min), 03-04 (6.4 min), 03-05 (5.0 min)
 - Trend: Phase 3 maintaining steady pace, 5-6 min per plan
 
 *Updated after each plan completion*
@@ -63,8 +63,12 @@ Recent decisions affecting current work:
 - Proximity sound cooldown 2 seconds: Prevents audio spam while maintaining entity presence (Implemented - Phase 2)
 - Ambient interval 20s ± 10s: Creates unpredictable soundscape timing, prevents player conditioning (Implemented - Phase 2)
 - Tension calculation formula: (blocksMined * 0.01) + (worldDay * 0.02) for balanced escalation (Implemented - Phase 2)
-- 300 second revive window: Long enough for friends to reach, short enough for tension (Pending - Phase 3)
-- Spectator mode for perm death: Player can still watch friends, stays in session (Pending - Phase 3)
+- 300 second revive window: Long enough for friends to reach, short enough for tension (Implemented - Phase 3)
+- Spectator mode for perm death: Player can still watch friends, stays in session (Implemented - Phase 3)
+- Crouch-to-revive 4 block range: Close enough for deliberate positioning, far enough for safe approach (Implemented - Phase 3)
+- Uninterruptible 3-second revival: Prevents spam-clicking abuse, creates commitment stakes (Implemented - Phase 3)
+- Movement penalty -90% crawl: Allows limited repositioning without trivializing downed state (Implemented - Phase 3)
+- Timer pauses during revival: Prevents unfair timer expiration mid-revival (Implemented - Phase 3)
 - Satin API from Ladysnake maven: org.ladysnake:satin:1.17.0 for post-processing shaders (Implemented - Phase 3)
 - Custom UUID PacketCodec: Manual serialization for network packets using ByteBuf long read/write (Implemented - Phase 3)
 - Placeholder audio pattern: 54-byte OGG files consistent across all sound events (Implemented - Phase 3)
@@ -140,9 +144,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24 (current session)
-Stopped at: Completed 03-04-PLAN.md (Downed state visual effects)
+Stopped at: Completed 03-05-PLAN.md (Revival mechanics and spectator transition)
 Resume file: None
-Next: Continue Phase 3 - Death & Revival System (Plan 03-05: Revival mechanics and spectator transition)
+Next: Continue Phase 3 - Death & Revival System (Plan 03-06: Death system validation)
 
 ## Phase 1 Results
 
@@ -174,7 +178,7 @@ Next: Continue Phase 3 - Death & Revival System (Plan 03-05: Revival mechanics a
 | 1 | 03-02 | Persistent state management for downed players | ✓ Complete |
 | 2 | 03-03 | Death event handler and transition | ✓ Complete |
 | 2 | 03-04 | Downed state shaders and HUD | ✓ Complete |
-| 3 | 03-05 | Revival mechanics and spectator transition | Pending |
+| 3 | 03-05 | Revival mechanics and spectator transition | ✓ Complete |
 | 4 | 03-06 | Death system validation | Pending |
 
-**Phase 3 Status:** IN PROGRESS - Downed state fully implemented (event, cinematic, shaders, HUD, state management)
+**Phase 3 Status:** IN PROGRESS - Death/revival loop complete (crouch-to-revive, spectator transition, progress bars)
