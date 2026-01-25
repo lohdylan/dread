@@ -4,6 +4,7 @@ import com.dread.client.DeathCinematicClientHandler;
 import com.dread.client.DownedHudOverlay;
 import com.dread.client.DownedStateClientHandler;
 import com.dread.client.DreadEntityRenderer;
+import com.dread.client.RevivalProgressRenderer;
 import com.dread.network.packets.CinematicTriggerS2C;
 import com.dread.network.packets.DownedStateUpdateS2C;
 import com.dread.network.packets.RemoveDownedEffectsS2C;
@@ -37,6 +38,9 @@ public class DreadClient implements ClientModInitializer {
         // Register downed state handlers
         DownedStateClientHandler.register();
         DownedHudOverlay.register();
+
+        // Register revival progress renderer
+        RevivalProgressRenderer.register();
 
         // Register packet receivers
         registerPacketReceivers();
@@ -79,13 +83,16 @@ public class DreadClient implements ClientModInitializer {
             }
         );
 
-        // Revival progress packet - for future use (shows progress bar to reviver)
+        // Revival progress packet - updates world-space progress bar
         ClientPlayNetworking.registerGlobalReceiver(
             RevivalProgressS2C.ID,
             (payload, context) -> {
                 context.client().execute(() -> {
-                    // TODO: Implement revival progress UI in future plan
-                    LOGGER.debug("Revival progress: {} - {}", payload.downedPlayerUUID(), payload.progress());
+                    RevivalProgressRenderer.updateRevivalProgress(
+                        payload.downedPlayerUUID(),
+                        payload.active(),
+                        payload.progress()
+                    );
                 });
             }
         );
