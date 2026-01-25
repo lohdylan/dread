@@ -1,5 +1,6 @@
 package com.dread.death;
 
+import com.dread.config.DreadConfigLoader;
 import com.dread.entity.DreadEntity;
 import com.dread.network.packets.CinematicTriggerS2C;
 import com.dread.sound.ModSounds;
@@ -25,6 +26,25 @@ public class DeathCinematicController {
      * @param dread The Dread entity that killed the player
      */
     public static void triggerDeathCinematic(ServerPlayerEntity player, DreadEntity dread) {
+        var config = DreadConfigLoader.getConfig();
+
+        // Play death sound at player location
+        BlockPos deathPos = player.getBlockPos();
+        player.getServerWorld().playSound(
+            null, // Play to all nearby players
+            deathPos,
+            ModSounds.DREAD_DEATH,
+            SoundCategory.HOSTILE,
+            1.0f, // volume
+            1.0f  // pitch
+        );
+
+        // Skip cinematic if configured
+        if (config.skipDeathCinematic) {
+            // Still played death sound above, but no camera lock
+            return; // Skip rest of cinematic
+        }
+
         // Calculate position 1.5 blocks in front of player (facing them)
         Vec3d playerPos = player.getPos();
         Vec3d playerLook = player.getRotationVector().normalize();
@@ -37,17 +57,6 @@ public class DeathCinematicController {
 
         // Teleport Dread to face-to-face position with correct rotation
         dread.refreshPositionAndAngles(dreadPos.x, dreadPos.y, dreadPos.z, yaw, pitch);
-
-        // Play death sound at player location
-        BlockPos deathPos = player.getBlockPos();
-        player.getServerWorld().playSound(
-            null, // Play to all nearby players
-            deathPos,
-            ModSounds.DREAD_DEATH,
-            SoundCategory.HOSTILE,
-            1.0f, // volume
-            1.0f  // pitch
-        );
 
         // Send cinematic trigger packet to client
         CinematicTriggerS2C packet = new CinematicTriggerS2C(

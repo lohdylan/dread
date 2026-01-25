@@ -1,5 +1,6 @@
 package com.dread.death;
 
+import com.dread.config.DreadConfigLoader;
 import com.dread.entity.DreadEntity;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.entity.LivingEntity;
@@ -25,6 +26,11 @@ public class DreadDeathHandler {
      * @return false to cancel death, true to allow vanilla death
      */
     private static boolean onPlayerDeath(LivingEntity entity, DamageSource source, float damageAmount) {
+        // Check if mod is enabled
+        if (!DreadConfigLoader.getConfig().modEnabled) {
+            return true; // Allow vanilla death when mod disabled
+        }
+
         // Only handle player deaths
         if (!(entity instanceof ServerPlayerEntity player)) {
             return true; // Allow death for non-players
