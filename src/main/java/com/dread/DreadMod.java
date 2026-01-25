@@ -1,5 +1,6 @@
 package com.dread;
 
+import com.dread.network.DreadNetworking;
 import com.dread.registry.ModEntities;
 import com.dread.sound.ModSounds;
 import com.dread.spawn.DreadSpawnManager;
@@ -17,6 +18,7 @@ public class DreadMod implements ModInitializer {
         ModSounds.register();
         ModEntities.register();
         DreadSpawnManager.register();
+        DreadNetworking.registerPackets();
         LOGGER.info("Dread mod initialized successfully");
     }
 }
