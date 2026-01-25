@@ -89,10 +89,13 @@ Plans:
   4. Death cinematic can be skipped via configuration option
   5. Mod works reliably in multiplayer with 2-4 players on dedicated server
   6. Mod is compatible with Iris and Optifine shaders
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] TBD (to be planned)
+- [ ] 04-01-PLAN.md — GSON config system with validation (DreadConfig, DreadConfigLoader)
+- [ ] 04-02-PLAN.md — Config integration into spawn, damage, and cinematic systems
+- [ ] 04-03-PLAN.md — Shader compatibility detection (Iris/OptiFine) with fallback
+- [ ] 04-04-PLAN.md — Human verification checkpoint
 
 ## Progress
 
@@ -104,7 +107,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation & Entity | 4/4 | Complete | 2026-01-24 |
 | 2. AI & Horror Experience | 6/6 | Complete | 2026-01-24 |
 | 3. Death & Revival System | 6/6 | Complete | 2026-01-24 |
-| 4. Configuration & Release Prep | 0/TBD | Not started | - |
+| 4. Configuration & Release Prep | 0/4 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-23*
