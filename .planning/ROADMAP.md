@@ -61,17 +61,22 @@ Plans:
 ### Phase 3: Death & Revival System
 **Goal**: Players experience unskippable cinematic death followed by downed state with cooperative revival mechanics
 **Depends on**: Phase 2
-**Requirements**: DEATH-01, DEATH-02, DEATH-03, DEATH-04
+**Requirements**: DEATH-01, DEATH-02, DEATH-03, DEATH-04, SOUND-03
 **Success Criteria** (what must be TRUE):
   1. Player death triggers unskippable cinematic sequence showing their demise
   2. Killed player enters downed state with 300 second timer and blurred/dark screen
   3. Downed player becomes permanent spectator if timer expires without revival
   4. Nearby player can crouch to revive downed teammate restoring them to play
   5. Solo players experience permanent death stakes (no revival possible)
-**Plans**: TBD
+**Plans**: 6 plans in 4 waves
 
 Plans:
-- [ ] TBD (to be planned)
+- [ ] 03-01-PLAN.md — Satin API dependency, death sound, network packets
+- [ ] 03-02-PLAN.md — DownedPlayersState server-side persistence
+- [ ] 03-03-PLAN.md — Death event interception and cinematic controller
+- [ ] 03-04-PLAN.md — Downed state shaders and HUD timer
+- [ ] 03-05-PLAN.md — Revival mechanics and spectator transition
+- [ ] 03-06-PLAN.md — Human verification checkpoint
 
 ### Phase 4: Configuration & Release Prep
 **Goal**: Players can customize mod behavior and mod is release-ready with full documentation
@@ -98,7 +103,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation & Entity | 4/4 | Complete | 2026-01-24 |
 | 2. AI & Horror Experience | 6/6 | Complete | 2026-01-24 |
-| 3. Death & Revival System | 0/TBD | Not started | - |
+| 3. Death & Revival System | 0/6 | Planned | - |
 | 4. Configuration & Release Prep | 0/TBD | Not started | - |
 
 ---
@@ -107,5 +112,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 *Phase 1 complete: 2026-01-24*
 *Phase 2 planned: 2026-01-24*
 *Phase 2 complete: 2026-01-24*
+*Phase 3 planned: 2026-01-24*
 *Depth: quick (4 phases)*
 *Coverage: 20/20 v1 requirements mapped*
