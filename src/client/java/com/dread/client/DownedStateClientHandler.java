@@ -31,6 +31,11 @@ public class DownedStateClientHandler {
 
         // Register shader rendering
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+            // Skip shader if compatibility mode or disabled by config
+            if (ShaderCompatibilityDetector.shouldDisablePostProcessing()) {
+                return;
+            }
+
             if (isDownedEffectActive && downedShader != null) {
                 downedShader.render(context.tickCounter().getTickDelta(true));
             }
@@ -48,7 +53,12 @@ public class DownedStateClientHandler {
     public static void applyDownedEffects(int remainingTime) {
         isDownedEffectActive = true;
         remainingSeconds = remainingTime;
-        LOGGER.info("Applied downed state effects ({}s remaining)", remainingTime);
+
+        if (ShaderCompatibilityDetector.shouldDisablePostProcessing()) {
+            LOGGER.info("Applied downed state ({}s remaining) - shader effects disabled for compatibility", remainingTime);
+        } else {
+            LOGGER.info("Applied downed state effects ({}s remaining)", remainingTime);
+        }
     }
 
     /**

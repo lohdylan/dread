@@ -1,6 +1,7 @@
 package com.dread.spawn;
 
 import com.dread.DreadMod;
+import com.dread.config.DreadConfigLoader;
 import com.dread.entity.DreadEntity;
 import com.dread.registry.ModEntities;
 import com.dread.sound.DreadSoundManager;
@@ -54,6 +55,11 @@ public class DreadSpawnManager {
      * Called every second via server tick event.
      */
     private static void evaluateSpawnProbability(ServerWorld world) {
+        // Check if mod is enabled
+        if (!DreadConfigLoader.getConfig().modEnabled) {
+            return; // Skip all spawn logic when mod disabled
+        }
+
         // Tick sound manager
         DreadSoundManager.tick(world);
 
@@ -119,19 +125,19 @@ public class DreadSpawnManager {
     private static float calculateSpawnChance(SpawnProbabilityState state,
                                               ServerPlayerEntity player,
                                               ServerWorld world) {
+        var config = DreadConfigLoader.getConfig();
+
         long worldDay = world.getTimeOfDay() / 24000L;
         int blocksMined = state.getMinedBlocks(player.getUuid());
 
-        // Base chance: 0.5% per check (at 1 check/second = 10-20% chance per minute)
-        float baseChance = 0.005f;
+        // Use config values instead of hardcoded
+        float baseChance = config.baseSpawnChancePerSecond;
 
-        // Day escalation: Linear scaling up to day 20 cap
-        // Day 1: 1.5x, Day 10: 6x, Day 20: 11x (max)
-        float dayMultiplier = 1.0f + Math.min(worldDay, 20) * 0.5f;
+        // Day escalation: Linear scaling up to config cap
+        float dayMultiplier = 1.0f + Math.min(worldDay, config.dayEscalationCap) * 0.5f;
 
-        // Mining bonus: +0.1% per block mined since last spawn
-        // Encourages active players, resets after spawn
-        float miningBonus = blocksMined * 0.001f;
+        // Mining bonus from config
+        float miningBonus = blocksMined * config.miningBonusPerBlock;
 
         float totalChance = (baseChance * dayMultiplier) + miningBonus;
 
