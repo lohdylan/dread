@@ -1,5 +1,6 @@
 package com.dread;
 
+import com.dread.config.DreadConfigLoader;
 import com.dread.death.DreadDeathHandler;
 import com.dread.death.DreadDeathManager;
 import com.dread.network.DreadNetworking;
@@ -17,6 +18,10 @@ public class DreadMod implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Dread mod...");
+
+        // Load config FIRST before any other initialization
+        DreadConfigLoader.load();
+
         ModSounds.register();
         ModEntities.register();
         DreadSpawnManager.register();
