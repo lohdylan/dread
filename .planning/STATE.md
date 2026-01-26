@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 8 of 8 (Cinematic Enhancement)
-Plan: 1 of 3
+Plan: 2 of 3
 Status: In progress
-Last activity: 2026-01-26 — Completed 08-01-PLAN.md
+Last activity: 2026-01-26 — Completed 08-02-PLAN.md
 
-Progress: [█████████░░░░░░░░░░░] 45% (v1.0 complete, 2/4 v1.1 phases done, Phase 8 started)
+Progress: [█████████░░░░░░░░░░░] 47% (v1.0 complete, 2/4 v1.1 phases done, Phase 8 in progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 3.7 min
-- Total execution time: 1.90 hours
+- Total execution time: 1.97 hours
 
 **By Phase:**
 
@@ -33,7 +33,7 @@ Progress: [█████████░░░░░░░░░░░] 45% (v1
 | 04-configuration-release-prep | 4/4 | 10.0 min | 2.5 min |
 | 06-attack-prevention | 1/1 | 3.0 min | 3.0 min |
 | 07-crawl-pose | 3/3 | 8.6 min | 2.9 min |
-| 08-cinematic-enhancement | 1/3 | 4.0 min | 4.0 min |
+| 08-cinematic-enhancement | 2/3 | 8.0 min | 4.0 min |
 
 *Updated after each plan completion*
 
@@ -62,6 +62,8 @@ Phase 8 decisions:
 - Front-loaded violence timing: 0.15s explosive lunge, 0.85s hold, 0.8s release for maximum terror
 - Sound keyframe at 0.0s: Immediate impact on animation start
 - State flag pattern: isPlayingDeathGrab checked first in main controller for cinematic override
+- Camera shake: SHAKE_MAGNITUDE 2.5f, DECAY_SPEED 8.0f for 0.7-1s decay feel
+- Intensity config: cameraShakeIntensity 0-100 (default 100, full horror), 0 disables shake only
 
 ### Pending Todos
 
@@ -87,9 +89,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 08-01-PLAN.md
+Stopped at: Completed 08-02-PLAN.md
 Resume file: None
-Next: Continue with 08-02-PLAN.md (camera shake) or 08-03-PLAN.md (cinematic trigger)
+Next: Continue with 08-03-PLAN.md (cinematic trigger integration)
 
 ## Milestone History
 
