@@ -56,20 +56,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | TBD | Pending |
-| FIX-02 | TBD | Pending |
-| FIX-03 | TBD | Pending |
-| GAME-01 | TBD | Pending |
-| GAME-02 | TBD | Pending |
-| GAME-03 | TBD | Pending |
-| GAME-04 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
+| FIX-01 | Phase 9 | Pending |
+| FIX-02 | Phase 10 | Pending |
+| FIX-03 | Phase 12 | Pending |
+| GAME-01 | Phase 11 | Pending |
+| GAME-02 | Phase 11 | Pending |
+| GAME-03 | Phase 11 | Pending |
+| GAME-04 | Phase 11 | Pending |
+| TEST-01 | Phase 12 | Pending |
+| TEST-02 | Phase 12 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9
+- Mapped to phases: 9
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-26*
+*Traceability updated: 2026-01-26*

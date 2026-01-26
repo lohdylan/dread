@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** v1.2 Quick Fixes — bug fixes, gameplay polish, testing
+**Current focus:** v1.2 Quick Fixes — Phase 9 (Cinematic Fix)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-01-26 — Milestone v1.2 started
+Phase: 9 of 12 (Cinematic Fix)
+Plan: Ready to plan
+Status: Ready to plan Phase 9
+Last activity: 2026-01-26 — v1.2 roadmap created
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.2 in progress)
+Progress: [████████████████████░░░░░░░░░░] 71% (30/42 estimated plans)
 
 ## Performance Metrics
 
@@ -39,17 +39,17 @@ None.
 - Build requires `export JAVA_HOME="X:/Vibe Coding/jdk-21.0.6+7"` before Gradle commands
 
 **Known Bugs (v1.2 targets):**
-- Death cinematic janky/unreadable (camera effects fighting)
-- Downed state persists across worlds
-- Missing grab_impact.ogg
-- Single-player permanent death too punishing
+- Death cinematic janky/unreadable (camera effects fighting) -> Phase 9
+- Downed state persists across worlds -> Phase 10
+- Missing grab_impact.ogg -> Phase 12
+- Single-player permanent death too punishing -> Phase 11
 
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Starting v1.2 milestone
+Stopped at: v1.2 roadmap created
 Resume file: None
-Next: Define requirements → roadmap
+Next: `/gsd:plan-phase 9`
 
 ## Milestone History
 
