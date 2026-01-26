@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Phase 7 - Crawl Pose (downed player animations)
+**Current focus:** Phase 8 - Cinematic Enhancement (or return to Phase 5 for resources)
 
 ## Current Position
 
@@ -83,7 +83,7 @@ None.
 Last session: 2026-01-26
 Stopped at: Completed 07-03-PLAN.md (Phase 7 complete)
 Resume file: None
-Next: Phase 8 (Cinematic Polish) planning
+Next: /gsd:discuss-phase 8
 
 ## Milestone History
 
