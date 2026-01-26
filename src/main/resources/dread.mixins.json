@@ -11,7 +11,8 @@
   "client": [
     "DeathScreenMixin",
     "ClientAttackMixin",
-    "PlayerPoseMixin"
+    "PlayerPoseMixin",
+    "CrawlCameraMixin"
   ],
   "injectors": {
     "defaultRequire": 1
