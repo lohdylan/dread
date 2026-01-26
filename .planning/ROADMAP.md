@@ -74,10 +74,12 @@ Plans:
   3. All 3 form variants (BASE, EVOLVED, ELDRITCH) have visually distinct textures
   4. Core horror sounds are audible (jump scare, death, ambient presence)
   5. Audio uses 3-layer soundscape (ambient drone, proximity intensification, jump scare)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD
+- [ ] 05-01-PLAN.md - Create horror textures for all 3 Dread form variants with glowmasks
+- [ ] 05-02-PLAN.md - Create horror audio with variations for 3-layer soundscape
+- [ ] 05-03-PLAN.md - Update sounds.json with new audio file references and weights
 
 ### Phase 6: Attack Prevention
 **Goal**: Players cannot attack while in downed state
@@ -87,10 +89,10 @@ Plans:
   1. Player cannot perform melee attacks while downed
   2. Player cannot fire projectiles (bow, crossbow, trident) while downed
   3. Attack inputs produce no animations or sounds when blocked
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] TBD
+- [ ] 06-01-PLAN.md - Server-side attack callbacks + client-side animation mixin
 
 ### Phase 7: Crawl Pose
 **Goal**: Downed players visually crawl with synchronized animations
@@ -132,10 +134,10 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 2. AI & Horror Experience | v1.0 | 6/6 | Complete | 2026-01-25 |
 | 3. Death & Revival System | v1.0 | 6/6 | Complete | 2026-01-25 |
 | 4. Configuration & Release Prep | v1.0 | 4/4 | Complete | 2026-01-25 |
-| 5. Resources | v1.1 | 0/0 | Not started | - |
-| 6. Attack Prevention | v1.1 | 0/0 | Not started | - |
+| 5. Resources | v1.1 | 0/3 | Planned | - |
+| 6. Attack Prevention | v1.1 | 0/1 | Planned | - |
 | 7. Crawl Pose | v1.1 | 0/0 | Not started | - |
 | 8. Cinematic Enhancement | v1.1 | 0/0 | Not started | - |
 
 ---
-*Last updated: 2026-01-25 after v1.1 roadmap creation*
+*Last updated: 2026-01-25 after Phase 6 planning*
