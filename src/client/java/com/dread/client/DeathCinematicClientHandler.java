@@ -97,14 +97,6 @@ public class DeathCinematicClientHandler {
         // Tick compensation flash timer
         CinematicCompensationRenderer.tick();
 
-        // Apply shake offset to camera entity rotation
-        if (cameraShake.isActive()) {
-            float baseYaw = cameraEntity.getYaw();
-            float basePitch = cameraEntity.getPitch();
-            cameraEntity.setYaw(baseYaw + cameraShake.getYawOffset());
-            cameraEntity.setPitch(basePitch + cameraShake.getPitchOffset());
-        }
-
         if (cinematicTimer >= CINEMATIC_DURATION_TICKS) {
             endCinematic();
         }
@@ -148,5 +140,21 @@ public class DeathCinematicClientHandler {
      */
     public static boolean isCinematicActive() {
         return cinematicActive;
+    }
+
+    /**
+     * Get yaw shake offset for Camera mixin.
+     * Returns 0 if shake not active.
+     */
+    public static float getShakeYawOffset() {
+        return cameraShake.getYawOffset();
+    }
+
+    /**
+     * Get pitch shake offset for Camera mixin.
+     * Returns 0 if shake not active.
+     */
+    public static float getShakePitchOffset() {
+        return cameraShake.getPitchOffset();
     }
 }
