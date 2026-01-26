@@ -10,24 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 ## Current Position
 
 Phase: 9 of 12 (Cinematic Fix)
-Plan: Ready to plan
-Status: Ready to plan Phase 9
-Last activity: 2026-01-26 — v1.2 roadmap created
+Plan: 1 of 1 (complete)
+Status: Phase 9 complete
+Last activity: 2026-01-26 — Completed 09-01-PLAN.md
 
-Progress: [████████████████████░░░░░░░░░░] 71% (30/42 estimated plans)
+Progress: [████████████████████░░░░░░░░░░] 74% (31/42 estimated plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
-- Average duration: 3.5 min
-- Total execution time: ~2.5 hours
+- Total plans completed: 31
+- Average duration: 3.4 min
+- Total execution time: ~2.6 hours
 
 ## Accumulated Context
 
 ### Decisions
 
 All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
+
+**Phase 9 (Cinematic Fix):**
+- Apply camera shake at render-time via Camera.setRotation injection, not entity rotation modification (eliminates feedback loop)
+- Use mixin order = 900 so shake applies before CrawlCameraMixin's pitch clamping (order 1000)
 
 ### Pending Todos
 
@@ -39,7 +43,7 @@ None.
 - Build requires `export JAVA_HOME="X:/Vibe Coding/jdk-21.0.6+7"` before Gradle commands
 
 **Known Bugs (v1.2 targets):**
-- Death cinematic janky/unreadable (camera effects fighting) -> Phase 9
+- Death cinematic janky/unreadable (camera effects fighting) -> Phase 9 ✓ FIXED
 - Downed state persists across worlds -> Phase 10
 - Missing grab_impact.ogg -> Phase 12
 - Single-player permanent death too punishing -> Phase 11
@@ -47,9 +51,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: v1.2 roadmap created
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
-Next: `/gsd:plan-phase 9`
+Next: `/gsd:plan-phase 10` (Downed State Persistence Fix)
 
 ## Milestone History
 
