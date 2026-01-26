@@ -1,6 +1,7 @@
 package com.dread.client;
 
 import com.dread.config.DreadConfigLoader;
+import com.dread.entity.DreadEntity;
 import com.dread.network.packets.CinematicTriggerS2C;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
@@ -8,11 +9,12 @@ import net.minecraft.entity.Entity;
 
 /**
  * Client-side handler for death cinematic camera lock.
- * Locks camera onto Dread entity for 4.5 seconds before transitioning to downed state.
+ * Locks camera onto Dread entity for 1.8 seconds (matching death_grab animation)
+ * before transitioning to downed state.
  */
 public class DeathCinematicClientHandler {
 
-    private static final int CINEMATIC_DURATION_TICKS = 90; // 4.5 seconds
+    private static final int CINEMATIC_DURATION_TICKS = 36; // 1.8 seconds (matches death_grab animation)
 
     private static final CameraShakeHandler cameraShake = new CameraShakeHandler();
 
@@ -54,14 +56,28 @@ public class DeathCinematicClientHandler {
             // Lock camera onto Dread
             client.setCameraEntity(dreadEntity);
 
+            // Trigger death_grab animation on entity
+            if (dreadEntity instanceof DreadEntity dread) {
+                dread.setPlayingDeathGrab(true);
+            }
+
+            // Calculate shake intensity with FPS adaptation
+            var config = DreadConfigLoader.getConfig();
+            float configIntensity = Math.clamp(config.cameraShakeIntensity, 0, 100) / 100.0f;
+            float adaptiveIntensity = cameraShake.getAdaptiveIntensity(client, configIntensity);
+
+            // Start shake with final intensity
+            cameraShake.startShake(adaptiveIntensity);
+
+            // Trigger compensation if shake was reduced
+            float compensation = cameraShake.getCompensationAmount(configIntensity, adaptiveIntensity);
+            if (compensation > 0.0f) {
+                CinematicCompensationRenderer.setCompensation(compensation);
+            }
+
             // Start cinematic timer
             cinematicActive = true;
             cinematicTimer = 0;
-
-            // Get shake intensity from config (0-100 -> 0.0-1.0)
-            var config = DreadConfigLoader.getConfig();
-            float intensity = Math.clamp(config.cameraShakeIntensity, 0, 100) / 100.0f;
-            cameraShake.startShake(intensity);
         }
     }
 
@@ -73,12 +89,16 @@ public class DeathCinematicClientHandler {
 
         MinecraftClient client = MinecraftClient.getInstance();
         Entity cameraEntity = client.getCameraEntity();
+        if (cameraEntity == null) return;
 
         // Update shake (deltaTime = 1 tick = 0.05 seconds)
         cameraShake.tick(0.05f);
 
+        // Tick compensation flash timer
+        CinematicCompensationRenderer.tick();
+
         // Apply shake offset to camera entity rotation
-        if (cameraEntity != null && cameraShake.isActive()) {
+        if (cameraShake.isActive()) {
             float baseYaw = cameraEntity.getYaw();
             float basePitch = cameraEntity.getPitch();
             cameraEntity.setYaw(baseYaw + cameraShake.getYawOffset());
@@ -96,8 +116,17 @@ public class DeathCinematicClientHandler {
     private static void endCinematic() {
         MinecraftClient client = MinecraftClient.getInstance();
 
-        // CRITICAL: Reset shake before ending
+        // Reset shake and compensation
         cameraShake.reset();
+        CinematicCompensationRenderer.stop();
+
+        // Stop death_grab animation on entity
+        if (client.world != null && dreadEntityId != -1) {
+            Entity entity = client.world.getEntityById(dreadEntityId);
+            if (entity instanceof DreadEntity dread) {
+                dread.setPlayingDeathGrab(false);
+            }
+        }
 
         // Restore camera to original entity (player)
         if (originalCameraEntity != null) {
