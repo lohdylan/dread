@@ -21,9 +21,9 @@ Requirements for polish & immersion milestone. Each maps to roadmap phases.
 
 ### Cinematic
 
-- [ ] **CINE-01**: Death cinematic has extended, intense grab animation (longer than 0.8s)
-- [ ] **CINE-02**: Death cinematic includes camera shake effect with config disable option
-- [ ] **CINE-03**: Death sequence audio is synchronized to animation timing
+- [x] **CINE-01**: Death cinematic has extended, intense grab animation (longer than 0.8s)
+- [x] **CINE-02**: Death cinematic includes camera shake effect with config disable option
+- [x] **CINE-03**: Death sequence audio is synchronized to animation timing
 
 ### Audio
 
@@ -72,9 +72,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOWN-02 | Phase 6 | Complete |
 | DOWN-01 | Phase 7 | Complete |
 | DOWN-03 | Phase 7 | Complete |
-| CINE-01 | Phase 8 | Pending |
-| CINE-02 | Phase 8 | Pending |
-| CINE-03 | Phase 8 | Pending |
+| CINE-01 | Phase 8 | Complete |
+| CINE-02 | Phase 8 | Complete |
+| CINE-03 | Phase 8 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 12 total
@@ -83,4 +83,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-26 after Phase 7 completion*
+*Last updated: 2026-01-26 after Phase 8 completion*

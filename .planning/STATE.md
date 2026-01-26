@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Phase 8 - Cinematic Enhancement (or return to Phase 5 for resources)
+**Current focus:** Phase 5 - Resources (placeholder asset replacement)
 
 ## Current Position
 
@@ -94,7 +94,7 @@ None.
 Last session: 2026-01-26
 Stopped at: Completed 08-03-PLAN.md (Phase 8 complete)
 Resume file: None
-Next: Phase 5 (Resources) or ship v1.1 code-complete
+Next: /gsd:discuss-phase 5 (Resources - placeholder asset replacement)
 
 ## Milestone History
 
