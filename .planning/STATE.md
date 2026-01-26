@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Phase 5 - Resources (texture + audio replacement)
+**Current focus:** Phase 6 - Attack Prevention (complete)
 
 ## Current Position
 
-Phase: 5 of 8 (Resources)
-Plan: 0 of TBD
-Status: Ready to plan
-Last activity: 2026-01-25 — v1.1 roadmap created
+Phase: 6 of 8 (Attack Prevention)
+Plan: 1 of 1 (complete)
+Status: Phase complete
+Last activity: 2026-01-26 — Completed 06-01-PLAN.md
 
-Progress: [████░░░░░░░░░░░░░░░░] 20% (v1.0 complete, v1.1 starting)
+Progress: [█████░░░░░░░░░░░░░░░] 25% (v1.0 complete, v1.1 phase 6 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 3.8 min
-- Total execution time: 1.63 hours
+- Total execution time: 1.68 hours
 
 **By Phase:**
 
@@ -31,6 +31,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 20% (v1
 | 02-ai-horror-experience | 6/6 | 19.6 min | 3.3 min |
 | 03-death-revival-system | 6/6 | 22.5 min | 3.8 min |
 | 04-configuration-release-prep | 4/4 | 10.0 min | 2.5 min |
+| 06-attack-prevention | 1/1 | 3.0 min | 3.0 min |
 
 *Updated after each plan completion*
 
@@ -44,9 +45,13 @@ v1.1 roadmap decisions:
 - Phase 5 first: Zero-code asset replacement enables early visual/audio wins before code complexity
 - Phase structure by complexity: Resources (zero code) → Attack prevention (simple) → Crawl pose (moderate) → Cinematic (complex)
 
+Phase 6 decisions:
+- Dual blocking (client + server): Server blocks authoritatively, client prevents animations for smooth UX
+- Weapon-only projectile blocking: Only RangedWeaponItem and TridentItem blocked, other items allowed
+
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
@@ -67,10 +72,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-25
-Stopped at: Created v1.1 roadmap with 4 phases covering 12 requirements
+Last session: 2026-01-26
+Stopped at: Completed 06-01-PLAN.md (Attack Prevention phase complete)
 Resume file: None
-Next: /gsd:plan-phase 5
+Next: Phase 5, 7, or 8
 
 ## Milestone History
 
@@ -82,5 +87,6 @@ Next: /gsd:plan-phase 5
 **v1.1 Polish & Immersion** — In progress
 - 4 phases (5-8)
 - Focus: Replace placeholders, enhance downed state immersion
+- Phase 6 (Attack Prevention) complete
 
 See `.planning/MILESTONES.md` for full details.
