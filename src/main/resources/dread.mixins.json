@@ -4,10 +4,14 @@
   "package": "com.dread.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "PlayerJumpMixin",
+    "PlayerSprintMixin",
+    "PlayerInteractionMixin"
   ],
   "client": [
     "DeathScreenMixin",
-    "ClientAttackMixin"
+    "ClientAttackMixin",
+    "PlayerPoseMixin"
   ],
   "injectors": {
     "defaultRequire": 1
