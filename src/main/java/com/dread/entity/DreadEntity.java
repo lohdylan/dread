@@ -2,6 +2,7 @@ package com.dread.entity;
 
 import com.dread.DreadMod;
 import com.dread.config.DreadConfigLoader;
+import com.dread.death.DownedPlayersState;
 import com.dread.entity.ai.StareStandoffGoal;
 import com.dread.entity.ai.VanishGoal;
 import com.dread.sound.DreadSoundManager;
@@ -56,6 +57,7 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
     private int extinguishCooldown = 0;
     private int proximitySoundCooldown = 0;
     private List<BlockPos> pendingExtinguish = new ArrayList<>();
+    private boolean isPlayingDeathGrab = false;
 
     public DreadEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
@@ -73,6 +75,20 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
      */
     public void setVanishing(boolean vanishing) {
         this.isVanishing = vanishing;
+    }
+
+    /**
+     * Check if entity is playing death grab animation (cinematic).
+     */
+    public boolean isPlayingDeathGrab() {
+        return this.isPlayingDeathGrab;
+    }
+
+    /**
+     * Set death grab animation state (triggered by cinematic system).
+     */
+    public void setPlayingDeathGrab(boolean playing) {
+        this.isPlayingDeathGrab = playing;
     }
 
     @Override
@@ -97,6 +113,16 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
         // Skip attack if mod disabled
         if (!config.modEnabled) {
             return false;
+        }
+
+        // Don't attack downed players - they're already suffering
+        if (target instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+            if (this.getWorld() instanceof ServerWorld serverWorld) {
+                DownedPlayersState state = DownedPlayersState.getOrCreate(serverWorld);
+                if (state.isDowned(serverPlayer)) {
+                    return false; // Skip attack on downed players
+                }
+            }
         }
 
         // Apply configured damage
@@ -221,8 +247,13 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        // Main movement controller
-        controllers.add(new AnimationController<>(this, "main", 5, state -> {
+        // Main movement controller with sound keyframe support for death_grab
+        AnimationController<DreadEntity> mainController = new AnimationController<>(this, "main", 5, state -> {
+            // Death grab has highest priority (cinematic system)
+            if (this.isPlayingDeathGrab) {
+                return state.setAndContinue(RawAnimation.begin().thenPlay("death_grab"));
+            }
+
             // Vanishing takes priority over death
             if (this.isVanishing) {
                 return state.setAndContinue(RawAnimation.begin().thenPlay("despawn"));
@@ -248,7 +279,12 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
             }
 
             return state.setAndContinue(RawAnimation.begin().thenLoop("idle"));
-        }));
+        });
+
+        // Enable automatic sound keyframe handling for death_grab animation
+        mainController.setSoundKeyframeHandler(new software.bernie.geckolib.animation.keyframe.event.builtin.AutoPlayingSoundKeyframeHandler<>());
+
+        controllers.add(mainController);
 
         // Separate head tracking controller (concurrent)
         controllers.add(new AnimationController<>(this, "head", 0, state -> {
