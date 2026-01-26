@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 8 of 8 (Cinematic Enhancement)
-Plan: 2 of 3
-Status: In progress
-Last activity: 2026-01-26 — Completed 08-02-PLAN.md
+Plan: 3 of 3
+Status: Phase complete
+Last activity: 2026-01-26 — Completed 08-03-PLAN.md
 
-Progress: [█████████░░░░░░░░░░░] 47% (v1.0 complete, 2/4 v1.1 phases done, Phase 8 in progress)
+Progress: [██████████░░░░░░░░░░] 50% (v1.0 complete, 3/4 v1.1 phases done, Phase 8 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26
+- Total plans completed: 27
 - Average duration: 3.7 min
-- Total execution time: 1.97 hours
+- Total execution time: 2.02 hours
 
 **By Phase:**
 
@@ -33,7 +33,7 @@ Progress: [█████████░░░░░░░░░░░] 47% (v1
 | 04-configuration-release-prep | 4/4 | 10.0 min | 2.5 min |
 | 06-attack-prevention | 1/1 | 3.0 min | 3.0 min |
 | 07-crawl-pose | 3/3 | 8.6 min | 2.9 min |
-| 08-cinematic-enhancement | 2/3 | 8.0 min | 4.0 min |
+| 08-cinematic-enhancement | 3/3 | 10.8 min | 3.6 min |
 
 *Updated after each plan completion*
 
@@ -64,6 +64,9 @@ Phase 8 decisions:
 - State flag pattern: isPlayingDeathGrab checked first in main controller for cinematic override
 - Camera shake: SHAKE_MAGNITUDE 2.5f, DECAY_SPEED 8.0f for 0.7-1s decay feel
 - Intensity config: cameraShakeIntensity 0-100 (default 100, full horror), 0 disables shake only
+- FPS threshold 45: Below this, shake causes judder - auto-reduce with 0.3f floor
+- Compensation pattern: When reducing shake, boost vignette/flash for equivalent horror impact
+- Cinematic duration 1.8s (36 ticks): Matches death_grab animation exactly
 
 ### Pending Todos
 
@@ -89,9 +92,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 08-02-PLAN.md
+Stopped at: Completed 08-03-PLAN.md (Phase 8 complete)
 Resume file: None
-Next: Continue with 08-03-PLAN.md (cinematic trigger integration)
+Next: Phase 5 (Resources) or ship v1.1 code-complete
 
 ## Milestone History
 
@@ -105,5 +108,6 @@ Next: Continue with 08-03-PLAN.md (cinematic trigger integration)
 - Focus: Replace placeholders, enhance downed state immersion
 - Phase 6 (Attack Prevention) complete
 - Phase 7 (Crawl Pose) complete
+- Phase 8 (Cinematic Enhancement) complete
 
 See `.planning/MILESTONES.md` for full details.
