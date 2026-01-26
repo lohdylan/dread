@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 7 of 8 (Crawl Pose)
-Plan: 1 of 3
+Plan: 2 of 3
 Status: In progress
-Last activity: 2026-01-26 — Completed 07-01-PLAN.md
+Last activity: 2026-01-26 — Completed 07-02-PLAN.md
 
-Progress: [███████░░░░░░░░░░░░░] 35% (v1.0 complete, 1.33/4 v1.1 phases done)
+Progress: [███████░░░░░░░░░░░░░] 36% (v1.0 complete, 1.66/4 v1.1 phases done)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 3.7 min
-- Total execution time: 1.71 hours
+- Total execution time: 1.76 hours
 
 **By Phase:**
 
@@ -32,7 +32,7 @@ Progress: [███████░░░░░░░░░░░░░] 35% (v1
 | 03-death-revival-system | 6/6 | 22.5 min | 3.8 min |
 | 04-configuration-release-prep | 4/4 | 10.0 min | 2.5 min |
 | 06-attack-prevention | 1/1 | 3.0 min | 3.0 min |
-| 07-crawl-pose | 1/3 | 2.0 min | 2.0 min |
+| 07-crawl-pose | 2/3 | 4.6 min | 2.3 min |
 
 *Updated after each plan completion*
 
@@ -54,6 +54,8 @@ Phase 7 decisions:
 - EntityPose.SWIMMING for prone: Vanilla provides crawling animation, no custom animation needed
 - Pose override pattern: Server setPose() + client mixin cancels updatePose() to prevent flickering
 - Exit pose before spectator: Pose changes don't work in spectator mode
+- Entity.setSprinting target: setSprinting defined on Entity, not PlayerEntity - use instanceof check
+- Input ghosting prevention: Only block sprinting=true, allow turning sprint off
 
 ### Pending Todos
 
@@ -79,9 +81,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 07-01-PLAN.md
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
-Next: Execute 07-02-PLAN.md (camera adjustments)
+Next: Execute 07-03-PLAN.md (if exists)
 
 ## Milestone History
 
