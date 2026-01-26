@@ -10,7 +10,7 @@ Requirements for polish & immersion milestone. Each maps to roadmap phases.
 ### Downed State
 
 - [ ] **DOWN-01**: Player enters crawl pose (EntityPose.SWIMMING) when downed
-- [ ] **DOWN-02**: Player cannot attack while in downed state (melee + projectile blocked)
+- [x] **DOWN-02**: Player cannot attack while in downed state (melee + projectile blocked)
 - [ ] **DOWN-03**: Downed player has visual crawling animation (not just pose flag)
 
 ### Texture
@@ -69,7 +69,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIO-01 | Phase 5 | Pending |
 | AUDIO-02 | Phase 5 | Pending |
 | AUDIO-03 | Phase 5 | Pending |
-| DOWN-02 | Phase 6 | Pending |
+| DOWN-02 | Phase 6 | Complete |
 | DOWN-01 | Phase 7 | Pending |
 | DOWN-03 | Phase 7 | Pending |
 | CINE-01 | Phase 8 | Pending |
@@ -83,4 +83,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after v1.1 roadmap creation*
+*Last updated: 2026-01-26 after Phase 6 completion*

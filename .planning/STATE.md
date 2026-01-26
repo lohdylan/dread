@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Phase 6 - Attack Prevention (complete)
+**Current focus:** Phase 7 - Crawl Pose (downed player animations)
 
 ## Current Position
 
-Phase: 6 of 8 (Attack Prevention)
-Plan: 1 of 1 (complete)
-Status: Phase complete
-Last activity: 2026-01-26 — Completed 06-01-PLAN.md
+Phase: 7 of 8 (Crawl Pose)
+Plan: 0 of TBD
+Status: Ready to plan
+Last activity: 2026-01-26 — Phase 6 verified complete
 
-Progress: [█████░░░░░░░░░░░░░░░] 25% (v1.0 complete, v1.1 phase 6 complete)
+Progress: [██████░░░░░░░░░░░░░░] 30% (v1.0 complete, 1/4 v1.1 phases done)
 
 ## Performance Metrics
 
@@ -73,9 +73,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 06-01-PLAN.md (Attack Prevention phase complete)
+Stopped at: Phase 6 verified complete
 Resume file: None
-Next: Phase 5, 7, or 8
+Next: /gsd:discuss-phase 7
 
 ## Milestone History
 
