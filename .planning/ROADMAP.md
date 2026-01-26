@@ -19,10 +19,10 @@
   1. Camera effects during death cinematic are coordinated (no fighting/flickering)
   2. Player can clearly see Dread's grab animation during death sequence
   3. Cinematic timing allows player to process what's happening before death
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 09-01: TBD
+- [ ] 09-01-PLAN.md — Camera mixin for render-time shake injection (fixes entity rotation feedback loop)
 
 ### Phase 10: State Cleanup
 **Goal**: Downed state lifecycle is properly managed across world boundaries
