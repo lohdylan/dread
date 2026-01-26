@@ -16,6 +16,9 @@ public class DreadConfig {
     public boolean skipDeathCinematic = false;     // Cinematic plays by default
     public boolean disableDownedEffects = false;   // Force disable blur/vignette
 
+    // Camera shake intensity (0 = disabled, 100 = full horror)
+    public int cameraShakeIntensity = 100;
+
     // Documentation fields (appear as comments in JSON)
     @SerializedName("_comment_spawn")
     public final String comment1 = "baseSpawnChancePerSecond: Base probability per tick (0.005 = 0.5%). miningBonusPerBlock: Added per block mined. dayEscalationCap: Max world day for multiplier.";
@@ -25,4 +28,7 @@ public class DreadConfig {
 
     @SerializedName("_comment_features")
     public final String comment3 = "modEnabled: Master toggle. skipDeathCinematic: Skip 4.5s death camera lock. disableDownedEffects: Force disable blur/vignette shaders.";
+
+    @SerializedName("_comment_shake")
+    public final String comment4 = "cameraShakeIntensity: Camera shake strength during death cinematic (0-100). Set to 0 to disable shake while keeping cinematic. Lower values for motion-sensitive players.";
 }
