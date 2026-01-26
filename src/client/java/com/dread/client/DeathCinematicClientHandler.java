@@ -1,10 +1,10 @@
 package com.dread.client;
 
+import com.dread.config.DreadConfigLoader;
 import com.dread.network.packets.CinematicTriggerS2C;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
 
 /**
  * Client-side handler for death cinematic camera lock.
@@ -13,6 +13,8 @@ import net.minecraft.world.World;
 public class DeathCinematicClientHandler {
 
     private static final int CINEMATIC_DURATION_TICKS = 90; // 4.5 seconds
+
+    private static final CameraShakeHandler cameraShake = new CameraShakeHandler();
 
     private static boolean cinematicActive = false;
     private static int cinematicTimer = 0;
@@ -55,6 +57,11 @@ public class DeathCinematicClientHandler {
             // Start cinematic timer
             cinematicActive = true;
             cinematicTimer = 0;
+
+            // Get shake intensity from config (0-100 -> 0.0-1.0)
+            var config = DreadConfigLoader.getConfig();
+            float intensity = Math.clamp(config.cameraShakeIntensity, 0, 100) / 100.0f;
+            cameraShake.startShake(intensity);
         }
     }
 
@@ -63,6 +70,20 @@ public class DeathCinematicClientHandler {
      */
     private static void tick() {
         cinematicTimer++;
+
+        MinecraftClient client = MinecraftClient.getInstance();
+        Entity cameraEntity = client.getCameraEntity();
+
+        // Update shake (deltaTime = 1 tick = 0.05 seconds)
+        cameraShake.tick(0.05f);
+
+        // Apply shake offset to camera entity rotation
+        if (cameraEntity != null && cameraShake.isActive()) {
+            float baseYaw = cameraEntity.getYaw();
+            float basePitch = cameraEntity.getPitch();
+            cameraEntity.setYaw(baseYaw + cameraShake.getYawOffset());
+            cameraEntity.setPitch(basePitch + cameraShake.getPitchOffset());
+        }
 
         if (cinematicTimer >= CINEMATIC_DURATION_TICKS) {
             endCinematic();
@@ -74,6 +95,9 @@ public class DeathCinematicClientHandler {
      */
     private static void endCinematic() {
         MinecraftClient client = MinecraftClient.getInstance();
+
+        // CRITICAL: Reset shake before ending
+        cameraShake.reset();
 
         // Restore camera to original entity (player)
         if (originalCameraEntity != null) {
