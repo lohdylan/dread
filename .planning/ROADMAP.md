@@ -122,10 +122,12 @@ Plans:
   3. Camera shake can be disabled via config for accessibility
   4. Death sequence audio is synchronized to animation timing
   5. Cinematic effects work without causing motion sickness at 30/60/144 FPS
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD
+- [ ] 08-01-PLAN.md - Extended death grab animation with GeckoLib sound keyframes
+- [ ] 08-02-PLAN.md - Camera shake system with exponential decay and config option
+- [ ] 08-03-PLAN.md - Compensation effects, FPS auto-reduction, and cinematic integration
 
 ## Progress
 
@@ -141,7 +143,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 5. Resources | v1.1 | 0/3 | Planned | - |
 | 6. Attack Prevention | v1.1 | 1/1 | Complete | 2026-01-26 |
 | 7. Crawl Pose | v1.1 | 3/3 | Complete | 2026-01-26 |
-| 8. Cinematic Enhancement | v1.1 | 0/0 | Not started | - |
+| 8. Cinematic Enhancement | v1.1 | 0/3 | Planned | - |
 
 ---
 *Last updated: 2026-01-26 after Phase 7 completion*
