@@ -1,6 +1,7 @@
 package com.dread.client;
 
 import java.util.Random;
+import net.minecraft.client.MinecraftClient;
 
 /**
  * Camera shake handler using exponential decay for smooth, frame-rate independent shake.
@@ -91,5 +92,41 @@ public class CameraShakeHandler {
      */
     public boolean isActive() {
         return isActive;
+    }
+
+    /**
+     * Get adaptive shake intensity based on current FPS.
+     * Reduces shake below 45 FPS to prevent judder.
+     *
+     * @param client Minecraft client for FPS detection
+     * @param configIntensity Base intensity from config (0.0 to 1.0)
+     * @return Adjusted intensity (may be lower than config if FPS is low)
+     */
+    public float getAdaptiveIntensity(MinecraftClient client, float configIntensity) {
+        int fps = client.getCurrentFps();
+
+        // Auto-reduce below 45 FPS to prevent judder
+        float fpsMultiplier = 1.0f;
+        if (fps < 45 && fps > 0) {
+            // Smooth scaling: 30fps = 67%, 20fps = 44%, floor at 30%
+            fpsMultiplier = Math.max(0.3f, fps / 45.0f);
+        }
+
+        return configIntensity * fpsMultiplier;
+    }
+
+    /**
+     * Calculate compensation amount (inverse of final intensity).
+     * Used to determine how much visual compensation to apply.
+     *
+     * @param configIntensity Original config intensity (0.0 to 1.0)
+     * @param finalIntensity Actual intensity after FPS reduction (0.0 to 1.0)
+     * @return Compensation amount (0.0 = no compensation, 1.0 = full compensation)
+     */
+    public float getCompensationAmount(float configIntensity, float finalIntensity) {
+        if (configIntensity <= 0.0f) {
+            return 1.0f; // Full compensation if shake disabled
+        }
+        return 1.0f - (finalIntensity / configIntensity);
     }
 }
