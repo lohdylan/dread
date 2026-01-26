@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 
 ## Current Position
 
-Phase: 7 of 8 (Crawl Pose)
-Plan: 3 of 3
-Status: Phase complete
-Last activity: 2026-01-26 — Completed 07-03-PLAN.md
+Phase: 8 of 8 (Cinematic Enhancement)
+Plan: 1 of 3
+Status: In progress
+Last activity: 2026-01-26 — Completed 08-01-PLAN.md
 
-Progress: [████████░░░░░░░░░░░░] 40% (v1.0 complete, 2/4 v1.1 phases done)
+Progress: [█████████░░░░░░░░░░░] 45% (v1.0 complete, 2/4 v1.1 phases done, Phase 8 started)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
+- Total plans completed: 25
 - Average duration: 3.7 min
-- Total execution time: 1.83 hours
+- Total execution time: 1.90 hours
 
 **By Phase:**
 
@@ -33,6 +33,7 @@ Progress: [████████░░░░░░░░░░░░] 40% (v1
 | 04-configuration-release-prep | 4/4 | 10.0 min | 2.5 min |
 | 06-attack-prevention | 1/1 | 3.0 min | 3.0 min |
 | 07-crawl-pose | 3/3 | 8.6 min | 2.9 min |
+| 08-cinematic-enhancement | 1/3 | 4.0 min | 4.0 min |
 
 *Updated after each plan completion*
 
@@ -56,6 +57,11 @@ Phase 7 decisions:
 - Exit pose before spectator: Pose changes don't work in spectator mode
 - Entity.setSprinting target: setSprinting defined on Entity, not PlayerEntity - use instanceof check
 - Input ghosting prevention: Only block sprinting=true, allow turning sprint off
+
+Phase 8 decisions:
+- Front-loaded violence timing: 0.15s explosive lunge, 0.85s hold, 0.8s release for maximum terror
+- Sound keyframe at 0.0s: Immediate impact on animation start
+- State flag pattern: isPlayingDeathGrab checked first in main controller for cinematic override
 
 ### Pending Todos
 
@@ -81,9 +87,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 07-03-PLAN.md (Phase 7 complete)
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
-Next: /gsd:discuss-phase 8
+Next: Continue with 08-02-PLAN.md (camera shake) or 08-03-PLAN.md (cinematic trigger)
 
 ## Milestone History
 
