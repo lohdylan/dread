@@ -104,10 +104,12 @@ Plans:
   2. Player has visible crawling animation while in downed state
   3. Crawl pose syncs correctly in multiplayer (other players see downed player crawling)
   4. Pose resets to standing when revived or transitioning to spectator
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD
+- [ ] 07-01-PLAN.md - Core pose override (server-side pose management + client-side mixin)
+- [ ] 07-02-PLAN.md - Movement restrictions (no jump, no sprint, no interactions)
+- [ ] 07-03-PLAN.md - Visual effects (blood vignette, particles, camera pitch limiting)
 
 ### Phase 8: Cinematic Enhancement
 **Goal**: Death cinematic delivers intense, terrifying experience with extended grab and camera effects
@@ -137,8 +139,8 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 4. Configuration & Release Prep | v1.0 | 4/4 | Complete | 2026-01-25 |
 | 5. Resources | v1.1 | 0/3 | Planned | - |
 | 6. Attack Prevention | v1.1 | 1/1 | Complete | 2026-01-26 |
-| 7. Crawl Pose | v1.1 | 0/0 | Not started | - |
+| 7. Crawl Pose | v1.1 | 0/3 | Planned | - |
 | 8. Cinematic Enhancement | v1.1 | 0/0 | Not started | - |
 
 ---
-*Last updated: 2026-01-26 after Phase 6 execution*
+*Last updated: 2026-01-26 after Phase 7 planning*
