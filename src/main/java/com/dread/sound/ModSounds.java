@@ -23,6 +23,9 @@ public class ModSounds {
     // Death sequence audio when killed by Dread
     public static final SoundEvent DREAD_DEATH = registerSound("dread_death");
 
+    // Grab impact sound for death cinematic start
+    public static final SoundEvent GRAB_IMPACT = registerSound("grab_impact");
+
     private static SoundEvent registerSound(String id) {
         Identifier identifier = Identifier.of(DreadMod.MOD_ID, id);
         return Registry.register(
