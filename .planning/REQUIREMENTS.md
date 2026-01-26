@@ -63,24 +63,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DOWN-01 | TBD | Pending |
-| DOWN-02 | TBD | Pending |
-| DOWN-03 | TBD | Pending |
-| TEX-01 | TBD | Pending |
-| TEX-02 | TBD | Pending |
-| TEX-03 | TBD | Pending |
-| CINE-01 | TBD | Pending |
-| CINE-02 | TBD | Pending |
-| CINE-03 | TBD | Pending |
-| AUDIO-01 | TBD | Pending |
-| AUDIO-02 | TBD | Pending |
-| AUDIO-03 | TBD | Pending |
+| TEX-01 | Phase 5 | Pending |
+| TEX-02 | Phase 5 | Pending |
+| TEX-03 | Phase 5 | Pending |
+| AUDIO-01 | Phase 5 | Pending |
+| AUDIO-02 | Phase 5 | Pending |
+| AUDIO-03 | Phase 5 | Pending |
+| DOWN-02 | Phase 6 | Pending |
+| DOWN-01 | Phase 7 | Pending |
+| DOWN-03 | Phase 7 | Pending |
+| CINE-01 | Phase 8 | Pending |
+| CINE-02 | Phase 8 | Pending |
+| CINE-03 | Phase 8 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 (pending roadmap)
+- Mapped to phases: 12
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after initial definition*
+*Last updated: 2026-01-25 after v1.1 roadmap creation*

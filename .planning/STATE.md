@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** v1.1 polish & immersion — downed mechanics, texture, cinematic, audio
+**Current focus:** Phase 5 - Resources (texture + audio replacement)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements for v1.1
-Last activity: 2026-01-25 — Milestone v1.1 started
+Phase: 5 of 8 (Resources)
+Plan: 0 of TBD
+Status: Ready to plan
+Last activity: 2026-01-25 — v1.1 roadmap created
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [████░░░░░░░░░░░░░░░░] 20% (v1.0 complete, v1.1 starting)
 
 ## Performance Metrics
 
@@ -40,28 +40,37 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 
 All v1.0 decisions documented in PROJECT.md Key Decisions table with outcomes marked Good.
 
-### Resolved Blockers
+v1.1 roadmap decisions:
+- Phase 5 first: Zero-code asset replacement enables early visual/audio wins before code complexity
+- Phase structure by complexity: Resources (zero code) → Attack prevention (simple) → Crawl pose (moderate) → Cinematic (complex)
 
-- Death event ordering: Solved via Fabric ALLOW_DEATH with health preservation
-- Shader compatibility: Solved via runtime detection with graceful fallback
-- Network packets: Solved via custom UUID PacketCodec for multiplayer
+### Pending Todos
 
-### Open Concerns
+None yet.
+
+### Blockers/Concerns
 
 **Build Environment:**
 - Build requires `export JAVA_HOME="X:/Vibe Coding/jdk-21.0.6+7"` before Gradle commands
 
-**Future Work:**
-- Replace placeholder OGG files with real horror audio
-- Replace placeholder textures with proper art assets
-- Multiplayer testing on dedicated server
+**Phase 5 Notes (from research):**
+- Texture UV mapping: Design for all animation states upfront (standing, crawling, downed)
+- Audio format: OGG Vorbis mono 44.1kHz only (no stereo, no MP3)
+
+**Phase 7 Notes (from research):**
+- Client-server sync critical: Use Fabric networking API for pose state changes
+- GeckoLib animation conflicts: Test with v1.0 entities present during pose override
+
+**Phase 8 Notes (from research):**
+- Motion sickness prevention: Exponential decay, config options, test at 30/60/144 FPS
+- Sound channel saturation: Coordinate with Phase 5 audio, respect v1.0 priority system
 
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Starting v1.1 milestone
+Stopped at: Created v1.1 roadmap with 4 phases covering 12 requirements
 Resume file: None
-Next: Define requirements and create roadmap
+Next: /gsd:plan-phase 5
 
 ## Milestone History
 
@@ -69,5 +78,9 @@ Next: Define requirements and create roadmap
 - 4 phases, 20 plans
 - 2,953 lines of Java
 - 2 days from start to ship
+
+**v1.1 Polish & Immersion** — In progress
+- 4 phases (5-8)
+- Focus: Replace placeholders, enhance downed state immersion
 
 See `.planning/MILESTONES.md` for full details.
