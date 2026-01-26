@@ -1,5 +1,35 @@
 # Project Milestones: Dread
 
+## v1.1 Polish & Immersion (Shipped: 2026-01-26)
+
+**Delivered:** Replaced placeholder assets with terrifying horror textures and audio, added crawl pose with immersive effects, and enhanced death cinematic with extended grab animation and camera shake.
+
+**Phases completed:** 5-8 (10 plans total)
+
+**Key accomplishments:**
+
+- Horror textures for all 3 Dread forms (BASE, EVOLVED, ELDRITCH) with emissive glowmasks
+- 3-layer horror soundscape (ambient drone, proximity distortion, jump scare shriek)
+- Attack prevention when downed (melee + projectile blocked server-side)
+- Crawl pose system with EntityPose.SWIMMING and movement restrictions
+- Blood vignette overlay, drip particles, and camera pitch limiting
+- Extended 1.8s death grab animation with camera shake and FPS-adaptive compensation
+
+**Stats:**
+
+- 43 files created/modified
+- 873 lines of Java added (3,757 total)
+- 4 phases, 10 plans, ~35 tasks
+- 3 days from milestone start to ship
+
+**Git range:** `feat(05-01)` -> `docs(05)`
+
+**Tech debt:** Missing grab_impact.ogg for death grab sound keyframe (LOW severity)
+
+**What's next:** v2.0 Environmental Horror or community feedback integration
+
+---
+
 ## v1.0 MVP (Shipped: 2026-01-25)
 
 **Delivered:** Complete Minecraft horror mod with Cthulhu-style entity, turn-around jump scares, cinematic death sequences, and cooperative revival mechanics.

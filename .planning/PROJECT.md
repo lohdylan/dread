@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Minecraft horror mod for Fabric 1.21.x that introduces "Dread" — a Cthulhu-style cosmic horror entity that stalks and kills players with turn-around jump scares, cinematic death sequences, and cooperative revival mechanics. Features permanent death stakes for solo players and a 300-second revival window for multiplayer.
+A Minecraft horror mod for Fabric 1.21.x that introduces "Dread" — a Cthulhu-style cosmic horror entity that stalks and kills players with turn-around jump scares, extended death cinematics with camera shake, and cooperative revival mechanics. Players crawl while downed with blood vignette effects. Features permanent death stakes for solo players and a 300-second revival window for multiplayer.
 
 ## Core Value
 
@@ -32,16 +32,24 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 - Damage settings — v1.0
 - Enable/disable mod toggle — v1.0
 - Option to skip death cinematic — v1.0
+- Horror textures for all 3 Dread forms with emissive glowmasks — v1.1
+- 3-layer horror soundscape (ambient, proximity, jump scare) — v1.1
+- Attack prevention (melee + projectile) when downed — v1.1
+- Crawl pose with EntityPose.SWIMMING when downed — v1.1
+- Blood vignette, drip particles, camera pitch limiting when downed — v1.1
+- Extended 1.8s death grab animation with camera shake — v1.1
+- Camera shake intensity config (0-100) for accessibility — v1.1
+- FPS-adaptive shake with visual compensation — v1.1
 
 ### Active
 
-**v1.1 Polish & Immersion**
+**v2.0 Environmental Horror** (planned)
 
-- [ ] Crawl pose when downed — player model in swimming/crawling position
-- [ ] Attack prevention while downed — disable player attacks in downed state
-- [ ] Scary dread texture — replace gray placeholder with horror skin
-- [ ] Intense cinematic kill — longer grab animation with camera effects
-- [ ] Real horror audio — replace silent placeholder OGGs with creepy sounds
+- [ ] Door slams and lights flicker when Dread is near
+- [ ] Blood trail visual when crawling while downed
+- [ ] Dynamic crawl speed based on health
+- [ ] Animated texture effects (pulsing runes)
+- [ ] Multiple camera angles during death cinematic
 
 ### Out of Scope
 
@@ -53,10 +61,10 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ## Context
 
-**Current State:** v1.1 in progress (polish & immersion milestone)
+**Current State:** v1.1 shipped (polish & immersion milestone complete)
 
 **Codebase:**
-- 2,953 lines of Java across 32 files
+- 3,757 lines of Java across 43+ files
 - Fabric 1.21.1 with GeckoLib 4.7.1 and Satin API 1.17.0
 - GSON-based configuration with validation
 
@@ -65,10 +73,10 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 - GeckoLib for entity models and animations
 - Satin API for post-processing shaders
 - Custom network packets for multiplayer sync
+- 7 server-side mixins, 4 client-side mixins
 
 **Known issues:**
-- Placeholder audio files (5 OGG files are 54-byte silent placeholders)
-- Placeholder textures functional but need proper art assets
+- Missing grab_impact.ogg for death grab animation sound keyframe (LOW severity)
 - Multiplayer testing on dedicated server not yet performed
 
 **Build environment:**
@@ -95,6 +103,11 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 | 3:1 fake-out ratio | Maintains psychological horror unpredictability | Good |
 | GSON config with validation | Human-readable, auto-clamps invalid values | Good |
 | Shader mod detection | Prevents conflicts with Iris/OptiFine | Good |
+| EntityPose.SWIMMING for crawl | Vanilla provides animation, no custom needed | Good |
+| Dual blocking (server + client) | Server authoritative, client smooth UX | Good |
+| FPS threshold 45 for shake | Below this, shake causes judder | Good |
+| Visual compensation pattern | Boost vignette when shake reduced | Good |
+| Front-loaded violence timing | 0.15s lunge maximizes terror | Good |
 
 ---
-*Last updated: 2026-01-25 after starting v1.1 milestone*
+*Last updated: 2026-01-26 after v1.1 milestone*
