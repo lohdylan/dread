@@ -3,7 +3,7 @@ package com.dread.mixin;
 import com.dread.death.DownedPlayersState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -27,13 +27,13 @@ public class PlayerInteractionMixin {
     @Inject(method = "interactBlock", at = @At("HEAD"), cancellable = true)
     private void dread$blockInteractionsWhenDowned(
         ServerPlayerEntity player,
-        ServerWorld world,
+        World world,
         ItemStack stack,
         Hand hand,
         BlockHitResult hitResult,
         CallbackInfoReturnable<ActionResult> cir
     ) {
-        DownedPlayersState state = DownedPlayersState.getOrCreate(world);
+        DownedPlayersState state = DownedPlayersState.getOrCreate((net.minecraft.server.world.ServerWorld) world);
         if (state.isDowned(player)) {
             cir.setReturnValue(ActionResult.FAIL);
         }
