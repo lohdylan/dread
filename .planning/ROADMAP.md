@@ -75,11 +75,12 @@ Plans:
   4. Core horror sounds are audible (jump scare, death, ambient presence)
   5. Audio uses 3-layer soundscape (ambient drone, proximity intensification, jump scare)
 **Plans**: 3 plans
+**Status**: Complete
 
 Plans:
-- [ ] 05-01-PLAN.md - Create horror textures for all 3 Dread form variants with glowmasks
-- [ ] 05-02-PLAN.md - Create horror audio with variations for 3-layer soundscape
-- [ ] 05-03-PLAN.md - Update sounds.json with new audio file references and weights
+- [x] 05-01-PLAN.md - Create horror textures for all 3 Dread form variants with glowmasks
+- [x] 05-02-PLAN.md - Create horror audio with variations for 3-layer soundscape
+- [x] 05-03-PLAN.md - Update sounds.json with new audio file references and weights
 
 ### Phase 6: Attack Prevention
 **Goal**: Players cannot attack while in downed state
@@ -141,10 +142,10 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 2. AI & Horror Experience | v1.0 | 6/6 | Complete | 2026-01-25 |
 | 3. Death & Revival System | v1.0 | 6/6 | Complete | 2026-01-25 |
 | 4. Configuration & Release Prep | v1.0 | 4/4 | Complete | 2026-01-25 |
-| 5. Resources | v1.1 | 0/3 | Planned | - |
+| 5. Resources | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 6. Attack Prevention | v1.1 | 1/1 | Complete | 2026-01-26 |
 | 7. Crawl Pose | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 8. Cinematic Enhancement | v1.1 | 3/3 | Complete | 2026-01-26 |
 
 ---
-*Last updated: 2026-01-26 after Phase 8 completion*
+*Last updated: 2026-01-26 after Phase 5 completion*

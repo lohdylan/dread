@@ -15,9 +15,9 @@ Requirements for polish & immersion milestone. Each maps to roadmap phases.
 
 ### Texture
 
-- [ ] **TEX-01**: Dread entity has scary horror texture replacing gray placeholder
-- [ ] **TEX-02**: Dread texture includes emissive glowmask for eyes and details
-- [ ] **TEX-03**: All 3 form variants (BASE, EVOLVED, ELDRITCH) have unique textures
+- [x] **TEX-01**: Dread entity has scary horror texture replacing gray placeholder
+- [x] **TEX-02**: Dread texture includes emissive glowmask for eyes and details
+- [x] **TEX-03**: All 3 form variants (BASE, EVOLVED, ELDRITCH) have unique textures
 
 ### Cinematic
 
@@ -27,9 +27,9 @@ Requirements for polish & immersion milestone. Each maps to roadmap phases.
 
 ### Audio
 
-- [ ] **AUDIO-01**: Core horror sounds are audible (jump scare, death, ambient presence)
-- [ ] **AUDIO-02**: Audio uses 3-layer soundscape (ambient drone + proximity + jump scare)
-- [ ] **AUDIO-03**: Each sound event has multiple OGG variations for variety
+- [x] **AUDIO-01**: Core horror sounds are audible (jump scare, death, ambient presence)
+- [x] **AUDIO-02**: Audio uses 3-layer soundscape (ambient drone + proximity + jump scare)
+- [x] **AUDIO-03**: Each sound event has multiple OGG variations for variety
 
 ## Future Requirements
 
@@ -63,12 +63,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEX-01 | Phase 5 | Pending |
-| TEX-02 | Phase 5 | Pending |
-| TEX-03 | Phase 5 | Pending |
-| AUDIO-01 | Phase 5 | Pending |
-| AUDIO-02 | Phase 5 | Pending |
-| AUDIO-03 | Phase 5 | Pending |
+| TEX-01 | Phase 5 | Complete |
+| TEX-02 | Phase 5 | Complete |
+| TEX-03 | Phase 5 | Complete |
+| AUDIO-01 | Phase 5 | Complete |
+| AUDIO-02 | Phase 5 | Complete |
+| AUDIO-03 | Phase 5 | Complete |
 | DOWN-02 | Phase 6 | Complete |
 | DOWN-01 | Phase 7 | Complete |
 | DOWN-03 | Phase 7 | Complete |
@@ -83,4 +83,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-26 after Phase 8 completion*
+*Last updated: 2026-01-26 after Phase 5 completion*

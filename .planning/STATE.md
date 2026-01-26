@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Phase 5 - Resources (placeholder asset replacement)
+**Current focus:** v1.1 milestone complete — all phases done
 
 ## Current Position
 
-Phase: 8 of 8 (Cinematic Enhancement)
+Phase: 5 of 8 (Resources)
 Plan: 3 of 3
-Status: Phase complete
-Last activity: 2026-01-26 — Completed 08-03-PLAN.md
+Status: Phase complete — v1.1 MILESTONE COMPLETE
+Last activity: 2026-01-26 — Completed 05-03-PLAN.md
 
-Progress: [██████████░░░░░░░░░░] 50% (v1.0 complete, 3/4 v1.1 phases done, Phase 8 complete)
+Progress: [████████████████████] 100% (v1.0 complete, v1.1 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
-- Average duration: 3.7 min
-- Total execution time: 2.02 hours
+- Total plans completed: 30
+- Average duration: 3.5 min
+- Total execution time: ~2.1 hours
 
 **By Phase:**
 
@@ -31,6 +31,7 @@ Progress: [██████████░░░░░░░░░░] 50% (v1
 | 02-ai-horror-experience | 6/6 | 19.6 min | 3.3 min |
 | 03-death-revival-system | 6/6 | 22.5 min | 3.8 min |
 | 04-configuration-release-prep | 4/4 | 10.0 min | 2.5 min |
+| 05-resources | 3/3 | manual | manual |
 | 06-attack-prevention | 1/1 | 3.0 min | 3.0 min |
 | 07-crawl-pose | 3/3 | 8.6 min | 2.9 min |
 | 08-cinematic-enhancement | 3/3 | 10.8 min | 3.6 min |
@@ -46,6 +47,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table with outcomes ma
 v1.1 roadmap decisions:
 - Phase 5 first: Zero-code asset replacement enables early visual/audio wins before code complexity
 - Phase structure by complexity: Resources (zero code) → Attack prevention (simple) → Crawl pose (moderate) → Cinematic (complex)
+
+Phase 5 decisions:
+- Texture creation: 128x128 PNG with _glowmask.png suffix for AutoGlowingGeoLayer
+- Audio variations: Multiple OGG files per sound event with weight-based randomization
+- All audio mono 44.1kHz for proper Minecraft distance attenuation
 
 Phase 6 decisions:
 - Dual blocking (client + server): Server blocks authoritatively, client prevents animations for smooth UX
@@ -77,24 +83,12 @@ None.
 **Build Environment:**
 - Build requires `export JAVA_HOME="X:/Vibe Coding/jdk-21.0.6+7"` before Gradle commands
 
-**Phase 5 Notes (from research):**
-- Texture UV mapping: Design for all animation states upfront (standing, crawling, downed)
-- Audio format: OGG Vorbis mono 44.1kHz only (no stereo, no MP3)
-
-**Phase 7 Notes (from research):**
-- Client-server sync critical: Use Fabric networking API for pose state changes
-- GeckoLib animation conflicts: Test with v1.0 entities present during pose override
-
-**Phase 8 Notes (from research):**
-- Motion sickness prevention: Exponential decay, config options, test at 30/60/144 FPS
-- Sound channel saturation: Coordinate with Phase 5 audio, respect v1.0 priority system
-
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 08-03-PLAN.md (Phase 8 complete)
+Stopped at: Completed Phase 5 (v1.1 milestone complete)
 Resume file: None
-Next: /gsd:discuss-phase 5 (Resources - placeholder asset replacement)
+Next: /gsd:audit-milestone or /gsd:complete-milestone
 
 ## Milestone History
 
@@ -103,11 +97,13 @@ Next: /gsd:discuss-phase 5 (Resources - placeholder asset replacement)
 - 2,953 lines of Java
 - 2 days from start to ship
 
-**v1.1 Polish & Immersion** — In progress
-- 4 phases (5-8)
+**v1.1 Polish & Immersion** — Complete 2026-01-26
+- 4 phases (5-8), 10 plans
 - Focus: Replace placeholders, enhance downed state immersion
+- Phase 5 (Resources) complete — horror textures + audio
 - Phase 6 (Attack Prevention) complete
 - Phase 7 (Crawl Pose) complete
 - Phase 8 (Cinematic Enhancement) complete
+- All 12 v1.1 requirements satisfied
 
 See `.planning/MILESTONES.md` for full details.
