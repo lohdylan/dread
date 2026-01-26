@@ -6,6 +6,8 @@
   "mixins": [
   ],
   "client": [
+    "DeathScreenMixin",
+    "ClientAttackMixin"
   ],
   "injectors": {
     "defaultRequire": 1
