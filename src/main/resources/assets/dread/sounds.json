@@ -2,27 +2,54 @@
   "dread_ambient": {
     "sounds": [
       {
-        "name": "dread:dread_ambient",
-        "stream": true
+        "name": "dread:ambient_drone_1",
+        "stream": true,
+        "weight": 2
+      },
+      {
+        "name": "dread:ambient_drone_2",
+        "stream": true,
+        "weight": 1
       }
     ]
   },
   "dread_jumpscare": {
-    "sounds": ["dread:dread_jumpscare"]
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "dread:jumpscare_shriek_1",
+        "weight": 3
+      },
+      {
+        "name": "dread:jumpscare_shriek_2",
+        "weight": 2
+      },
+      {
+        "name": "dread:jumpscare_scream_3",
+        "weight": 2
+      }
+    ]
   },
   "dread_proximity": {
-    "sounds": ["dread:dread_proximity"]
-  },
-  "danger_rising": {
-    "sounds": ["dread:danger_rising"]
+    "sounds": [
+      "dread:proximity_distortion_1",
+      "dread:proximity_distortion_2",
+      "dread:proximity_hum_3"
+    ]
   },
   "dread_death": {
     "category": "hostile",
     "sounds": [
       {
-        "name": "dread:dread_death",
+        "name": "dread:death_sequence",
         "stream": false
       }
+    ]
+  },
+  "danger_rising": {
+    "sounds": [
+      "dread:tension_rise_1",
+      "dread:tension_rise_2"
     ]
   }
 }
