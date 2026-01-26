@@ -12,7 +12,8 @@
     "DeathScreenMixin",
     "ClientAttackMixin",
     "PlayerPoseMixin",
-    "CrawlCameraMixin"
+    "CrawlCameraMixin",
+    "CameraMixin"
   ],
   "injectors": {
     "defaultRequire": 1
