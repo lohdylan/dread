@@ -1,5 +1,6 @@
 package com.dread;
 
+import com.dread.client.CrawlVignetteRenderer;
 import com.dread.client.DeathCinematicClientHandler;
 import com.dread.client.DownedHudOverlay;
 import com.dread.client.DownedStateClientHandler;
@@ -42,6 +43,7 @@ public class DreadClient implements ClientModInitializer {
         // Register downed state handlers
         DownedStateClientHandler.register();
         DownedHudOverlay.register();
+        CrawlVignetteRenderer.register();
 
         // Register revival progress renderer
         RevivalProgressRenderer.register();
