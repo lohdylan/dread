@@ -10,6 +10,9 @@ import net.minecraft.world.GameMode;
 
 import com.dread.death.CrawlPoseHandler;
 
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.util.math.Vec3d;
+
 import java.util.*;
 
 /**
@@ -41,6 +44,9 @@ public class DreadDeathManager {
 
         // Process active revivals every tick
         processActiveRevivals(world, state);
+
+        // Spawn blood particles for downed players
+        spawnBloodParticles(world, state);
 
         // Sync downed states to clients every second
         if (tickCounter >= SYNC_INTERVAL) {
@@ -153,6 +159,39 @@ public class DreadDeathManager {
                     data.getRemainingSeconds()
                 );
                 ServerPlayNetworking.send(player, packet);
+            }
+        }
+    }
+
+    /**
+     * Spawn blood drip particles around downed players.
+     * Visible to all nearby players, reinforcing injury state.
+     */
+    private static void spawnBloodParticles(ServerWorld world, DownedPlayersState state) {
+        // Only spawn particles every 10 ticks (0.5 seconds)
+        if (world.getTime() % 10 != 0) return;
+
+        for (DownedPlayerData data : state.getAllDowned()) {
+            ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(data.playerId);
+            if (player == null) continue;
+
+            Vec3d pos = player.getPos();
+
+            // Spawn 1-2 particles around player at random offsets
+            int particleCount = world.random.nextInt(2) + 1;
+            for (int i = 0; i < particleCount; i++) {
+                double offsetX = (world.random.nextDouble() - 0.5) * 0.6;
+                double offsetZ = (world.random.nextDouble() - 0.5) * 0.6;
+
+                world.spawnParticles(
+                    ParticleTypes.DRIPPING_LAVA,  // Red dripping particle
+                    pos.x + offsetX,
+                    pos.y + 0.3,  // Slightly above ground level
+                    pos.z + offsetZ,
+                    1,            // particle count
+                    0, 0, 0,      // no velocity spread
+                    0.0           // no extra speed
+                );
             }
         }
     }
