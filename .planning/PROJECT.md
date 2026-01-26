@@ -43,6 +43,14 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ### Active
 
+**v1.2 Quick Fixes** (in progress)
+
+- [ ] Death cinematic is smooth and readable (camera effects not fighting)
+- [ ] Downed state clears properly when leaving/creating worlds
+- [ ] grab_impact.ogg audio file exists for death grab animation
+- [ ] Single-player: downed briefly then normal death (not permanent spectator)
+- [ ] Multiplayer dedicated server testing and fixes
+
 **v2.0 Environmental Horror** (planned)
 
 - [ ] Door slams and lights flicker when Dread is near
@@ -61,7 +69,7 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ## Context
 
-**Current State:** v1.1 shipped (polish & immersion milestone complete)
+**Current State:** v1.2 in progress (quick fixes milestone)
 
 **Codebase:**
 - 3,757 lines of Java across 43+ files
@@ -77,6 +85,9 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 **Known issues:**
 - Missing grab_impact.ogg for death grab animation sound keyframe (LOW severity)
+- Death cinematic is janky/unreadable — camera effects fighting, can't see Dread grab
+- Downed state persists across worlds — leaving world while downed, creating new = still downed
+- Single-player permanent death is too punishing — needs normal respawn option
 - Multiplayer testing on dedicated server not yet performed
 
 **Build environment:**
@@ -110,4 +121,4 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 | Front-loaded violence timing | 0.15s lunge maximizes terror | Good |
 
 ---
-*Last updated: 2026-01-26 after v1.1 milestone*
+*Last updated: 2026-01-26 after starting v1.2 milestone*
