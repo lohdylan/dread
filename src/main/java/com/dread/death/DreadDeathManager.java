@@ -8,6 +8,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
 
+import com.dread.death.CrawlPoseHandler;
+
 import java.util.*;
 
 /**
@@ -84,6 +86,9 @@ public class DreadDeathManager {
             state.removeDowned(playerId);
             return;
         }
+
+        // Exit crawl pose BEFORE changing to spectator (pose changes don't work in spectator)
+        CrawlPoseHandler.exitCrawlPose(player);
 
         // Change to spectator mode
         player.changeGameMode(GameMode.SPECTATOR);

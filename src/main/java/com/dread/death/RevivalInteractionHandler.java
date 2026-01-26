@@ -71,6 +71,9 @@ public class RevivalInteractionHandler {
         // Remove movement penalty
         removeMovementPenalty(downedPlayer);
 
+        // Exit crawl/prone pose
+        CrawlPoseHandler.exitCrawlPose(downedPlayer);
+
         // Remove from downed state
         state.removeDowned(playerId);
 

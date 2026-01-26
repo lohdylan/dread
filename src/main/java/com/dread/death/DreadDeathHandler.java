@@ -1,6 +1,7 @@
 package com.dread.death;
 
 import com.dread.config.DreadConfigLoader;
+import com.dread.death.CrawlPoseHandler;
 import com.dread.entity.DreadEntity;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.entity.LivingEntity;
@@ -55,6 +56,9 @@ public class DreadDeathHandler {
 
         // Apply crawl movement penalty
         RevivalInteractionHandler.applyMovementPenalty(player);
+
+        // Enter crawl/prone pose
+        CrawlPoseHandler.enterCrawlPose(player);
 
         // Trigger death cinematic
         DeathCinematicController.triggerDeathCinematic(player, dread);
