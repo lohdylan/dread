@@ -9,14 +9,12 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 /**
- * Client-side handler for death cinematic camera lock.
- * Uses a phased camera system matching the death_grab animation (1.8s / 36 ticks)
- * plus a SETTLE phase for smooth transition into downed state:
- * - IMPACT (0-3 ticks): Brief downward dip simulating being grabbed
- * - LIFT (3-14 ticks): Camera smoothly raises, feeling of being lifted
- * - HOLD (14-30 ticks): Stable view of Dread's face - face-to-face horror
- * - RELEASE (30-36 ticks): Camera settles as player is released
- * - SETTLE (36-46 ticks): Smooth transition to downed state with effect fade-in
+ * Client-side handler for death cinematic camera control (v2.0).
+ * Two-phase cinematic with position-based camera control:
+ * - THIRD_PERSON_PULLBACK (0-30 ticks / 1.5s): Camera behind and above player, framing both player and Dread
+ * - FACE_CLOSEUP (30-90 ticks / 3.0s): Camera locked on Dread's face with eyes centered
+ *
+ * Total duration: 4.5 seconds (90 ticks)
  */
 public class DeathCinematicClientHandler {
 
@@ -430,5 +428,14 @@ public class DeathCinematicClientHandler {
      */
     public static int getDreadEntityId() {
         return dreadEntityId;
+    }
+
+    /**
+     * Get camera position offset for current cinematic phase.
+     * Stub for future Phase 13 camera position control.
+     * Currently returns zero offset (no position changes).
+     */
+    public static Vec3d getCameraPositionOffset() {
+        return Vec3d.ZERO;
     }
 }
