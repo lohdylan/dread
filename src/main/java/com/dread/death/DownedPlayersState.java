@@ -25,6 +25,8 @@ public class DownedPlayersState extends PersistentState {
     private final Map<UUID, RevivalProgress> activeRevivals = new HashMap<>();
     // Transient set tracking players who disconnected while downed (not persisted across server restarts)
     private final transient Set<UUID> escapedPlayers = new HashSet<>();
+    // Transient set tracking players who died from Dread expiration (for respawn debuff)
+    private final transient Set<UUID> recentDreadDeaths = new HashSet<>();
 
     public DownedPlayersState() {
         super();
@@ -188,5 +190,31 @@ public class DownedPlayersState extends PersistentState {
      */
     public void clearEscapedPlayer(UUID playerId) {
         escapedPlayers.remove(playerId);
+    }
+
+    // --- Dread Death Tracking (Transient - Not Persisted) ---
+
+    /**
+     * Mark a player as having died from Dread timer expiration (for respawn debuff).
+     * This flag is NOT persisted - server restart clears all debuff penalties.
+     */
+    public void markDreadDeath(UUID playerId) {
+        recentDreadDeaths.add(playerId);
+        // Note: Do NOT call markDirty() - this is transient data
+    }
+
+    /**
+     * Check if a player recently died from Dread.
+     * @return true if player died from Dread timer expiration
+     */
+    public boolean hadRecentDreadDeath(UUID playerId) {
+        return recentDreadDeaths.contains(playerId);
+    }
+
+    /**
+     * Clear Dread death flag after applying respawn debuff.
+     */
+    public void clearDreadDeathFlag(UUID playerId) {
+        recentDreadDeaths.remove(playerId);
     }
 }

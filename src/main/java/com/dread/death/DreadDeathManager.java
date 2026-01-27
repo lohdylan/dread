@@ -9,6 +9,7 @@ import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
 
 import com.dread.death.CrawlPoseHandler;
+import com.dread.death.GameModeDetector.DreadGameMode;
 
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.Vec3d;
@@ -156,7 +157,8 @@ public class DreadDeathManager {
             if (player != null) {
                 DownedStateUpdateS2C packet = new DownedStateUpdateS2C(
                     true,
-                    data.getRemainingSeconds()
+                    data.getRemainingSeconds(),
+                    data.mode == DreadGameMode.SINGLEPLAYER  // isMercyMode
                 );
                 ServerPlayNetworking.send(player, packet);
             }
