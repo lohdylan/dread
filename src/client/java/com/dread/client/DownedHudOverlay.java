@@ -16,6 +16,7 @@ public class DownedHudOverlay {
     private static final Logger LOGGER = LoggerFactory.getLogger("dread-client");
 
     // Colors
+    private static final int COLOR_ORANGE = 0xFFFFAA00;  // Minecraft Gold/Orange for MERCY
     private static final int COLOR_YELLOW = 0xFFFFFF00;
     private static final int COLOR_RED = 0xFFFF0000;
 
@@ -50,7 +51,23 @@ public class DownedHudOverlay {
         int centerX = screenWidth / 2;
         int centerY = screenHeight / 2;
 
-        // Render "DOWNED" label above timer
+        // Determine mode and colors
+        boolean isMercy = DownedStateClientHandler.isMercyMode();
+        String modeText = isMercy ? "MERCY" : "NO MERCY";
+        int modeColor = isMercy ? COLOR_ORANGE : COLOR_RED;
+
+        // Render mode indicator above DOWNED label
+        int modeWidth = client.textRenderer.getWidth(modeText);
+        drawContext.drawText(
+            client.textRenderer,
+            modeText,
+            centerX - modeWidth / 2,
+            centerY - 50,
+            modeColor,
+            true // shadow
+        );
+
+        // Render "DOWNED" label with mode-appropriate color
         String downedLabel = "DOWNED";
         int labelWidth = client.textRenderer.getWidth(downedLabel);
         drawContext.drawText(
@@ -58,7 +75,7 @@ public class DownedHudOverlay {
             downedLabel,
             centerX - labelWidth / 2,
             centerY - 30,
-            COLOR_RED,
+            modeColor,
             true // shadow
         );
 
@@ -67,10 +84,17 @@ public class DownedHudOverlay {
         int seconds = remainingSeconds % 60;
         String timerText = String.format("%02d:%02d", minutes, seconds);
 
-        // Calculate timer color (yellow to red based on time remaining)
-        // Assuming max time is 300 seconds (5 minutes)
-        float timeRatio = remainingSeconds / 300.0f;
-        int timerColor = interpolateColor(COLOR_YELLOW, COLOR_RED, 1.0f - timeRatio);
+        // Calculate timer color based on mode
+        int timerColor;
+        if (isMercy) {
+            // MERCY mode: orange throughout (no dramatic color change)
+            timerColor = COLOR_ORANGE;
+        } else {
+            // NO MERCY mode: yellow to red gradient based on time remaining
+            // Assuming max time is 300 seconds (5 minutes)
+            float timeRatio = remainingSeconds / 300.0f;
+            timerColor = interpolateColor(COLOR_YELLOW, COLOR_RED, 1.0f - timeRatio);
+        }
 
         // Render countdown timer centered
         int timerWidth = client.textRenderer.getWidth(timerText);
