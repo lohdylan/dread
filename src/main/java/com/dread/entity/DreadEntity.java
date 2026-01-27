@@ -290,6 +290,12 @@ public class DreadEntity extends PathAwareEntity implements GeoEntity {
         controllers.add(new AnimationController<>(this, "head", 0, state -> {
             return state.setAndContinue(RawAnimation.begin().thenLoop("head_track"));
         }));
+
+        // Tentacle writhing controller (subtle background motion)
+        controllers.add(new AnimationController<>(this, "tentacles", 0, state -> {
+            // Always play tentacle_writhe - subtle, persistent motion for horror aesthetic
+            return state.setAndContinue(RawAnimation.begin().thenLoop("tentacle_writhe"));
+        }));
     }
 
     @Override
