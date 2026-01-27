@@ -1,5 +1,35 @@
 # Project Milestones: Dread
 
+## v1.2 Quick Fixes (Shipped: 2026-01-27)
+
+**Delivered:** Fixed death cinematic camera flickering, improved downed state lifecycle management, added single-player forgiveness (30s timer with normal respawn), and added grab_impact.ogg audio.
+
+**Phases completed:** 9-12 (10 plans total)
+
+**Key accomplishments:**
+
+- Render-time camera shake via CameraMixin (eliminates feedback loop flickering)
+- Downed state lifecycle management with escape penalty system
+- Single-player forgiveness: 30s timer, normal death/respawn with debuffs
+- Mercy mode UI (MERCY/NO MERCY indicator, orange/red color scheme)
+- Mode transitions that scale timer proportionally on player join/leave
+- grab_impact.ogg audio registered and wired to death animation
+
+**Stats:**
+
+- 52 files created/modified
+- 1,085 lines of Java added (4,842 total)
+- 4 phases, 10 plans, ~28 tasks
+- 5 hours from milestone start to ship
+
+**Git range:** `feat(09-01)` -> `docs(phase-12)`
+
+**Tech debt:** Multiplayer testing deferred (TEST-01, TEST-02) - code complete but unverified
+
+**What's next:** v2.0 Environmental Horror or multiplayer testing session
+
+---
+
 ## v1.1 Polish & Immersion (Shipped: 2026-01-26)
 
 **Delivered:** Replaced placeholder assets with terrifying horror textures and audio, added crawl pose with immersive effects, and enhanced death cinematic with extended grab animation and camera shake.

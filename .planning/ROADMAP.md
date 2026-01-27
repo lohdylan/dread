@@ -2,81 +2,48 @@
 
 ## Milestones
 
-- v1.0 MVP - Phases 1-4 (shipped 2026-01-25) - See milestones/v1.0-ROADMAP.md
-- v1.1 Polish & Immersion - Phases 5-8 (shipped 2026-01-26) - See milestones/v1.1-ROADMAP.md
-- v1.2 Quick Fixes - Phases 9-12 (shipped 2026-01-26) - See milestones/v1.2-ROADMAP.md
-- v2.0 Environmental Horror (planned)
+- ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-01-25) - See milestones/v1.0-ROADMAP.md
+- ✅ **v1.1 Polish & Immersion** — Phases 5-8 (shipped 2026-01-26) - See milestones/v1.1-ROADMAP.md
+- ✅ **v1.2 Quick Fixes** — Phases 9-12 (shipped 2026-01-27) - See milestones/v1.2-ROADMAP.md
+- 📋 **v2.0 Environmental Horror** (planned)
 
-## v1.2 Quick Fixes
+## Phases
 
-**Milestone Goal:** Fix bugs, improve single-player experience, validate multiplayer stability.
+<details>
+<summary>✅ v1.0 MVP (Phases 1-4) — SHIPPED 2026-01-25</summary>
 
-### Phase 9: Cinematic Fix
-**Goal**: Death cinematic is smooth, readable, and genuinely horrifying
-**Depends on**: Phase 8 (previous milestone)
-**Requirements**: FIX-01
-**Success Criteria** (what must be TRUE):
-  1. Camera effects during death cinematic are coordinated (no fighting/flickering)
-  2. Player can clearly see Dread's grab animation during death sequence
-  3. Cinematic timing allows player to process what's happening before death
-**Plans**: 1 plan
+- [x] Phase 1: Foundation - Entity (4/4 plans) — completed 2026-01-25
+- [x] Phase 2: AI & Horror Experience (6/6 plans) — completed 2026-01-25
+- [x] Phase 3: Death & Revival System (6/6 plans) — completed 2026-01-25
+- [x] Phase 4: Configuration & Release Prep (4/4 plans) — completed 2026-01-25
 
-Plans:
-- [x] 09-01-PLAN.md — Camera mixin for render-time shake injection (fixes entity rotation feedback loop)
+</details>
 
-### Phase 10: State Cleanup
-**Goal**: Downed state lifecycle is properly managed across world boundaries
-**Depends on**: Phase 9
-**Requirements**: FIX-02
-**Success Criteria** (what must be TRUE):
-  1. Leaving a world clears downed state completely
-  2. Creating a new world starts with fresh state (not downed)
-  3. Reconnecting after escaping downed state applies escape penalty (2 HP, immunity, message)
-  4. Dimension changes (Nether/End) do NOT clear downed state
-**Plans**: 2 plans
+<details>
+<summary>✅ v1.1 Polish & Immersion (Phases 5-8) — SHIPPED 2026-01-26</summary>
 
-Plans:
-- [x] 10-01-PLAN.md — Disconnect/reconnect lifecycle handlers with escape penalty
-- [x] 10-02-PLAN.md — Gamemode change mixin and void/kill damage bypass
+- [x] Phase 5: Resources (3/3 plans) — completed 2026-01-26
+- [x] Phase 6: Attack Prevention (1/1 plan) — completed 2026-01-26
+- [x] Phase 7: Crawl Pose (3/3 plans) — completed 2026-01-26
+- [x] Phase 8: Cinematic Enhancement (3/3 plans) — completed 2026-01-26
 
-### Phase 11: Single-Player Forgiveness
-**Goal**: Single-player death is punishing but not permanent, while multiplayer retains hardcore behavior
-**Depends on**: Phase 10
-**Requirements**: GAME-01, GAME-02, GAME-03, GAME-04
-**Success Criteria** (what must be TRUE):
-  1. Single-player downed state lasts 30-60 seconds before automatic death
-  2. Single-player death triggers normal Minecraft respawn (at bed or world spawn)
-  3. Full death cinematic plays before single-player death (not skipped)
-  4. Multiplayer downed state still lasts 300 seconds
-  5. Multiplayer death without revive still results in permanent spectator mode
-**Plans**: 5 plans
+</details>
 
-Plans:
-- [x] 11-01-PLAN.md — Game mode detection infrastructure (GameModeDetector, config timeouts, mode-aware setDowned)
-- [x] 11-02-PLAN.md — Death outcome branching (singleplayer triggers cinematic + normal death, multiplayer spectator)
-- [x] 11-03-PLAN.md — Extended packet with mercy mode flag for client sync
-- [x] 11-04-PLAN.md — Client UI updates (MERCY/NO MERCY indicator, orange/red color scheme)
-- [x] 11-05-PLAN.md — Mode transitions on player join/leave, respawn debuff application
+<details>
+<summary>✅ v1.2 Quick Fixes (Phases 9-12) — SHIPPED 2026-01-27</summary>
 
-### Phase 12: Audio & Testing
-**Goal**: Audio polish complete, multiplayer stability validated
-**Depends on**: Phase 11
-**Requirements**: FIX-03, TEST-01, TEST-02
-**Success Criteria** (what must be TRUE):
-  1. grab_impact.ogg plays during death grab animation
-  2. Multiplayer dedicated server tested with 2+ players
-  3. No desync issues during downed/revive/death flow in multiplayer
-  4. All v1.2 requirements verified working in both single-player and multiplayer
-**Plans**: 2 plans
+- [x] Phase 9: Cinematic Fix (1/1 plan) — completed 2026-01-26
+- [x] Phase 10: State Cleanup (2/2 plans) — completed 2026-01-26
+- [x] Phase 11: Single-Player Forgiveness (5/5 plans) — completed 2026-01-26
+- [x] Phase 12: Audio & Testing (2/2 plans) — completed 2026-01-27
 
-Plans:
-- [x] 12-01-PLAN.md — Add grab_impact.ogg sound file and register in sounds.json
-- [x] 12-02-PLAN.md — Comprehensive single-player and multiplayer testing with test report
+</details>
+
+### 📋 v2.0 Environmental Horror (Planned)
+
+Awaiting milestone planning via `/gsd:new-milestone`.
 
 ## Progress
-
-**Execution Order:**
-Phases 1-8 complete. v1.2 starts at Phase 9.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -91,9 +58,9 @@ Phases 1-8 complete. v1.2 starts at Phase 9.
 | 9. Cinematic Fix | v1.2 | 1/1 | Complete | 2026-01-26 |
 | 10. State Cleanup | v1.2 | 2/2 | Complete | 2026-01-26 |
 | 11. Single-Player Forgiveness | v1.2 | 5/5 | Complete | 2026-01-26 |
-| 12. Audio & Testing | v1.2 | 2/2 | Complete | 2026-01-26 |
+| 12. Audio & Testing | v1.2 | 2/2 | Complete | 2026-01-27 |
 
 **Total:** 12 phases, 40 plans complete, 3 milestones shipped
 
 ---
-*Last updated: 2026-01-26 after Phase 12 execution (v1.2 complete)*
+*Last updated: 2026-01-27 after v1.2 milestone complete*

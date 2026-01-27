@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Minecraft horror mod for Fabric 1.21.x that introduces "Dread" — a Cthulhu-style cosmic horror entity that stalks and kills players with turn-around jump scares, extended death cinematics with camera shake, and cooperative revival mechanics. Players crawl while downed with blood vignette effects. Features permanent death stakes for solo players and a 300-second revival window for multiplayer.
+A Minecraft horror mod for Fabric 1.21.x that introduces "Dread" — a Cthulhu-style cosmic horror entity that stalks and kills players with turn-around jump scares, extended death cinematics with camera shake, and cooperative revival mechanics. Players crawl while downed with blood vignette effects. Features forgiving single-player death (30-second timer, normal respawn with debuffs) and hardcore multiplayer mode (300-second revival window, permanent spectator if not revived).
 
 ## Core Value
 
@@ -25,8 +25,8 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 - Death sequence audio — v1.0
 - Sound intensity based on Dread proximity — v1.0
 - Unskippable cinematic death sequence (4.5 seconds) — v1.0
-- Downed state (300 seconds, blur/vignette vision) — v1.0
-- Permanent death to spectator mode if not revived — v1.0
+- Downed state (300 seconds multiplayer, blur/vignette vision) — v1.0
+- Permanent death to spectator mode if not revived (multiplayer) — v1.0
 - Crouch-to-revive mechanic (4 blocks, 3 seconds) — v1.0
 - Spawn rate configuration — v1.0
 - Damage settings — v1.0
@@ -40,16 +40,16 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 - Extended 1.8s death grab animation with camera shake — v1.1
 - Camera shake intensity config (0-100) for accessibility — v1.1
 - FPS-adaptive shake with visual compensation — v1.1
+- ✓ Death cinematic smooth and readable (render-time camera shake) — v1.2
+- ✓ Downed state clears properly on world exit/creation — v1.2
+- ✓ grab_impact.ogg audio for death grab animation — v1.2
+- ✓ Single-player forgiveness: 30s downed, normal death, respawn with debuffs — v1.2
+- ✓ Mercy mode UI (MERCY/NO MERCY indicator) — v1.2
+- ✓ Mode-aware timeouts (30s single-player, 300s multiplayer) — v1.2
+- ✓ Escape penalty system (disconnect/reconnect while downed) — v1.2
+- ✓ Respawn debuff after Dread death (Weakness II, Slowness I) — v1.2
 
 ### Active
-
-**v1.2 Quick Fixes** (in progress)
-
-- [ ] Death cinematic is smooth and readable (camera effects not fighting)
-- [ ] Downed state clears properly when leaving/creating worlds
-- [ ] grab_impact.ogg audio file exists for death grab animation
-- [ ] Single-player: downed briefly then normal death (not permanent spectator)
-- [ ] Multiplayer dedicated server testing and fixes
 
 **v2.0 Environmental Horror** (planned)
 
@@ -58,6 +58,7 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 - [ ] Dynamic crawl speed based on health
 - [ ] Animated texture effects (pulsing runes)
 - [ ] Multiple camera angles during death cinematic
+- [ ] Multiplayer dedicated server testing and fixes
 
 ### Out of Scope
 
@@ -69,10 +70,10 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ## Context
 
-**Current State:** v1.2 in progress (quick fixes milestone)
+**Current State:** v1.2 shipped (quick fixes milestone complete)
 
 **Codebase:**
-- 3,757 lines of Java across 43+ files
+- 4,842 lines of Java across 49 files
 - Fabric 1.21.1 with GeckoLib 4.7.1 and Satin API 1.17.0
 - GSON-based configuration with validation
 
@@ -81,14 +82,10 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 - GeckoLib for entity models and animations
 - Satin API for post-processing shaders
 - Custom network packets for multiplayer sync
-- 7 server-side mixins, 4 client-side mixins
+- 8 server-side mixins, 5 client-side mixins
 
 **Known issues:**
-- Missing grab_impact.ogg for death grab animation sound keyframe (LOW severity)
-- Death cinematic is janky/unreadable — camera effects fighting, can't see Dread grab
-- Downed state persists across worlds — leaving world while downed, creating new = still downed
-- Single-player permanent death is too punishing — needs normal respawn option
-- Multiplayer testing on dedicated server not yet performed
+- Multiplayer testing on dedicated server not yet performed (deferred from v1.2)
 
 **Build environment:**
 - Requires `export JAVA_HOME="X:/Vibe Coding/jdk-21.0.6+7"` before Gradle commands
@@ -119,6 +116,13 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 | FPS threshold 45 for shake | Below this, shake causes judder | Good |
 | Visual compensation pattern | Boost vignette when shake reduced | Good |
 | Front-loaded violence timing | 0.15s lunge maximizes terror | Good |
+| Render-time camera shake via mixin | Avoids entity rotation feedback loop | Good |
+| Mixin order 900 for cinematic shake | Applies before crawl pitch clamping (1000) | Good |
+| Transient escape/death tracking | Server restart clears penalties (intentional) | Good |
+| Mode-aware death branching | SP = normal death, MP = spectator | Good |
+| 30s single-player downed timeout | Punishing but not permanent | Good |
+| Proportional timer scaling on mode change | Prevents exploit on player join/leave | Good |
+| Respawn debuff (Weakness II, Slowness I) | Penalty for Dread death without being too harsh | Good |
 
 ---
-*Last updated: 2026-01-26 after starting v1.2 milestone*
+*Last updated: 2026-01-27 after v1.2 milestone*
