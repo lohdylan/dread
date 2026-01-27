@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 ## Current Position
 
 Phase: 10 of 12 (State Cleanup)
-Plan: Ready to plan
-Status: Phase 9 verified and complete
-Last activity: 2026-01-26 — Phase 9 verified
+Plan: 01 of 02 complete
+Status: In progress
+Last activity: 2026-01-26 — Completed 10-01-PLAN.md
 
-Progress: [████████████████████░░░░░░░░░░] 74% (31/42 estimated plans)
+Progress: [████████████████████░░░░░░░░░░] 76% (32/42 estimated plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31
-- Average duration: 3.4 min
-- Total execution time: ~2.6 hours
+- Total plans completed: 32
+- Average duration: 3.35 min
+- Total execution time: ~2.7 hours
 
 ## Accumulated Context
 
@@ -32,6 +32,11 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 **Phase 9 (Cinematic Fix):**
 - Apply camera shake at render-time via Camera.setRotation injection, not entity rotation modification (eliminates feedback loop)
 - Use mixin order = 900 so shake applies before CrawlCameraMixin's pitch clamping (order 1000)
+
+**Phase 10 (State Cleanup) - Plan 01:**
+- Escape tracking is transient (not persisted) - intentionally clears on server restart per design
+- Use vanilla timeUntilRegen field for 3-second damage immunity on reconnect
+- Broadcast escape message to all players for narrative consistency
 
 ### Pending Todos
 
@@ -44,16 +49,16 @@ None.
 
 **Known Bugs (v1.2 targets):**
 - Death cinematic janky/unreadable (camera effects fighting) -> Phase 9 ✓ FIXED
-- Downed state persists across worlds -> Phase 10
+- Downed state persists across worlds -> Phase 10 (10-01 ✓ FIXED disconnect/reconnect, 10-02 dimension changes)
 - Missing grab_impact.ogg -> Phase 12
 - Single-player permanent death too punishing -> Phase 11
 
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Phase 9 verified
+Stopped at: Completed 10-01-PLAN.md
 Resume file: None
-Next: `/gsd:discuss-phase 10` (State Cleanup)
+Next: Execute 10-02 (Dimension Change Handling)
 
 ## Milestone History
 
