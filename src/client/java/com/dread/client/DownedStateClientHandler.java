@@ -1,7 +1,7 @@
 package com.dread.client;
 
-import ladysnake.satin.api.managed.ManagedShaderEffect;
-import ladysnake.satin.api.managed.ShaderEffectManager;
+import org.ladysnake.satin.api.managed.ManagedShaderEffect;
+import org.ladysnake.satin.api.managed.ShaderEffectManager;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
@@ -20,6 +20,7 @@ public class DownedStateClientHandler {
     private static ManagedShaderEffect downedShader;
     private static boolean isDownedEffectActive = false;
     private static int remainingSeconds = 0;
+    private static boolean isMercyMode = false;
 
     /**
      * Initializes the downed state shader effect.
@@ -29,8 +30,8 @@ public class DownedStateClientHandler {
         // Initialize shader effect through Satin API
         downedShader = ShaderEffectManager.getInstance().manage(DOWNED_SHADER);
 
-        // Register shader rendering
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+        // Register shader rendering at END to capture everything including clouds
+        WorldRenderEvents.END.register(context -> {
             // Skip shader if compatibility mode or disabled by config
             if (ShaderCompatibilityDetector.shouldDisablePostProcessing()) {
                 return;
@@ -49,16 +50,30 @@ public class DownedStateClientHandler {
      * Called when DownedStateUpdateS2C packet is received with isDowned=true.
      *
      * @param remainingTime Remaining seconds until permanent death
+     * @param mercyMode Whether player is in MERCY mode (singleplayer forgiveness)
      */
-    public static void applyDownedEffects(int remainingTime) {
+    public static void applyDownedEffects(int remainingTime, boolean mercyMode) {
         isDownedEffectActive = true;
         remainingSeconds = remainingTime;
+        isMercyMode = mercyMode;
 
         if (ShaderCompatibilityDetector.shouldDisablePostProcessing()) {
-            LOGGER.info("Applied downed state ({}s remaining) - shader effects disabled for compatibility", remainingTime);
+            LOGGER.info("Applied downed state ({}s remaining, {}) - shader effects disabled for compatibility",
+                remainingTime, mercyMode ? "MERCY" : "NO MERCY");
         } else {
-            LOGGER.info("Applied downed state effects ({}s remaining)", remainingTime);
+            LOGGER.info("Applied downed state effects ({}s remaining, {})",
+                remainingTime, mercyMode ? "MERCY" : "NO MERCY");
         }
+    }
+
+    /**
+     * Applies the downed state shader effect with default mercy mode.
+     * Called when DownedStateUpdateS2C packet is received with isDowned=true.
+     *
+     * @param remainingTime Remaining seconds until permanent death
+     */
+    public static void applyDownedEffects(int remainingTime) {
+        applyDownedEffects(remainingTime, false); // Default to NO MERCY
     }
 
     /**
@@ -76,6 +91,7 @@ public class DownedStateClientHandler {
     public static void removeDownedEffects() {
         isDownedEffectActive = false;
         remainingSeconds = 0;
+        isMercyMode = false;
         LOGGER.info("Removed downed state effects");
     }
 
@@ -103,5 +119,21 @@ public class DownedStateClientHandler {
      */
     public static boolean isDownedEffectActive() {
         return isDownedEffectActive;
+    }
+
+    /**
+     * Returns whether player is in MERCY mode (singleplayer forgiveness).
+     * Used by HUD overlay to determine mode indicator and timer color.
+     */
+    public static boolean isMercyMode() {
+        return isMercyMode;
+    }
+
+    /**
+     * Sets mercy mode state (for live mode transitions).
+     * Called when server sends updated mercy mode during gameplay.
+     */
+    public static void setMercyMode(boolean mercyMode) {
+        isMercyMode = mercyMode;
     }
 }
