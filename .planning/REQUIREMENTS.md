@@ -71,32 +71,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CAM-01 | — | Pending |
-| CAM-02 | — | Pending |
-| CAM-03 | — | Pending |
-| CAM-04 | — | Pending |
-| CAM-05 | — | Pending |
-| CAM-06 | — | Pending |
-| CAM-07 | — | Pending |
-| TEX-01 | — | Pending |
-| TEX-02 | — | Pending |
-| TEX-03 | — | Pending |
-| TEX-04 | — | Pending |
-| TEX-05 | — | Pending |
-| ENV-01 | — | Pending |
-| ENV-02 | — | Pending |
-| ENV-03 | — | Pending |
-| ENV-04 | — | Pending |
-| BLD-01 | — | Pending |
-| BLD-02 | — | Pending |
-| BLD-03 | — | Pending |
-| BLD-04 | — | Pending |
+| CAM-01 | Phase 13 | Pending |
+| CAM-02 | Phase 13 | Pending |
+| CAM-03 | Phase 13 | Pending |
+| CAM-04 | Phase 13 | Pending |
+| CAM-05 | Phase 13 | Pending |
+| CAM-06 | Phase 13 | Pending |
+| CAM-07 | Phase 13 | Pending |
+| TEX-01 | Phase 14 | Pending |
+| TEX-02 | Phase 14 | Pending |
+| TEX-03 | Phase 14 | Pending |
+| TEX-04 | Phase 14 | Pending |
+| TEX-05 | Phase 14 | Pending |
+| ENV-01 | Phase 15 | Pending |
+| ENV-02 | Phase 15 | Pending |
+| ENV-03 | Phase 15 | Pending |
+| ENV-04 | Phase 15 | Pending |
+| BLD-01 | Phase 16 | Pending |
+| BLD-02 | Phase 16 | Pending |
+| BLD-03 | Phase 16 | Pending |
+| BLD-04 | Phase 16 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20
+- Mapped to phases: 20/20 (100%)
+- Unmapped: 0
+
+**Phase breakdown:**
+- Phase 13 (Cinematic Camera Control): 7 requirements
+- Phase 14 (Animated Entity Textures): 5 requirements
+- Phase 15 (Environmental Effects): 4 requirements
+- Phase 16 (Blood Trail Particles): 4 requirements
 
 ---
 *Requirements defined: 2026-01-27*
-*Last updated: 2026-01-27 after initial definition*
+*Last updated: 2026-01-27 after roadmap creation*
