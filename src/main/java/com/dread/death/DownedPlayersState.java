@@ -217,4 +217,52 @@ public class DownedPlayersState extends PersistentState {
     public void clearDreadDeathFlag(UUID playerId) {
         recentDreadDeaths.remove(playerId);
     }
+
+    // --- Mode Transitions ---
+
+    /**
+     * Transition a downed player from SINGLEPLAYER to MULTIPLAYER mode.
+     * Scales remaining timer proportionally to the new max.
+     */
+    public void transitionToMultiplayer(UUID playerId) {
+        DownedPlayerData data = downedPlayers.get(playerId);
+        if (data == null || data.mode != GameModeDetector.DreadGameMode.SINGLEPLAYER) {
+            return; // Not downed or already in multiplayer
+        }
+
+        var config = DreadConfigLoader.getConfig();
+        int spMaxTicks = config.singleplayerDownedTimeout * 20;
+        int mpMaxTicks = config.multiplayerDownedTimeout * 20;
+
+        // Proportional scaling: maintain percentage of time remaining
+        float timeRatio = (float) data.remainingTicks / spMaxTicks;
+        int newRemaining = Math.max(1, (int) (timeRatio * mpMaxTicks));
+
+        data.remainingTicks = newRemaining;
+        data.mode = GameModeDetector.DreadGameMode.MULTIPLAYER;
+        markDirty();
+    }
+
+    /**
+     * Transition a downed player from MULTIPLAYER to SINGLEPLAYER mode.
+     * Scales remaining timer proportionally to the new max.
+     */
+    public void transitionToSingleplayer(UUID playerId) {
+        DownedPlayerData data = downedPlayers.get(playerId);
+        if (data == null || data.mode != GameModeDetector.DreadGameMode.MULTIPLAYER) {
+            return; // Not downed or already in singleplayer
+        }
+
+        var config = DreadConfigLoader.getConfig();
+        int mpMaxTicks = config.multiplayerDownedTimeout * 20;
+        int spMaxTicks = config.singleplayerDownedTimeout * 20;
+
+        // Proportional scaling: maintain percentage of time remaining
+        float timeRatio = (float) data.remainingTicks / mpMaxTicks;
+        int newRemaining = Math.max(1, (int) (timeRatio * spMaxTicks));
+
+        data.remainingTicks = newRemaining;
+        data.mode = GameModeDetector.DreadGameMode.SINGLEPLAYER;
+        markDirty();
+    }
 }
