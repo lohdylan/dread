@@ -315,6 +315,26 @@ public class DeathCinematicClientHandler {
     }
 
     /**
+     * Get current cinematic timer tick for texture animation synchronization.
+     * Returns -1 if cinematic not active.
+     *
+     * @return Timer tick (0-90) or -1 if cinematic inactive
+     */
+    public static int getCinematicTimer() {
+        return cinematicActive ? cinematicTimer : -1;
+    }
+
+    /**
+     * Check if cinematic is in face close-up phase.
+     * Used by texture animation to trigger eye reveal.
+     *
+     * @return true if in FACE_CLOSEUP phase, false otherwise
+     */
+    public static boolean isInFaceCloseup() {
+        return cinematicActive && currentPhase == CinematicPhase.FACE_CLOSEUP;
+    }
+
+    /**
      * Get yaw shake offset for Camera mixin.
      * Returns 0 - death grab cinematic uses phased motion, not random shake.
      */
