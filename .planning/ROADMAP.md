@@ -4,7 +4,7 @@
 
 - v1.0 MVP - Phases 1-4 (shipped 2026-01-25) - See milestones/v1.0-ROADMAP.md
 - v1.1 Polish & Immersion - Phases 5-8 (shipped 2026-01-26) - See milestones/v1.1-ROADMAP.md
-- v1.2 Quick Fixes - Phases 9-12 (in progress)
+- v1.2 Quick Fixes - Phases 9-12 (shipped 2026-01-26) - See milestones/v1.2-ROADMAP.md
 - v2.0 Environmental Horror (planned)
 
 ## v1.2 Quick Fixes
@@ -67,10 +67,11 @@ Plans:
   2. Multiplayer dedicated server tested with 2+ players
   3. No desync issues during downed/revive/death flow in multiplayer
   4. All v1.2 requirements verified working in both single-player and multiplayer
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 12-01: TBD
+- [x] 12-01-PLAN.md — Add grab_impact.ogg sound file and register in sounds.json
+- [x] 12-02-PLAN.md — Comprehensive single-player and multiplayer testing with test report
 
 ## Progress
 
@@ -90,9 +91,9 @@ Phases 1-8 complete. v1.2 starts at Phase 9.
 | 9. Cinematic Fix | v1.2 | 1/1 | Complete | 2026-01-26 |
 | 10. State Cleanup | v1.2 | 2/2 | Complete | 2026-01-26 |
 | 11. Single-Player Forgiveness | v1.2 | 5/5 | Complete | 2026-01-26 |
-| 12. Audio & Testing | v1.2 | 0/? | Not started | - |
+| 12. Audio & Testing | v1.2 | 2/2 | Complete | 2026-01-26 |
 
-**Total:** 12 phases, 38 plans complete, 2 milestones shipped, 1 in progress
+**Total:** 12 phases, 40 plans complete, 3 milestones shipped
 
 ---
-*Last updated: 2026-01-26 after Phase 11 execution*
+*Last updated: 2026-01-26 after Phase 12 execution (v1.2 complete)*

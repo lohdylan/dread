@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** v1.2 Quick Fixes — Phase 12 (Audio & Testing)
+**Current focus:** v1.2 Quick Fixes — MILESTONE COMPLETE
 
 ## Current Position
 
@@ -101,5 +101,11 @@ Next: v1.2 release or future multiplayer testing
 - 873 lines added (3,757 total)
 - 3 days from milestone start to ship
 - All 12 requirements satisfied
+
+**v1.2 Quick Fixes** — Shipped 2026-01-26
+- 4 phases (9-12), 10 plans
+- Bug fixes, single-player forgiveness, audio polish
+- Single-player: 100% validated (30/30 tests)
+- Multiplayer: Deferred (features exist, testing pending)
 
 See `.planning/MILESTONES.md` for full details.
