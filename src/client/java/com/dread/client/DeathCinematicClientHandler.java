@@ -7,6 +7,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Client-side handler for death cinematic camera control (v2.0).
@@ -17,6 +19,8 @@ import net.minecraft.util.math.Vec3d;
  * Total duration: 4.5 seconds (90 ticks)
  */
 public class DeathCinematicClientHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeathCinematicClientHandler.class);
 
     // ===== Phase System =====
 
@@ -164,11 +168,21 @@ public class DeathCinematicClientHandler {
      * Update the current cinematic phase based on timer.
      */
     private static void updatePhase() {
+        CinematicPhase newPhase;
         if (cinematicTimer < PULLBACK_END_TICKS) {
-            currentPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
+            newPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
         } else {
-            currentPhase = CinematicPhase.FACE_CLOSEUP;
+            newPhase = CinematicPhase.FACE_CLOSEUP;
         }
+
+        // Log phase transitions
+        if (previousPhase != newPhase) {
+            LOGGER.debug("Cinematic phase transition: {} -> {} at tick {}",
+                previousPhase, newPhase, cinematicTimer);
+            previousPhase = currentPhase;
+        }
+
+        currentPhase = newPhase;
     }
 
     /**
@@ -267,6 +281,10 @@ public class DeathCinematicClientHandler {
     private static void endCinematic() {
         MinecraftClient client = MinecraftClient.getInstance();
 
+        // Log cinematic duration
+        LOGGER.debug("Cinematic ended after {} ticks ({} seconds)",
+            cinematicTimer, cinematicTimer / 20.0f);
+
         // Stop death_grab animation on entity
         if (client.world != null && dreadEntityId != -1) {
             Entity entity = client.world.getEntityById(dreadEntityId);
@@ -282,6 +300,7 @@ public class DeathCinematicClientHandler {
         cinematicTimer = 0;
         dreadEntityId = -1;
         currentPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
+        previousPhase = null;
         targetYaw = 0;
         targetPitch = 0;
         currentYaw = 0;
