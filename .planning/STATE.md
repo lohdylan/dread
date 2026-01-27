@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** v1.2 Quick Fixes — Phase 11 (Single-Player Forgiveness)
+**Current focus:** v1.2 Quick Fixes — Phase 12 (Audio & Testing)
 
 ## Current Position
 
-Phase: 11 of 12 (Single-Player Forgiveness)
-Plan: 05 of 05 complete
-Status: Phase 11 verified and complete
-Last activity: 2026-01-26 — Phase 11 verified
+Phase: 12 of 12 (Audio & Testing)
+Plan: 01 of 02 complete
+Status: Ready for plan 12-02 (testing)
+Last activity: 2026-01-26 — Plan 12-01 complete (grab_impact.ogg + bug fixes)
 
-Progress: [██████████████████████████░░░░] 90% (38/42 estimated plans)
+Progress: [████████████████████████████░░] 95% (39/40 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 38
+- Total plans completed: 39
 - Average duration: 3.1 min
-- Total execution time: ~3.2 hours
+- Total execution time: ~3.4 hours
 
 ## Accumulated Context
 
@@ -48,11 +48,17 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 - Default to MULTIPLAYER for backwards compatibility when reading NBT
 - 30-second single-player timeout (normal respawn), 300-second multiplayer timeout (spectator)
 - Dread death tracking is transient (not persisted) - server restart clears debuff penalties
-- Single-player death triggers cinematic then player.kill() for normal Minecraft death flow
+- Single-player death triggers player.kill() for normal Minecraft death flow (NO cinematic)
 - Multiplayer mode retains permanent spectator transition (hardcore behavior)
 - Mode transitions use proportional timer scaling to maintain fairness and prevent exploits
 - Respawn debuff (Weakness II 60s, Slowness I 30s) applied via AFTER_RESPAWN event with alive flag
 - SP->MP transition triggers on player join, MP->SP triggers when last other player leaves
+
+**Phase 12 (Audio & Testing) - Plan 01:**
+- Skip death cinematic in singleplayer (cinematic is for multiplayer spectator transition only)
+- Add 5-second Resistance V immunity after Dread death respawn (prevent death loop)
+- Client should never independently apply downed effects - always from server packets
+- Send RemoveDownedEffectsS2C before player.kill() in singleplayer death
 
 ### Pending Todos
 
@@ -66,15 +72,16 @@ None.
 **Known Bugs (v1.2 targets):**
 - Death cinematic janky/unreadable (camera effects fighting) -> Phase 9 ✓ FIXED
 - Downed state persists across worlds -> Phase 10 ✓ FIXED (disconnect/reconnect + edge cases)
-- Missing grab_impact.ogg -> Phase 12
+- Missing grab_impact.ogg -> Phase 12-01 ✓ FIXED
 - Single-player permanent death too punishing -> Phase 11 ✓ FIXED
+- Singleplayer death bugs (crash, frozen, death loop) -> Phase 12-01 ✓ FIXED
 
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Phase 11 verified
+Stopped at: Plan 12-01 complete, ready for 12-02 (testing)
 Resume file: None
-Next: `/gsd:discuss-phase 12` (Audio & Testing)
+Next: `/gsd:execute-phase 12` (will pick up at plan 12-02)
 
 ## Milestone History
 
