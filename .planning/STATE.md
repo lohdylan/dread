@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 ## Current Position
 
 Phase: 13 of 16 (Cinematic Camera Control)
-Plan: 2 of [estimated plans in phase]
+Plan: 1 of 2
 Status: In progress
-Last activity: 2026-01-27 — Completed 13-02-PLAN.md (Letterbox bars)
+Last activity: 2026-01-27 — Completed 13-01-PLAN.md (Camera position control)
 
 Progress: [████████████░░░░░░░░] 73% (41/56 estimated total plans)
 
@@ -48,11 +48,13 @@ Recent decisions from PROJECT.md affecting v2.0:
 - FPS-adaptive shake with visual compensation pattern — v1.1
 
 **v2.0 decisions made:**
+- Camera position control via Camera.update() mixin injection — Phase 13-01 (CAM-04)
+- Hardcoded tick boundaries over keyframe system for 4.5s sequence — Phase 13-01 (CAM-07)
+- Mixin coordination: separate injections for position (update) and rotation (setRotation) — Phase 13-01
 - Letterbox bars: 60px height, solid black (0xFF000000), instant appearance (no fade) — Phase 13-02
 - HudRenderCallback pattern for cinematic overlays — Phase 13-02
 
 **v2.0 decisions pending:**
-- Camera positioning approach (Camera.setPos() validation needed)
 - Texture animation method (.mcmeta vs custom FeatureRenderer)
 - Light extinguishing scope (campfire-only vs torch support)
 
@@ -63,9 +65,9 @@ None.
 ### Blockers/Concerns
 
 **Phase 13 (Camera):**
-- HIGH risk: Camera transformation feedback loops must be avoided (apply transforms at render time only)
-- Research suggests 1-day spike to validate Camera.setPos() without entity manipulation
-- Mixin priority coordination with existing CameraMixin (order 900) required
+- RESOLVED: Mixin coordination validated - position and rotation injections don't conflict
+- RESOLVED: Camera positioning via Camera.update() mixin works without entity manipulation
+- Known limitation: No collision detection (camera can clip through walls)
 
 **Phase 14 (Textures):**
 - MEDIUM risk: Animated texture performance collapse with AMD GPUs
@@ -89,9 +91,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 13-02-PLAN.md (Letterbox bars)
+Stopped at: Completed 13-01-PLAN.md (Camera position control)
 Resume file: None
-Next: Continue Phase 13 remaining plans
+Next: Execute 13-02-PLAN.md (Letterbox bars) or continue Phase 13
 
 ## Milestone History
 
@@ -113,4 +115,4 @@ Next: Continue Phase 13 remaining plans
 See `.planning/MILESTONES.md` for full details.
 
 ---
-*Last updated: 2026-01-27 after completing 13-02-PLAN.md*
+*Last updated: 2026-01-27 after completing 13-01-PLAN.md*
