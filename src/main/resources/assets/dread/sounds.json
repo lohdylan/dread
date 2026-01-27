@@ -51,5 +51,14 @@
       "dread:tension_rise_1",
       "dread:tension_rise_2"
     ]
+  },
+  "grab_impact": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "dread:grab_impact",
+        "stream": false
+      }
+    ]
   }
 }
