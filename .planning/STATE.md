@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 
 ## Current Position
 
-Phase: 13 of 16 (Cinematic Camera Control)
-Plan: 3 of 3
-Status: Phase complete
-Last activity: 2026-01-27 — Completed 13-03-PLAN.md (Integration and verification)
+Phase: 14 of 16 (Animated Entity Textures)
+Plan: 1 of 3 (estimated)
+Status: In progress
+Last activity: 2026-01-27 — Completed 14-01-PLAN.md (Cinematic timer API and placeholder textures)
 
-Progress: [██████████████░░░░░░] 77% (43/56 estimated total plans)
+Progress: [██████████████░░░░░░] 79% (44/56 estimated total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 43
-- Average duration: 3.1 min
-- Total execution time: ~3.6 hours
+- Total plans completed: 44
+- Average duration: 3.0 min
+- Total execution time: ~3.7 hours
 
 **By Milestone:**
 
@@ -30,7 +30,7 @@ Progress: [██████████████░░░░░░] 77% (43
 | v1.0 MVP | 4 | 20 | Shipped |
 | v1.1 Polish | 4 | 10 | Shipped |
 | v1.2 Fixes | 4 | 10 | Shipped |
-| v2.0 Atmosphere | 4 | 3 | In progress |
+| v2.0 Atmosphere | 4 | 4 | In progress |
 
 **Recent Trend:**
 - Consistent velocity across v1.x milestones
@@ -75,6 +75,10 @@ None.
 - Known limitation: No collision detection (camera can clip through walls)
 
 **Phase 14 (Textures):**
+- Plan 14-01 COMPLETE: Timer API and placeholder textures in place
+- getCinematicTimer() returns tick (0-90) for animation sync
+- isInFaceCloseup() detects face close-up phase
+- 8 placeholder texture files created (pulse 0/1/2, eyes_open + glowmasks)
 - MEDIUM risk: Animated texture performance collapse with AMD GPUs
 - UV offset application method needs validation during planning
 - GeckoLib 5 render thread separation requires extractRenderState() pattern
@@ -96,9 +100,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 13-03-PLAN.md (Integration and verification)
+Stopped at: Completed 14-01-PLAN.md (Cinematic timer API and placeholder textures)
 Resume file: None
-Next: Phase 13 complete - ready for Phase 14 (Texture Animation) planning
+Next: Phase 14 in progress - ready for 14-02 (Texture animation logic)
 
 ## Milestone History
 
@@ -120,4 +124,4 @@ Next: Phase 13 complete - ready for Phase 14 (Texture Animation) planning
 See `.planning/MILESTONES.md` for full details.
 
 ---
-*Last updated: 2026-01-27 after completing 13-03-PLAN.md*
+*Last updated: 2026-01-27 after completing 14-01-PLAN.md*
