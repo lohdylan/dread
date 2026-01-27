@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 ## Current Position
 
 Phase: 10 of 12 (State Cleanup)
-Plan: 01 of 02 complete
-Status: In progress
-Last activity: 2026-01-26 — Completed 10-01-PLAN.md
+Plan: 02 of 02 complete
+Status: Phase complete
+Last activity: 2026-01-26 — Completed 10-02-PLAN.md
 
-Progress: [████████████████████░░░░░░░░░░] 76% (32/42 estimated plans)
+Progress: [█████████████████████░░░░░░░░░] 79% (33/42 estimated plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
-- Average duration: 3.35 min
-- Total execution time: ~2.7 hours
+- Total plans completed: 33
+- Average duration: 3.3 min
+- Total execution time: ~2.8 hours
 
 ## Accumulated Context
 
@@ -33,10 +33,13 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 - Apply camera shake at render-time via Camera.setRotation injection, not entity rotation modification (eliminates feedback loop)
 - Use mixin order = 900 so shake applies before CrawlCameraMixin's pitch clamping (order 1000)
 
-**Phase 10 (State Cleanup) - Plan 01:**
+**Phase 10 (State Cleanup) - Plans 01-02:**
 - Escape tracking is transient (not persisted) - intentionally clears on server restart per design
 - Use vanilla timeUntilRegen field for 3-second damage immunity on reconnect
 - Broadcast escape message to all players for narrative consistency
+- Mixin injection for gamemode change (no Fabric event exists for this API)
+- Death cinematic plays on void/kill death if Dread within 64 blocks
+- Exit crawl pose before vanilla death to prevent visual glitches
 
 ### Pending Todos
 
@@ -49,16 +52,16 @@ None.
 
 **Known Bugs (v1.2 targets):**
 - Death cinematic janky/unreadable (camera effects fighting) -> Phase 9 ✓ FIXED
-- Downed state persists across worlds -> Phase 10 (10-01 ✓ FIXED disconnect/reconnect, 10-02 dimension changes)
+- Downed state persists across worlds -> Phase 10 ✓ FIXED (disconnect/reconnect + edge cases)
 - Missing grab_impact.ogg -> Phase 12
 - Single-player permanent death too punishing -> Phase 11
 
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 10-01-PLAN.md
+Stopped at: Completed 10-02-PLAN.md (Phase 10 complete)
 Resume file: None
-Next: Execute 10-02 (Dimension Change Handling)
+Next: Plan Phase 11 (Gameplay Balancing)
 
 ## Milestone History
 
