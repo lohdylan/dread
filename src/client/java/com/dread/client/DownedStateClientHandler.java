@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
  * Client-side handler for managing downed state visual effects.
  * Applies heavy blur and vignette post-processing shader when player is downed.
  * Uses Satin API for shader management.
+ * Supports fade-in transition for smooth cinematic-to-downed handoff.
  */
 public class DownedStateClientHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("dread-client");
@@ -21,6 +22,9 @@ public class DownedStateClientHandler {
     private static boolean isDownedEffectActive = false;
     private static int remainingSeconds = 0;
     private static boolean isMercyMode = false;
+
+    // Fade-in support for smooth transition from cinematic
+    private static float shaderFadeIntensity = 1.0f;  // 0.0 = no effect, 1.0 = full effect
 
     /**
      * Initializes the downed state shader effect.
@@ -37,7 +41,9 @@ public class DownedStateClientHandler {
                 return;
             }
 
-            if (isDownedEffectActive && downedShader != null) {
+            if (isDownedEffectActive && downedShader != null && shaderFadeIntensity > 0.0f) {
+                // Set fade intensity uniform before rendering
+                downedShader.setUniformValue("FadeIntensity", shaderFadeIntensity);
                 downedShader.render(context.tickCounter().getTickDelta(true));
             }
         });
@@ -92,7 +98,27 @@ public class DownedStateClientHandler {
         isDownedEffectActive = false;
         remainingSeconds = 0;
         isMercyMode = false;
+        shaderFadeIntensity = 1.0f;  // Reset for next time
+        CrawlCameraHandler.resetPitchLimitTransition();  // Reset pitch limits
         LOGGER.info("Removed downed state effects");
+    }
+
+    /**
+     * Set shader fade intensity for smooth transition.
+     * Called by DeathCinematicClientHandler during SETTLE phase.
+     *
+     * @param intensity 0.0 = no effect visible, 1.0 = full effect
+     */
+    public static void setShaderFadeIntensity(float intensity) {
+        shaderFadeIntensity = Math.max(0.0f, Math.min(1.0f, intensity));
+    }
+
+    /**
+     * Get current shader fade intensity.
+     * Used by CrawlVignetteRenderer to sync vignette fade.
+     */
+    public static float getShaderFadeIntensity() {
+        return shaderFadeIntensity;
     }
 
     /**

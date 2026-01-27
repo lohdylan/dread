@@ -26,11 +26,18 @@ public class CrawlVignetteRenderer {
 
     /**
      * Render blood vignette overlay.
+     * Supports fade-in via DownedStateClientHandler.getShaderFadeIntensity().
      */
     private static void render(DrawContext context, RenderTickCounter tickCounter) {
         // Only render when downed
         if (!DownedStateClientHandler.isDownedEffectActive()) {
             return;
+        }
+
+        // Get fade intensity for smooth transition
+        float fadeIntensity = DownedStateClientHandler.getShaderFadeIntensity();
+        if (fadeIntensity <= 0.0f) {
+            return;  // Nothing to render yet
         }
 
         MinecraftClient client = MinecraftClient.getInstance();
@@ -41,8 +48,10 @@ public class CrawlVignetteRenderer {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
-        // Set red tint with strong opacity (blood effect)
-        RenderSystem.setShaderColor(1.0f, 0.15f, 0.15f, 0.65f);
+        // Set red tint with opacity scaled by fade intensity
+        // Base opacity is 0.65, scaled by fade
+        float alpha = 0.65f * fadeIntensity;
+        RenderSystem.setShaderColor(1.0f, 0.15f, 0.15f, alpha);
 
         // Draw vignette texture covering full screen
         context.drawTexture(
