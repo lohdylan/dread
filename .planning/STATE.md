@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Phase 13 - Cinematic Camera Control (v2.0)
+**Current focus:** Phase 14 - Animated Entity Textures (v2.0)
 
 ## Current Position
 
@@ -14,12 +14,12 @@ Plan: 3 of 3
 Status: Phase complete
 Last activity: 2026-01-27 — Completed 13-03-PLAN.md (Integration and verification)
 
-Progress: [█████████████░░░░░░░] 75% (42/56 estimated total plans)
+Progress: [██████████████░░░░░░] 77% (43/56 estimated total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 42
+- Total plans completed: 43
 - Average duration: 3.1 min
 - Total execution time: ~3.6 hours
 

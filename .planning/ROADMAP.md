@@ -58,12 +58,12 @@
 4. Camera movement coordinates with existing shake system (additive effects, no conflicts)
 5. Death sequence remains 4.5 seconds with no FPS drops at 144Hz
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
-- [ ] 13-03: TBD
+- [x] 13-01-PLAN.md — Core camera position infrastructure (CameraMixin + DeathCinematicClientHandler)
+- [x] 13-02-PLAN.md — Letterbox bars visual feedback (CinematicLetterboxRenderer)
+- [x] 13-03-PLAN.md — Integration, tuning, and verification checkpoint
 
 #### Phase 14: Animated Entity Textures
 
@@ -143,12 +143,12 @@ Plans:
 | 10. State Cleanup | v1.2 | 2/2 | Complete | 2026-01-26 |
 | 11. Single-Player Forgiveness | v1.2 | 5/5 | Complete | 2026-01-26 |
 | 12. Audio & Testing | v1.2 | 2/2 | Complete | 2026-01-27 |
-| 13. Cinematic Camera Control | v2.0 | 0/? | Not started | - |
+| 13. Cinematic Camera Control | v2.0 | 3/3 | Complete | 2026-01-27 |
 | 14. Animated Entity Textures | v2.0 | 0/? | Not started | - |
 | 15. Environmental Effects | v2.0 | 0/? | Not started | - |
 | 16. Blood Trail Particles | v2.0 | 0/? | Not started | - |
 
-**Total:** 16 phases, 40 plans complete (v1.x), 4 phases planned (v2.0), 3 milestones shipped
+**Total:** 16 phases, 43 plans complete, 3 phases planned (v2.0), 3 milestones shipped
 
 ---
-*Last updated: 2026-01-27 after v2.0 roadmap creation*
+*Last updated: 2026-01-27 after Phase 13 execution*
