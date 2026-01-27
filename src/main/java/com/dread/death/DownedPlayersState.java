@@ -1,5 +1,7 @@
 package com.dread.death;
 
+import com.dread.config.DreadConfigLoader;
+import com.dread.death.GameModeDetector.DreadGameMode;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
@@ -17,7 +19,7 @@ import java.util.*;
 public class DownedPlayersState extends PersistentState {
 
     private static final String STATE_NAME = "dread_downed_players";
-    private static final int DOWNED_DURATION_TICKS = 300 * 20;  // 300 seconds
+    // Note: DOWNED_DURATION_TICKS removed - now uses mode-aware config (singleplayerDownedTimeout/multiplayerDownedTimeout)
 
     private final Map<UUID, DownedPlayerData> downedPlayers = new HashMap<>();
     private final Map<UUID, RevivalProgress> activeRevivals = new HashMap<>();
@@ -68,7 +70,19 @@ public class DownedPlayersState extends PersistentState {
     public void setDowned(ServerPlayerEntity player) {
         UUID playerId = player.getUuid();
         BlockPos pos = player.getBlockPos();
-        downedPlayers.put(playerId, new DownedPlayerData(playerId, pos, DOWNED_DURATION_TICKS));
+
+        // Detect game mode and get appropriate timeout
+        DreadGameMode mode = GameModeDetector.detectMode(player.getServerWorld());
+        var config = DreadConfigLoader.getConfig();
+
+        int timeoutTicks;
+        if (mode == DreadGameMode.SINGLEPLAYER) {
+            timeoutTicks = config.singleplayerDownedTimeout * 20;  // 30 seconds default
+        } else {
+            timeoutTicks = config.multiplayerDownedTimeout * 20;   // 300 seconds default
+        }
+
+        downedPlayers.put(playerId, new DownedPlayerData(playerId, pos, timeoutTicks, mode));
         markDirty();
     }
 

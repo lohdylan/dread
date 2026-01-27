@@ -19,6 +19,10 @@ public class DreadConfig {
     // Camera shake intensity (0 = disabled, 100 = full horror)
     public int cameraShakeIntensity = 100;
 
+    // Downed state timeouts (seconds)
+    public int singleplayerDownedTimeout = 30;   // 30 seconds for singleplayer
+    public int multiplayerDownedTimeout = 300;   // 300 seconds for multiplayer
+
     // Documentation fields (appear as comments in JSON)
     @SerializedName("_comment_spawn")
     public final String comment1 = "baseSpawnChancePerSecond: Base probability per tick (0.005 = 0.5%). miningBonusPerBlock: Added per block mined. dayEscalationCap: Max world day for multiplier.";
@@ -31,4 +35,7 @@ public class DreadConfig {
 
     @SerializedName("_comment_shake")
     public final String comment4 = "cameraShakeIntensity: Camera shake strength during death cinematic (0-100). Set to 0 to disable shake while keeping cinematic. Lower values for motion-sensitive players.";
+
+    @SerializedName("_comment_timeouts")
+    public final String comment5 = "singleplayerDownedTimeout: Seconds in downed state before death in singleplayer (normal respawn). multiplayerDownedTimeout: Seconds in multiplayer before permanent spectator.";
 }
