@@ -1,6 +1,7 @@
 package com.dread;
 
 import com.dread.client.CinematicCompensationRenderer;
+import com.dread.client.CinematicLetterboxRenderer;
 import com.dread.client.CrawlVignetteRenderer;
 import com.dread.client.DeathCinematicClientHandler;
 import com.dread.client.DownedHudOverlay;
@@ -48,6 +49,9 @@ public class DreadClient implements ClientModInitializer {
 
         // Register cinematic compensation renderer
         CinematicCompensationRenderer.register();
+
+        // Register cinematic letterbox renderer (Phase 13)
+        CinematicLetterboxRenderer.register();
 
         // Register revival progress renderer
         RevivalProgressRenderer.register();
