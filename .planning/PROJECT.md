@@ -51,13 +51,18 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ### Active
 
-**v2.0 Environmental Horror** (planned)
+**v2.0 Atmosphere & Dread** (current)
 
-- [ ] Door slams and lights flicker when Dread is near
+- [ ] Multiple camera angles during death cinematic (pull back → face fills screen)
+- [ ] Animated Dread textures during kill (pulsing runes, writhing forms, opening eyes)
+- [ ] Environmental reactions during kill (screen distortion, reality warping)
+- [ ] Door slams when Dread is near
+- [ ] Lights flicker when Dread spawns/approaches
 - [ ] Blood trail visual when crawling while downed
+
+**Deferred:**
+
 - [ ] Dynamic crawl speed based on health
-- [ ] Animated texture effects (pulsing runes)
-- [ ] Multiple camera angles during death cinematic
 - [ ] Multiplayer dedicated server testing and fixes
 
 ### Out of Scope
@@ -70,7 +75,7 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 
 ## Context
 
-**Current State:** v1.2 shipped (quick fixes milestone complete)
+**Current State:** v2.0 Atmosphere & Dread (in progress)
 
 **Codebase:**
 - 4,842 lines of Java across 49 files
@@ -125,4 +130,4 @@ The jump scare must be genuinely terrifying — the entity appearance, cinematic
 | Respawn debuff (Weakness II, Slowness I) | Penalty for Dread death without being too harsh | Good |
 
 ---
-*Last updated: 2026-01-27 after v1.2 milestone*
+*Last updated: 2026-01-27 after v2.0 milestone start*

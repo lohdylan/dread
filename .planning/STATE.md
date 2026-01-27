@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** Planning next milestone (v2.0 Environmental Horror)
+**Current focus:** v2.0 Atmosphere & Dread
 
 ## Current Position
 
-Phase: 12 of 12 complete
-Plan: All complete
-Status: v1.2 milestone shipped — ready for next milestone
-Last activity: 2026-01-27 — v1.2 milestone complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-01-27 — Milestone v2.0 started
 
-Progress: [██████████████████████████████] 100% (40/40 plans, 3 milestones)
+Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0% (milestone starting)
 
 ## Performance Metrics
 
@@ -45,9 +45,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: v1.2 milestone complete
+Stopped at: Defining v2.0 requirements
 Resume file: None
-Next: `/gsd:new-milestone` for v2.0 Environmental Horror
+Next: Define requirements → create roadmap
 
 ## Milestone History
 
