@@ -126,8 +126,9 @@ public class DeathCinematicClientHandler {
             originalCameraEntity = null;
         }
 
-        // Apply downed state effects
-        DownedStateClientHandler.applyDownedEffects();
+        // NOTE: Don't apply downed effects here - server sends DownedStateUpdateS2C packets
+        // to sync state. Calling applyDownedEffects() with defaults would overwrite the
+        // correct server-synced state (wrong timer, wrong mercy mode).
 
         // Reset cinematic state
         cinematicActive = false;

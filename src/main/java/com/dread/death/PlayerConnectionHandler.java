@@ -104,6 +104,8 @@ public class PlayerConnectionHandler {
         }
     }
 
+    private static final int RESPAWN_IMMUNITY_TICKS = 100;  // 5 seconds at 20 ticks/second
+
     /**
      * Handle player respawn - apply debuff if player died from Dread in singleplayer.
      */
@@ -116,8 +118,17 @@ public class PlayerConnectionHandler {
 
         // Check if player just respawned from Dread death
         if (state.hadRecentDreadDeath(newPlayer.getUuid())) {
-            DreadMod.LOGGER.info("Player {} respawned from Dread death - applying debuffs",
+            DreadMod.LOGGER.info("Player {} respawned from Dread death - applying debuffs and immunity",
                 newPlayer.getName().getString());
+
+            // Grant 5 seconds of Resistance V (100% damage reduction) to prevent death loop
+            newPlayer.addStatusEffect(new StatusEffectInstance(
+                StatusEffects.RESISTANCE,
+                RESPAWN_IMMUNITY_TICKS,  // 5 seconds
+                4,        // Amplifier 4 = Resistance V (100% reduction)
+                false,    // isAmbient
+                true      // showParticles
+            ));
 
             // Apply Weakness II for 60 seconds
             newPlayer.addStatusEffect(new StatusEffectInstance(

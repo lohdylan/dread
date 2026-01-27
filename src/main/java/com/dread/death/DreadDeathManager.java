@@ -1,6 +1,7 @@
 package com.dread.death;
 
 import com.dread.network.packets.DownedStateUpdateS2C;
+import com.dread.network.packets.RemoveDownedEffectsS2C;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -116,8 +117,10 @@ public class DreadDeathManager {
     }
 
     /**
-     * Trigger singleplayer death - cinematic followed by normal Minecraft death.
+     * Trigger singleplayer death - normal Minecraft death with respawn.
      * Respects keepInventory gamerule and allows respawn at bed/world spawn.
+     * NOTE: No death cinematic in singleplayer - player dies immediately and respawns,
+     * so the cinematic would be interrupted and cause frozen/jiggling state.
      */
     private static void triggerSingleplayerDeath(ServerWorld world, UUID playerId, DownedPlayersState state) {
         ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(playerId);
@@ -126,11 +129,10 @@ public class DreadDeathManager {
             return;
         }
 
-        // Trigger death cinematic first (if not skipped in config)
-        DreadEntity dread = findNearestDread(player, 32.0);
-        if (dread != null && !DreadConfigLoader.getConfig().skipDeathCinematic) {
-            DeathCinematicController.triggerDeathCinematic(player, dread);
-        }
+        // NOTE: Don't trigger death cinematic in singleplayer. The cinematic runs for 1.8s
+        // but player.kill() happens immediately, causing the cinematic to continue running
+        // after respawn (frozen state, jiggling camera). Cinematic is for multiplayer
+        // spectator transition only.
 
         // Exit crawl pose BEFORE death
         CrawlPoseHandler.exitCrawlPose(player);
@@ -147,6 +149,11 @@ public class DreadDeathManager {
         // Broadcast death message (same as multiplayer)
         Text deathMessage = Text.literal(player.getName().getString() + " succumbed to the Dread");
         world.getServer().getPlayerManager().broadcast(deathMessage, false);
+
+        // CRITICAL: Send packet to clear client-side downed effects BEFORE kill()
+        // Without this, client still thinks it's downed and DeathScreenMixin cancels init(),
+        // causing null scoreText and crash in DeathScreen.render()
+        ServerPlayNetworking.send(player, new RemoveDownedEffectsS2C());
 
         // Trigger normal Minecraft death - respects keepInventory, shows death screen
         player.kill();
