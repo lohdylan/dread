@@ -1,831 +1,881 @@
-# Architecture Integration: v1.1 Enhancements
+# Architecture Patterns: Dread v2.0 Cinematic Integration
 
-**Project:** Dread Entity Mod
-**Milestone:** v1.1 Polish & Immersion Features
-**Researched:** 2026-01-25
-**Confidence:** HIGH
+**Domain:** Minecraft Fabric Mod - Horror Cinematics
+**Milestone:** v2.0 Atmosphere & Dread
+**Researched:** 2026-01-27
+**Confidence:** MEDIUM (verified with official Fabric docs and GeckoLib wiki; camera control based on mod analysis)
 
 ## Executive Summary
 
-v1.1 enhancements integrate cleanly with existing Dread architecture through well-established extension points. All five features use standard Forge/GeckoLib patterns:
+v2.0 adds cinematic camera control, animated textures, and environmental effects to the existing Dread mod architecture. The key architectural challenge is **render-time orchestration**: synchronizing camera override, texture animation timing, and environmental triggers within the existing 4.5s death sequence.
 
-1. **Crawl pose** → Entity pose system + client-side rendering
-2. **Attack prevention** → Event cancellation in existing handlers
-3. **Dread texture** → GeckoLib texture override (file replacement)
-4. **Cinematic enhancement** → Extend existing client timer system
-5. **Audio replacement** → OGG file swap (no code changes)
+**Critical insight:** Minecraft 1.21+ separates game thread from render thread, requiring all cinematic state to be pre-computed and passed via render context. Direct entity manipulation during rendering is no longer possible.
 
-**Key finding:** Most work is additive (new event handlers, extended timers) rather than modification of existing systems. Only one existing file needs substantial changes (DownedStateClientHandler for pose).
-
----
+**Integration strategy:** All new features hook into existing `DeathCinematicClientHandler` as the single source of truth for cinematic progress (0.0 → 1.0 over 4.5s). Each component queries this progress value rather than maintaining separate timers.
 
 ## Existing Architecture Overview
 
-### Server-Side Components
+**Current death sequence flow:**
 ```
-DreadEntity.java
-├─ GeckoLib animated entity
-├─ AI goals for behavior
-└─ Form variant system (already supports multiple forms)
-
-DeathCinematicController.java
-├─ Triggers on player death event
-├─ Teleports Dread face-to-face
-└─ Server-authoritative positioning
-
-DownedPlayersState.java
-├─ Persistent map of downed players
-├─ World-saved state
-└─ Tracks respawn eligibility
-
-RevivalInteractionHandler.java
-├─ Handles teammate revival
-└─ Movement speed modifier during revival
+1. DreadEntity.attack() → server triggers kill
+2. Server sends death cinematic packet → DeathCinematicClientHandler starts
+3. CameraMixin (order 900) applies shake during 4.5s sequence
+4. Player enters downed state → DownedStateClientHandler activates
 ```
 
-### Client-Side Components
-```
-DreadEntityModel.java
-├─ GeoModel implementation
-├─ Returns geometry resource
-└─ getTextureResource() → selects texture by form variant
-
-DreadEntityRenderer.java
-├─ GeoEntityRenderer
-└─ AutoGlowingGeoLayer for glowing eyes
-
-DeathCinematicClientHandler.java
-├─ 90-tick timer (4.5 seconds)
-├─ Camera switches to Dread entity
-└─ Client-side rendering state
-
-DownedStateClientHandler.java
-├─ Blur shader application
-├─ Vignette effects
-└─ Client visual feedback
-```
-
-### Resources
-```
-assets/dread/
-├─ models/entity/dread.geo.json (GeckoLib geometry)
-├─ animations/entity/dread.animation.json (GeckoLib animations)
-├─ textures/entity/
-│   ├─ dread_base.png
-│   ├─ dread_variant2.png
-│   └─ dread_variant3.png
-└─ sounds.json (sound event definitions)
-
-assets/dread/sounds/
-└─ [placeholder OGG files]
-```
+**Existing components:**
+- **CameraMixin**: Render-time shake at mixin order 900
+- **DeathCinematicClientHandler**: 4.5s sequence timing coordinator
+- **DreadEntity**: GeckoLib entity with 3 form variants
+- **DownedStateClientHandler**: Blood vignette, crawl pose
+- **BlockEntityMixin**: Torch extinguishing
+- **Custom networking**: Client-server synchronization
 
 ---
 
-## v1.1 Feature Integration
+## v2.0 Architecture: New Components
 
-### 1. Crawl Pose for Downed Players
+### 1. Cinematic Camera System
 
-**Implementation Location:** `DownedStateClientHandler.java` (modify) + new server-side handler
+**New component: `CinematicCameraController`**
 
-**Architecture Pattern:**
-```
-Server-side:
-PlayerTickEvent handler
-├─ Check if player is downed (query DownedPlayersState)
-├─ Call player.setPose(Pose.SWIMMING)
-└─ Auto-syncs to client via SynchedEntityData
+**Purpose:** Override camera position and rotation (not just shake) during death sequence.
 
-Client-side (DownedStateClientHandler):
-├─ RenderPlayerEvent.Pre handler (NEW)
-├─ Modify player model rotation if downed
-└─ Apply crawl-specific rendering adjustments
-```
+**Architecture pattern:** Modifier-based camera override with priority system
+- Follows Free Camera API pattern: capture → modify → apply pipeline
+- Integrates with existing CameraMixin at render time
+- Uses Fabric event system for lifecycle management
 
-**Key Technical Details:**
-
-- **Pose.SWIMMING** is Minecraft's built-in crawl pose (used for 1-block-high spaces)
-- **`setPose()` synchronizes automatically** via Forge's `SynchedEntityData` system (no custom packets needed)
-- **Server authoritative:** Server sets pose, clients render it
-- Player hitbox automatically shrinks to 0.6 blocks high (vanilla behavior)
-
-**Code Changes Required:**
-
-1. **New file:** `DownedPoseHandler.java` (server-side)
-   - Subscribe to `TickEvent.ServerTickEvent` or `LivingEvent.LivingTickEvent`
-   - Check `DownedPlayersState` for downed players
-   - Apply `player.setPose(Pose.SWIMMING)` while downed
-   - Reset to `Pose.STANDING` on revival/respawn
-
-2. **Modify:** `DownedStateClientHandler.java`
-   - Add `@SubscribeEvent` for `RenderPlayerEvent.Pre`
-   - Adjust camera angle/model rotation for crawl pose
-   - Coordinate with existing blur/vignette effects
-
-**Sources:**
-- [SetPose implementation - Forge Forums](https://forums.minecraftforge.net/topic/83874-setpose-implementation/)
-- [Forge entity synchronization docs](https://docs.minecraftforge.net/en/latest/networking/entities/)
-- [Pose JavaDocs (1.18.2)](https://nekoyue.github.io/ForgeJavaDocs-NG/javadoc/1.18.2/net/minecraft/world/entity/Pose.html)
-
----
-
-### 2. Attack Prevention for Downed Players
-
-**Implementation Location:** New event handler class `DownedPlayerProtectionHandler.java`
-
-**Architecture Pattern:**
-```
-Event-driven protection:
-LivingAttackEvent (Forge event bus)
-├─ Check if victim is downed player
-├─ event.setCanceled(true) if downed
-└─ Optionally play feedback sound/particles
-```
-
-**Integration Points:**
-
-- **Query existing state:** `DownedPlayersState.isPlayerDowned(player)`
-- **Event precedence:** HIGHEST priority to override other mods
-- **Server-side only:** Register handler without `Dist.CLIENT` restriction
-
-**Code Changes Required:**
-
-1. **New file:** `DownedPlayerProtectionHandler.java`
-   ```java
-   @Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE)
-   public class DownedPlayerProtectionHandler {
-       @SubscribeEvent(priority = EventPriority.HIGHEST)
-       public static void onLivingAttack(LivingAttackEvent event) {
-           if (event.getEntity() instanceof Player player) {
-               if (DownedPlayersState.isPlayerDowned(player)) {
-                   event.setCanceled(true);
-                   // Optional: Play "invulnerable" sound
-               }
-           }
-       }
-   }
-   ```
-
-2. **Alternative approach:** Use `LivingHurtEvent` instead
-   - Fired later in damage pipeline
-   - Allows damage calculation but prevents actual hurt
-   - Choice depends on desired feedback (knockback vs no reaction)
-
-**Edge Cases to Handle:**
-- Void damage (allow fall death to prevent softlock)
-- /kill command (bypass protection for admin intervention)
-- Environmental damage during revival (fire, lava)
-
-**Sources:**
-- [LivingAttackEvent JavaDocs](https://skmedix.github.io/ForgeJavaDocs/javadoc/forge/1.9.4-12.17.0.2051/net/minecraftforge/event/entity/living/LivingAttackEvent.html)
-- [LivingHurtEvent code examples](https://www.tabnine.com/code/java/classes/net.minecraftforge.event.entity.living.LivingHurtEvent)
-- [Event cancellation patterns](https://gist.github.com/Bricktricker/9ecec23188a2fcd0e54e817be8ce8d8d)
-
----
-
-### 3. Dread Texture Replacement
-
-**Implementation Location:** `assets/dread/textures/entity/` (resource files only)
-
-**Architecture Pattern:**
-```
-GeckoLib texture system:
-DreadEntityModel.getTextureResource()
-├─ Already returns ResourceLocation based on form variant
-├─ Points to texture files in assets/
-└─ NO CODE CHANGES NEEDED for file replacement
-
-File replacement:
-assets/dread/textures/entity/
-├─ dread_base.png → Replace with new texture
-├─ dread_variant2.png → Replace with new texture
-└─ dread_variant3.png → Replace with new texture
-```
-
-**Integration Details:**
-
-- **Existing system:** `DreadEntityModel.getTextureResource()` already selects textures by form
-- **No code modifications:** Texture paths are hardcoded ResourceLocations
-- **Drop-in replacement:** New PNG files with same names override placeholders
-- **Variant support:** Multiple forms already supported in existing architecture
-
-**Process:**
-
-1. Export new textures from Blockbench/art tool
-2. Ensure same dimensions as current textures (GeckoLib doesn't require power-of-2)
-3. Replace files in `assets/dread/textures/entity/`
-4. Test in-game to verify all form variants display correctly
-
-**Advanced: Runtime Texture Swapping (Optional Enhancement):**
-
-If future features need dynamic texture changes beyond form variants:
-
+**Key methods:**
 ```java
-// In DreadEntityModel.java
+// ICameraModifier-style interface
+void enableCinematic()           // Activates camera override
+void setCameraPath(Timeline)     // Defines position/rotation over time
+void update(float partialTick)   // Called each frame during cinematic
+void disableCinematic()          // Restores player camera
+
+// Integration with existing CameraMixin
+int getPriority()                // Higher than shake (order 950)
+boolean isActive()               // During DeathCinematicClientHandler window
+```
+
+**Data flow:**
+```
+DeathCinematicClientHandler.start()
+  → CinematicCameraController.enableCinematic()
+  → Sets camera path timeline (4.5s sequence)
+
+Each render frame:
+  GameRenderer.render()
+    → CameraMixin.apply() [existing shake, order 900]
+    → CinematicCameraController.apply() [new override, order 950]
+    → Final camera state written to Camera.setPosition/setRotation()
+```
+
+**Integration points:**
+- **Mixin target:** `net.minecraft.client.render.Camera` (same as CameraMixin)
+- **Injection point:** `@Inject(method = "update", at = @At("TAIL"))`
+- **Priority handling:** Apply after existing shake via higher order value
+- **State storage:** Store active cinematic in `ClientTickEvents.END_CLIENT_TICK` handler
+
+**Timeline coordination:**
+```java
+// In DeathCinematicClientHandler
+private static final Timeline DEATH_CAMERA_PATH = Timeline.builder()
+    .keyframe(0.0f, CameraKeyframe.at(player).lookingAt(dread))
+    .keyframe(1.5f, CameraKeyframe.circling(dread, radius=3, height=1.5))
+    .keyframe(3.0f, CameraKeyframe.closeup(dread.face))
+    .keyframe(4.5f, CameraKeyframe.fadeToBlack())
+    .build();
+```
+
+**Sources:**
+- [Free Camera API architecture](https://deepwiki.com/AnECanSaiTin/Free-camera-API) (MEDIUM confidence - mod analysis)
+- [Fabric Mixin injection patterns](https://wiki.fabricmc.net/tutorial:mixin_injects) (HIGH confidence - official docs)
+
+---
+
+### 2. Animated Texture System
+
+**New component: `DreadTextureAnimator`**
+
+**Purpose:** Animate Dread's texture during kill sequence (glitch effect, form transition).
+
+**Architecture pattern:** GeckoLib 5 render-state-driven texture selection
+- Cannot swap textures at render time (1.21+ thread separation)
+- Must pre-compute texture during `extractRenderState()` phase
+- Use `GeoRenderLayer` for overlay effects
+
+**Critical constraint:** GeckoLib 5 architectural change
+> "At the time of rendering an object, the object did not exist. This means texture selection can no longer depend on live entity state during rendering."
+
+**Implementation approaches:**
+
+**Option A: Texture atlas with UV animation** (Recommended for glitch effects)
+```java
+// DreadEntity.java - add render data during state extraction
 @Override
-public ResourceLocation getTextureResource(DreadEntity entity) {
-    // Now receives renderer parameter in GeckoLib 4.7.3+
-    if (entity.isEnraged()) {
-        return ENRAGED_TEXTURE;
-    } else if (entity.getFormVariant() == 2) {
-        return VARIANT2_TEXTURE;
-    }
-    return BASE_TEXTURE;
+public void extractRenderData(DreadRenderState renderState) {
+    super.extractRenderData(renderState);
+
+    // Pre-compute UV offset based on cinematic progress
+    float progress = DeathCinematicClientHandler.getProgress(); // 0.0 to 1.0
+    renderState.putData(UV_OFFSET_TICKET, calculateGlitchOffset(progress));
 }
+
+// In custom shader or GeoRenderLayer
+// Apply UV offset to create scrolling/glitch effect
 ```
 
-**Sources:**
-- [GeckoLib texture variants discussion](https://mcreator.net/forum/95047/texture-variants-geckolib-entity)
-- [GeckoLib 4.7.3 changelog - getTextureResource receives renderer](https://modrinth.com/mod/geckolib/version/4.7.3)
-- [GeckoLib animated textures wiki](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib4))
-
----
-
-### 4. Intense Cinematic Enhancement
-
-**Implementation Location:** `DeathCinematicClientHandler.java` (modify)
-
-**Architecture Pattern:**
-```
-Existing system:
-DeathCinematicClientHandler
-├─ 90-tick timer (4.5 seconds)
-├─ Minecraft.getInstance().setCameraEntity(dreadEntity)
-└─ Resets camera after timer expires
-
-Enhanced system:
-DeathCinematicClientHandler (extended)
-├─ Longer timer (120-180 ticks = 6-9 seconds)
-├─ Camera effects (shake, lerp, zoom)
-├─ Post-processing shader intensification
-└─ Coordinate with Dread animation triggers
-```
-
-**Code Changes Required:**
-
-1. **Modify:** `DeathCinematicClientHandler.java`
-   - Increase `CINEMATIC_DURATION` from 90 to 120-180 ticks
-   - Add camera manipulation during cinematic:
-     ```java
-     @SubscribeEvent
-     public static void onClientTick(TickEvent.ClientTickEvent event) {
-         if (cinematicTicks > 0) {
-             cinematicTicks--;
-
-             // NEW: Camera effects
-             if (cinematicTicks > 100) {
-                 // Zoom phase
-                 applyFOVTransition(90f, 60f); // Zoom in
-             } else if (cinematicTicks > 80) {
-                 // Shake phase
-                 applyCameraShake(0.05f);
-             }
-
-             // Existing: Camera entity positioning
-             Minecraft.getInstance().setCameraEntity(dreadEntity);
-
-             // Reset at end (existing logic)
-             if (cinematicTicks == 0) {
-                 Minecraft.getInstance().setCameraEntity(player);
-             }
-         }
-     }
-     ```
-
-2. **New helper methods:**
-   - `applyFOVTransition(float from, float to)` - Smooth FOV changes
-   - `applyCameraShake(float intensity)` - Small random offsets
-   - Consider using RenderTickEvent for smoother transitions (60+ FPS vs 20 TPS)
-
-3. **Coordinate with DownedStateClientHandler:**
-   - Intensify blur/vignette during cinematic
-   - Gradual fade-in rather than instant application
-
-**Camera Manipulation Techniques:**
-
-- **FOV changes:** Modify `GameRenderer.fov` during RenderTickEvent
-- **Position offsets:** Small `camera.setPos()` adjustments for shake
-- **Third-person distance:** Modify camera distance attribute for pull-back effect
-
-**Limitations:**
-- Client-side only (cosmetic, no gameplay impact)
-- Must handle edge cases (player quits during cinematic, server disconnect)
-- Smooth camera mods may interfere (test compatibility)
-
-**Sources:**
-- [CMDCam smooth camera transitions](https://www.curseforge.com/minecraft/mc-mods/cmdcam)
-- [CameraLerp mod - smooth FOV](https://www.9minecraft.net/cameralerp-mod/)
-- [Bedrock Edition camera command (reference)](https://minecraft.wiki/w/Commands/camera)
-
----
-
-### 5. Real Audio Replacement
-
-**Implementation Location:** `assets/dread/sounds/` (resource files only)
-
-**Architecture Pattern:**
-```
-Forge sound system:
-ModSounds.java (existing)
-├─ Registers SoundEvents
-└─ References sounds.json entries
-
-assets/dread/sounds.json
-├─ Maps sound event IDs to file paths
-└─ Points to OGG files in assets/dread/sounds/
-
-File replacement:
-assets/dread/sounds/
-├─ Replace placeholder OGG files
-└─ NO CODE CHANGES NEEDED
-```
-
-**Integration Details:**
-
-- **Zero code changes required** - sound file paths are in sounds.json
-- **Format requirement:** Ogg Vorbis (.ogg) only
-- **Mono vs Stereo:**
-  - **Mono** (1 channel): Required for positional audio with distance attenuation
-  - **Stereo** (2 channels): Always plays at player's head (no distance falloff)
-- **Streaming:** For long audio (music, ambient), set `"stream": true` in sounds.json
-
-**Process:**
-
-1. **Export audio as Ogg Vorbis:**
-   - Use Audacity: File → Export → Export as OGG
-   - Use ffmpeg: `ffmpeg -i input.mp3 -c:a libvorbis output.ogg`
-   - Ensure mono channel for positional sounds (Dread growl, jumpscare)
-
-2. **Replace files:**
-   ```
-   assets/dread/sounds/
-   ├─ dread_ambient.ogg → Replace
-   ├─ dread_jumpscare.ogg → Replace
-   ├─ dread_growl.ogg → Replace
-   └─ [any other registered sounds]
-   ```
-
-3. **Verify sounds.json references:**
-   ```json
-   {
-     "dread_jumpscare": {
-       "subtitle": "dread.subtitle.jumpscare",
-       "sounds": [ "dread:dread_jumpscare" ]
-     }
-   }
-   ```
-   - `"dread:dread_jumpscare"` resolves to `assets/dread/sounds/dread_jumpscare.ogg`
-
-4. **Test in-game:** Trigger sound events to verify playback
-
-**Advanced Configuration (Optional):**
-
-- **Volume/pitch variation:**
-  ```json
-  "sounds": [
-    {
-      "name": "dread:dread_jumpscare",
-      "volume": 1.0,
-      "pitch": 1.0
-    }
-  ]
-  ```
-- **Multiple variants:** Array of sound files for random selection
-- **Attenuation distance:** Controlled by SoundEvent type (not in sounds.json)
-
-**Sources:**
-- [Forge sounds documentation](https://docs.minecraftforge.net/en/latest/gameeffects/sounds/)
-- [Forge Community Wiki - Sounds](https://forge.gemwire.uk/wiki/Sounds)
-- [Ogg Vorbis format requirement](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/modification-development/2735552-is-it-possible-to-use-sound-files-aside-from-ogg)
-
----
-
-## Component Modification Summary
-
-| Component | Modification Type | Changes Required |
-|-----------|------------------|------------------|
-| **DownedStateClientHandler.java** | MODIFY | Add RenderPlayerEvent handler for crawl pose rendering |
-| **DeathCinematicClientHandler.java** | EXTEND | Add camera effects, increase timer duration |
-| **DownedPoseHandler.java** | NEW | Server-side pose management for downed players |
-| **DownedPlayerProtectionHandler.java** | NEW | Event handler to cancel attacks on downed players |
-| **assets/dread/textures/entity/*.png** | REPLACE | Drop-in texture replacements (no code changes) |
-| **assets/dread/sounds/*.ogg** | REPLACE | Drop-in audio replacements (no code changes) |
-
-**Files NOT Modified:**
-- `DreadEntity.java` - No changes (existing AI/behavior sufficient)
-- `DreadEntityModel.java` - No changes (texture system already supports variants)
-- `DreadEntityRenderer.java` - No changes (rendering layer already correct)
-- `DeathCinematicController.java` - No changes (server logic unchanged)
-- `DownedPlayersState.java` - No changes (state management sufficient)
-- `RevivalInteractionHandler.java` - No changes (revival mechanics unchanged)
-- `ModSounds.java` - No changes (sound events already registered)
-
----
-
-## Data Flow Diagrams
-
-### Crawl Pose Flow
-```
-Server Tick
-    ↓
-DownedPoseHandler checks DownedPlayersState
-    ↓
-player.setPose(Pose.SWIMMING)
-    ↓
-SynchedEntityData auto-syncs to client
-    ↓
-Client renders player in crawl pose
-    ↓
-DownedStateClientHandler.RenderPlayerEvent adjusts rotation
-```
-
-### Attack Prevention Flow
-```
-Entity takes damage
-    ↓
-LivingAttackEvent fired (Forge event bus)
-    ↓
-DownedPlayerProtectionHandler checks victim
-    ↓
-Is victim downed? → Query DownedPlayersState
-    ↓
-YES: event.setCanceled(true) → No damage
-NO: Event proceeds → Normal damage
-```
-
-### Cinematic Enhancement Flow
-```
-Player dies to Dread
-    ↓
-DeathCinematicController (server) teleports Dread
-    ↓
-Network packet → Client
-    ↓
-DeathCinematicClientHandler starts timer (120 ticks)
-    ↓
-Every tick:
-    - Set camera to Dread entity
-    - Apply FOV/shake effects
-    - Intensify blur/vignette
-    ↓
-Timer expires → Reset camera to player
-```
-
-### Texture/Audio Flow
-```
-Resource pack load
-    ↓
-GeckoLib reads assets/dread/textures/entity/*.png
-    ↓
-DreadEntityModel.getTextureResource() returns ResourceLocation
-    ↓
-Renderer applies texture to model
-
-Sound event triggered
-    ↓
-Forge reads assets/dread/sounds.json
-    ↓
-Resolves to assets/dread/sounds/*.ogg
-    ↓
-OpenAL plays audio (mono = positional, stereo = centered)
-```
-
----
-
-## Event Registration Architecture
-
-### Existing Event Registration (Assume Already Present)
+**Option B: Form variant switching** (For discrete texture changes)
 ```java
-// Likely in mod main class or dedicated event registrar
-MinecraftForge.EVENT_BUS.register(DeathCinematicController.class);
-MinecraftForge.EVENT_BUS.register(RevivalInteractionHandler.class);
-// etc.
+// Existing DreadEntity already has 3 form variants
+// Use GeckoLib's getTextureResource with render context
+
+@Override
+public ResourceLocation getTextureResource(DreadEntity entity,
+                                           @Nullable DreadRenderer renderer) {
+    if (DeathCinematicClientHandler.isActive()) {
+        float progress = DeathCinematicClientHandler.getProgress();
+        if (progress < 0.3f) return DREAD_FORM_1;
+        if (progress < 0.7f) return DREAD_FORM_2;
+        return DREAD_FORM_3;
+    }
+    return entity.getCurrentFormTexture();
+}
 ```
 
-### New Event Registrations Required
-
-**Client-Side Only:**
+**Option C: Custom GeoRenderLayer** (For overlay effects like blood drip)
 ```java
-@Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE, value = Dist.CLIENT)
-public class DownedStateClientHandler {
-    // Existing blur/vignette handling
+public class DreadBloodLayer extends GeoRenderLayer<DreadEntity> {
+    @Override
+    public void render(PoseStack poseStack, DreadEntity entity,
+                       BakedGeoModel bakedModel, RenderType renderType,
+                       MultiBufferSource bufferSource, VertexConsumer buffer,
+                       float partialTick, int packedLight, int packedOverlay) {
 
-    @SubscribeEvent
-    public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
-        // NEW: Crawl pose rendering adjustments
-    }
-
-    @SubscribeEvent
-    public static void onRenderTick(TickEvent.RenderTickEvent event) {
-        // NEW: Cinematic camera effects
+        float progress = DeathCinematicClientHandler.getProgress();
+        if (progress > 0.5f) {
+            // Render blood drip texture overlay
+            float alpha = (progress - 0.5f) * 2.0f; // Fade in
+            // Render semi-transparent blood texture
+        }
     }
 }
 ```
 
-**Server-Side Only:**
+**Timing synchronization:**
+- **Single source of truth:** `DeathCinematicClientHandler.getProgress()`
+- **Access pattern:** All render-time code queries static progress value
+- **Update cadence:** Updated in `ClientTickEvents.END_CLIENT_TICK`
+
+**Integration with GeckoLib animations:**
 ```java
-@Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE)
-public class DownedPoseHandler {
-    @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        // Manage downed player poses
-    }
-}
+// Coordinate texture changes with bone animations
+@Override
+public void setCustomAnimations(DreadEntity entity, long instanceId,
+                                AnimationState<DreadEntity> state) {
+    super.setCustomAnimations(entity, instanceId, state);
 
-@Mod.EventBusSubscriber(modid = "dread", bus = Bus.FORGE)
-public class DownedPlayerProtectionHandler {
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLivingAttack(LivingAttackEvent event) {
-        // Cancel attacks on downed players
+    float progress = DeathCinematicClientHandler.getProgress();
+    if (progress > 0.0f) {
+        // Trigger kill animation in Blockbench
+        triggerAnimation("kill_sequence");
+
+        // Sync texture transitions with animation keyframes
+        // E.g., switch texture at frame 30 (1.5s into 4.5s sequence)
     }
 }
 ```
-
-**Why Dist.CLIENT Matters:**
-- Client-only events (RenderPlayerEvent, RenderTickEvent) crash dedicated servers if registered
-- Server-only logic (pose management, attack prevention) wastes resources on client
-- `@Mod.EventBusSubscriber(value = Dist.CLIENT)` ensures class only loads on physical client
 
 **Sources:**
-- [Forge events documentation](https://docs.minecraftforge.net/en/latest/concepts/events/)
-- [Client-side event registration](https://forums.minecraftforge.net/topic/104094-1171-registering-client-sided-event-handler/)
-- [EventBusSubscriber with Dist](https://forge.gemwire.uk/wiki/Events)
+- [GeckoLib 5 render thread separation](https://github.com/bernie-g/geckolib/wiki/Geckolib-5-Changes) (HIGH confidence - official wiki)
+- [GeckoLib 4 animated textures](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib4)) (HIGH confidence - official wiki)
 
 ---
 
-## Build Order & Dependencies
+### 3. Environmental Effects System
 
-### Phase 1: Audio/Texture Replacement (No Code)
-**Why first:** Zero code changes, immediate visual/audio upgrade
+**New components: `ProximityEffectManager` + `EnvironmentalEffectTriggers`**
 
-1. Replace texture PNGs in `assets/dread/textures/entity/`
-2. Replace OGG files in `assets/dread/sounds/`
-3. Test in-game to verify resources load correctly
-4. **Deliverable:** Dread looks and sounds final
+**Purpose:** Trigger door/light effects when Dread approaches, blood trail when crawling.
 
-**Dependencies:** None (resource-only)
+**Architecture pattern:** Event-driven effect triggers with client-side evaluation
 
----
+#### 3A. Proximity-Based Effects (Dread approaches)
 
-### Phase 2: Attack Prevention (Simple Event Handler)
-**Why second:** Simplest code change, critical gameplay protection
+**Trigger mechanism:** Client-side distance calculation in tick event
+```java
+public class ProximityEffectManager {
+    private static final double DOOR_SLAM_RADIUS = 8.0;
+    private static final double LIGHT_FLICKER_RADIUS = 12.0;
 
-1. Create `DownedPlayerProtectionHandler.java`
-2. Implement `LivingAttackEvent` handler with cancellation logic
-3. Register event subscriber (add `@Mod.EventBusSubscriber`)
-4. Test: Verify downed players cannot be damaged
-5. **Deliverable:** Downed players are invulnerable
+    public static void tick(ClientLevel level) {
+        // Find nearest Dread entity
+        DreadEntity dread = findNearestDread(level);
+        if (dread == null) return;
 
-**Dependencies:**
-- Existing `DownedPlayersState` (already present)
-- Forge event bus (core Forge)
+        // Evaluate proximity triggers
+        for (BlockPos doorPos : nearbyDoors) {
+            double distance = dread.distanceToSqr(doorPos);
+            if (distance < DOOR_SLAM_RADIUS * DOOR_SLAM_RADIUS) {
+                triggerDoorSlam(doorPos);
+            }
+        }
 
----
-
-### Phase 3: Crawl Pose (Moderate Complexity)
-**Why third:** Requires both server and client changes
-
-1. Create `DownedPoseHandler.java` (server-side)
-   - Implement `TickEvent.ServerTickEvent` handler
-   - Query `DownedPlayersState` and apply `setPose(Pose.SWIMMING)`
-
-2. Modify `DownedStateClientHandler.java` (client-side)
-   - Add `RenderPlayerEvent.Pre` handler
-   - Adjust camera/model rotation for crawl pose
-
-3. Test: Verify downed players render in crawl pose
-4. **Deliverable:** Downed players visually crawl on ground
-
-**Dependencies:**
-- Forge entity pose system (vanilla Minecraft)
-- `SynchedEntityData` auto-sync (Forge)
-- Existing `DownedStateClientHandler` visual effects
-
----
-
-### Phase 4: Cinematic Enhancement (Complex, Camera Manipulation)
-**Why fourth:** Most complex, requires careful testing
-
-1. Modify `DeathCinematicClientHandler.java`
-   - Increase `CINEMATIC_DURATION` constant
-   - Add camera shake logic in tick handler
-   - Add FOV transition logic
-   - Intensify blur/vignette during cinematic
-
-2. Add helper methods:
-   - `applyFOVTransition(float from, float to)`
-   - `applyCameraShake(float intensity)`
-
-3. Test: Verify smooth camera effects without motion sickness
-4. Iterate on timing/intensity based on playtesting
-5. **Deliverable:** Cinematic death sequence is intense and polished
-
-**Dependencies:**
-- Existing `DeathCinematicClientHandler` timer system
-- `DownedStateClientHandler` blur/vignette effects
-- Client-side camera manipulation APIs
-
----
-
-### Dependency Graph
-```
-Audio/Texture Replacement (Phase 1)
-    ↓
-    [Independent, no code dependencies]
-
-Attack Prevention (Phase 2)
-    ↓
-    Depends on: DownedPlayersState (existing)
-
-Crawl Pose (Phase 3)
-    ↓
-    Depends on: DownedPlayersState (existing)
-    Builds on: DownedStateClientHandler (existing)
-
-Cinematic Enhancement (Phase 4)
-    ↓
-    Depends on: DeathCinematicClientHandler (existing)
-    Enhances: DownedStateClientHandler effects (existing)
-    Can reference: Crawl pose rendering (Phase 3)
+        for (BlockPos lightPos : nearbyLights) {
+            double distance = dread.distanceToSqr(lightPos);
+            if (distance < LIGHT_FLICKER_RADIUS * LIGHT_FLICKER_RADIUS) {
+                triggerLightFlicker(lightPos);
+            }
+        }
+    }
+}
 ```
 
-**No circular dependencies.** Each phase can be tested independently before proceeding to the next.
+**Registration:**
+```java
+// In mod initializer
+ClientTickEvents.END_CLIENT_TICK.register(client -> {
+    if (client.level != null) {
+        ProximityEffectManager.tick(client.level);
+    }
+});
+```
+
+**Effect implementations:**
+
+**Door slam:**
+```java
+private void triggerDoorSlam(BlockPos pos) {
+    BlockState state = level.getBlockState(pos);
+    if (state.getBlock() instanceof DoorBlock && state.getValue(DoorBlock.OPEN)) {
+        // Play slam sound
+        level.playLocalSound(pos, SoundEvents.DOOR_SLAM, ...);
+
+        // Send packet to server to close door
+        NetworkHandler.sendDoorClosePacket(pos);
+
+        // Client-side prediction: close immediately
+        level.setBlock(pos, state.setValue(DoorBlock.OPEN, false), 3);
+    }
+}
+```
+
+**Light flicker:**
+```java
+private void triggerLightFlicker(BlockPos pos) {
+    // Existing BlockEntityMixin can extinguish torches
+    // For other lights, use client-side particle effects
+
+    BlockEntity be = level.getBlockEntity(pos);
+    if (be instanceof LightBlockEntity) {
+        // Trigger flicker animation
+        // Could use random light level reduction + particle sparks
+        spawnFlickerParticles(pos);
+    }
+}
+```
+
+#### 3B. Event-Based Effects (Player crawling)
+
+**Trigger mechanism:** Respond to player state change events
+```java
+public class CrawlBloodTrailEffect {
+    private static final int PARTICLE_SPAWN_INTERVAL = 5; // Every 5 ticks
+    private static int tickCounter = 0;
+
+    public static void tick(LocalPlayer player) {
+        if (!DownedStateClientHandler.isPlayerDowned()) return;
+
+        tickCounter++;
+        if (tickCounter >= PARTICLE_SPAWN_INTERVAL) {
+            tickCounter = 0;
+            spawnBloodTrailParticle(player.position());
+        }
+    }
+
+    private static void spawnBloodTrailParticle(Vec3 pos) {
+        // Use Minecraft's particle system
+        Minecraft.getInstance().level.addParticle(
+            ParticleTypes.DRIPPING_DRIPSTONE_LAVA, // Or custom particle
+            pos.x, pos.y, pos.z,
+            0, -0.01, 0 // Velocity (downward drift)
+        );
+    }
+}
+```
+
+**Integration with DownedStateClientHandler:**
+```java
+// Add to existing DownedStateClientHandler
+public static void onDownedStateStart() {
+    // Existing blood vignette code
+    ...
+
+    // NEW: Register blood trail ticker
+    ClientTickEvents.END_CLIENT_TICK.register(CrawlBloodTrailEffect::tick);
+}
+
+public static void onDownedStateEnd() {
+    // Unregister to prevent memory leak
+    ClientTickEvents.END_CLIENT_TICK.unregister(CrawlBloodTrailEffect::tick);
+}
+```
+
+**Particle spawning architecture:**
+- **Client-only:** Blood trail particles are purely visual
+- **No networking:** Server doesn't need to know about particle positions
+- **Performance:** Limit spawn rate (every 5 ticks = 4 particles/sec)
+
+**Sources:**
+- [Fabric ClientTickEvents](https://docs.fabricmc.net/develop/events) (HIGH confidence - official docs)
+- [Minecraft particle system](https://minecraft.wiki/w/Particles_(Java_Edition)) (HIGH confidence - official wiki)
+- [Fabric block entities](https://docs.fabricmc.net/develop/blocks/block-entities) (HIGH confidence - official docs)
 
 ---
 
-## Architecture Patterns & Anti-Patterns
+## Integration Pattern: Complete Death Sequence
 
-### Pattern 1: Event-Driven State Changes
-**What:** Use Forge event bus for all state changes (pose, protection, cinematic)
-**Why:** Decouples features from core entity logic, allows easy enable/disable via config
-**Example:** `DownedPlayerProtectionHandler` cancels damage via `LivingAttackEvent` rather than modifying `DreadEntity` attack code
+**Orchestrator: `DeathCinematicClientHandler` (existing, modified)**
 
-### Pattern 2: Client-Server Separation
-**What:** Server manages authoritative state, client handles rendering/effects
-**Why:** Prevents cheating, reduces network traffic, follows Minecraft's architecture
-**Example:** Server sets `Pose.SWIMMING`, `SynchedEntityData` syncs automatically, client renders
+```java
+public class DeathCinematicClientHandler {
+    private static final float DURATION = 4.5f; // seconds
+    private static long startTime = 0;
+    private static boolean active = false;
 
-### Pattern 3: Resource-Driven Content
-**What:** Textures/audio as drop-in replacements, not hardcoded in Java
-**Why:** Enables resource packs, easier iteration, no recompilation for art changes
-**Example:** Replace `dread_base.png` file, no code changes needed
+    public static void start() {
+        active = true;
+        startTime = System.currentTimeMillis();
 
-### Anti-Pattern 1: Mixing Rendering and Logic
-**What:** DON'T put game logic in client-side event handlers
-**Why:** Client can be modified (cheating), server won't see changes, desync issues
-**Example:** ❌ Don't check if player is downed in `RenderPlayerEvent` and apply effects from there
-**Instead:** ✅ Server sets pose via `DownedPoseHandler`, client renders existing pose
+        // NEW v2.0 integrations
+        CinematicCameraController.enableCinematic();
+        DreadTextureAnimator.startKillSequence();
 
-### Anti-Pattern 2: Hardcoded Resource Paths
-**What:** DON'T build file paths with string concatenation in code
-**Why:** Breaks resource pack overrides, difficult to maintain
-**Example:** ❌ `new ResourceLocation("dread", "textures/entity/dread_" + variant + ".png")`
-**Instead:** ✅ Use constants: `private static final ResourceLocation VARIANT2_TEXTURE = new ResourceLocation("dread", "textures/entity/dread_variant2.png");`
+        // Existing functionality
+        // ... trigger GeckoLib kill animation
+        // ... start camera shake (via CameraMixin)
+    }
 
-### Anti-Pattern 3: Tick-Heavy Operations
-**What:** DON'T perform expensive calculations every tick (20 times/second)
-**Why:** Performance impact, especially on servers with many players
-**Example:** ❌ Iterating all players every tick to check downed state
-**Instead:** ✅ Event-driven: Only check player when `LivingAttackEvent` fires
+    public static float getProgress() {
+        if (!active) return 0.0f;
+        long elapsed = System.currentTimeMillis() - startTime;
+        return Math.min(1.0f, elapsed / (DURATION * 1000.0f));
+    }
 
----
+    public static void tick() {
+        if (!active) return;
 
-## Scalability Considerations
+        float progress = getProgress();
 
-### At 10 Players (Typical Server)
-- **Pose management:** Negligible overhead (only downed players, typically 0-1)
-- **Attack prevention:** Event-based, only fires on actual attacks
-- **Cinematic:** Client-side only, no server impact
-- **Textures/audio:** Loaded once at startup, no runtime cost
+        // Update all cinematic components
+        CinematicCameraController.update(progress);
+        DreadTextureAnimator.update(progress);
 
-**Performance:** Excellent
+        // End sequence
+        if (progress >= 1.0f) {
+            end();
+        }
+    }
 
-### At 100 Players (Large Server)
-- **Pose management:** Still negligible (max 100 checks per tick, only if all downed)
-- **Attack prevention:** Scales linearly with PvP frequency, typically low
-- **Cinematic:** Client-side, no server overhead
-- **Network traffic:** `setPose()` sync is minimal (1 byte per pose change)
+    private static void end() {
+        active = false;
 
-**Performance:** Good
-**Optimization:** Consider caching downed player list rather than querying map every tick
+        CinematicCameraController.disableCinematic();
+        DreadTextureAnimator.endKillSequence();
 
-### At 1000 Players (Massive Server)
-- **Pose management:** Potential bottleneck if many players downed simultaneously
-- **Mitigation:** Batch pose updates, use `WorldTickEvent` instead of `ServerTickEvent`
-- **Attack prevention:** Still event-driven, scales with actual attacks not player count
-- **Cinematic:** Client-side, unaffected by server population
+        // Transition to downed state (existing)
+        DownedStateClientHandler.activate();
+    }
+}
+```
 
-**Performance:** Acceptable with optimizations
-**Critical optimization:** Only iterate downed players (maintained list) rather than all players
+**Render pipeline integration:**
 
----
+```
+Frame N:
+  ┌─────────────────────────────────────────────────────┐
+  │ ClientTickEvents.END_CLIENT_TICK                    │
+  │   → DeathCinematicClientHandler.tick()              │
+  │   → ProximityEffectManager.tick()                   │
+  │   → CrawlBloodTrailEffect.tick()                    │
+  │   → Update progress: 0.0 → 1.0 over 4.5s            │
+  └─────────────────────────────────────────────────────┘
+                         ↓
+  ┌─────────────────────────────────────────────────────┐
+  │ GameRenderer.render()                               │
+  │   → Camera.update()                                 │
+  │      → CameraMixin.apply() [shake, order 900]       │
+  │      → CinematicCameraController.apply() [override] │
+  │                                                      │
+  │   → WorldRenderer.render()                          │
+  │      → DreadEntity.extractRenderState()             │
+  │         → Query DeathCinematicClientHandler.progress│
+  │         → Pre-compute texture/UV offset             │
+  │      → DreadRenderer.render()                       │
+  │         → GeoRenderLayers (blood overlay, etc.)     │
+  │                                                      │
+  │   → Particle rendering (blood trail from crawl)     │
+  └─────────────────────────────────────────────────────┘
+```
 
-## Testing Checkpoints
-
-### Crawl Pose Testing
-- [ ] Downed player renders in crawl pose (0.6 blocks tall)
-- [ ] Pose persists while downed, even after re-logging
-- [ ] Pose resets to standing on revival
-- [ ] Pose resets on respawn after death
-- [ ] Multiplayer: Other players see downed player crawling
-- [ ] Camera angle is appropriate (not clipping through ground)
-
-### Attack Prevention Testing
-- [ ] Downed player takes no damage from mobs
-- [ ] Downed player takes no damage from other players (PvP)
-- [ ] Downed player can still die to void damage (anti-softlock)
-- [ ] Admin /kill command bypasses protection (server management)
-- [ ] Damage sounds/particles don't play (clean feedback)
-- [ ] Protection ends immediately on revival
-
-### Cinematic Testing
-- [ ] Camera switches to Dread entity on death
-- [ ] Camera effects are smooth (no jarring jumps)
-- [ ] FOV transition feels cinematic (not nauseating)
-- [ ] Camera shake is subtle (not disorienting)
-- [ ] Timer duration feels appropriate (not too long/short)
-- [ ] Camera resets to player correctly after cinematic
-- [ ] Works in multiplayer (client-side only, no interference)
-- [ ] Handles edge case: Player quits during cinematic (no crash)
-
-### Texture/Audio Testing
-- [ ] All Dread texture variants display correctly
-- [ ] Textures have correct resolution (no stretching/blurring)
-- [ ] Animated texture frames play at correct speed (if applicable)
-- [ ] Sounds play at correct volume
-- [ ] Positional audio has correct attenuation (distance falloff)
-- [ ] Sounds don't overlap/cut off incorrectly
-- [ ] Subtitles display correctly (if configured)
+**Key synchronization mechanism:**
+- **Single source of truth:** `DeathCinematicClientHandler.getProgress()`
+- **Static access:** All components query progress, don't store local copies
+- **Tick-update-render pattern:** State updates in tick events, read in render
 
 ---
 
-## Confidence Assessment
+## Component Boundaries
 
-| Feature | Confidence | Reasoning |
-|---------|-----------|-----------|
-| **Crawl Pose** | HIGH | Standard Forge pose system, well-documented, many mods use SWIMMING pose for crawling |
-| **Attack Prevention** | HIGH | Event cancellation is core Forge pattern, extensively documented |
-| **Texture Replacement** | HIGH | GeckoLib texture system already supports variants, drop-in replacement confirmed |
-| **Audio Replacement** | HIGH | Forge sound system explicitly designed for OGG file replacement |
-| **Cinematic Enhancement** | MEDIUM | Camera manipulation is well-known, but smooth effects require iteration/playtesting |
-
-**Overall Project Confidence:** HIGH
-
-**Risks:**
-- **Cinematic camera effects:** May require tuning based on playtesting feedback (motion sickness concerns)
-- **Multiplayer edge cases:** Pose/cinematic behavior when players join mid-death sequence (low probability, mitigable)
-- **Mod compatibility:** Other mods that modify player rendering/pose may conflict (consider compatibility testing)
+| Component | Responsibility | Communicates With | Type |
+|-----------|---------------|-------------------|------|
+| **DeathCinematicClientHandler** | Orchestrates 4.5s sequence, owns progress timer | All cinematic components | Coordinator (existing, modified) |
+| **CinematicCameraController** | Overrides camera pos/rot based on timeline | Camera (via mixin), DeathCinematicClientHandler | NEW |
+| **DreadTextureAnimator** | Manages texture state during kill sequence | DreadEntity.extractRenderState(), GeoModel | NEW (optional - can use GeoModel directly) |
+| **ProximityEffectManager** | Detects Dread proximity, triggers effects | ClientTickEvents, door/light blocks | NEW |
+| **CrawlBloodTrailEffect** | Spawns particles during downed crawl | DownedStateClientHandler, particle system | NEW |
+| **CameraMixin** | Applies shake effect | Camera (existing, unmodified) | EXISTING |
+| **DreadEntity** | GeckoLib entity with animations | GeckoLib renderer, extractRenderState | EXISTING (modified for render state) |
+| **DownedStateClientHandler** | Blood vignette, crawl pose | CrawlBloodTrailEffect | EXISTING (modified to register blood trail) |
 
 ---
 
-## Open Questions & Future Considerations
+## Data Flow Patterns
 
-### Optional Enhancements (Post-v1.1)
-1. **Configurable cinematic duration:** Allow players to adjust timer length via config file
-2. **Sound variation:** Multiple OGG files for same event (random selection per trigger)
-3. **Texture animation:** GeckoLib supports animated textures (UV scrolling, frame-based)
-4. **Camera path system:** Bezier curve camera movement instead of static position
-5. **Revival UI improvement:** Integrate crawl pose with HUD display (show nearby teammates)
+### Pattern 1: Cinematic State Broadcasting
 
-### Compatibility Considerations
-- **PlayerAnimator mod:** May override pose system, test compatibility
-- **Smooth camera mods:** May interfere with cinematic effects, document known issues
-- **Resource packs:** Ensure texture/audio overrides work correctly with modpack distributions
+**Problem:** Multiple components need synchronized cinematic progress.
 
-### Performance Profiling Targets
-- Tick time impact of `DownedPoseHandler` (target: <0.01ms per tick)
-- Memory footprint of cinematic timer (target: <1KB per active cinematic)
-- Network bandwidth for pose synchronization (target: <10 bytes per pose change)
+**Solution:** Static progress getter, updated once per tick.
+
+```
+DeathCinematicClientHandler (tick update)
+            ↓
+  Static getProgress() method
+            ↓
+  ┌────────┴────────┬───────────────┬──────────────┐
+  ↓                 ↓               ↓              ↓
+CinematicCamera   DreadTexture   GeckoLib      Render
+Controller        Animator       Animations    Layers
+```
+
+**Rationale:** Avoids drift from separate timers, ensures frame-perfect sync.
+
+---
+
+### Pattern 2: Render-State Pre-Computation
+
+**Problem:** Cannot access entity during render thread (1.21+).
+
+**Solution:** Pre-compute all render data in `extractRenderState()`.
+
+```
+Game Thread (tick):
+  DreadEntity exists, can query state
+            ↓
+  extractRenderState(DreadRenderState state)
+    → state.putData(UV_OFFSET, ...)
+    → state.putData(TEXTURE_VARIANT, ...)
+    → state.putData(BLOOD_OVERLAY_ALPHA, ...)
+            ↓
+Render Thread (async):
+  DreadEntity reference invalid
+  DreadRenderState contains all needed data
+    → GeoModel.getTextureResource(renderState)
+    → GeoRenderLayer.render(renderState)
+```
+
+**Rationale:** GeckoLib 5 architecture requirement, prevents race conditions.
+
+---
+
+### Pattern 3: Client-Side Effect Evaluation
+
+**Problem:** Environmental effects need low latency, server doesn't care about visual-only effects.
+
+**Solution:** Client evaluates triggers, applies effects locally, syncs only state changes.
+
+```
+ClientTickEvents.END_CLIENT_TICK
+            ↓
+  ProximityEffectManager.tick()
+    → Calculates distance client-side
+    → If distance < threshold:
+        ├─ Play sound (client-only)
+        ├─ Spawn particles (client-only)
+        └─ Send packet to server (state change, e.g., close door)
+            ↓
+  Server receives packet
+    → Validates request
+    → Updates block state
+    → Broadcasts to other clients
+```
+
+**Rationale:** Visual effects have no server authority, reduce network traffic, improve responsiveness.
+
+---
+
+## Architecture Patterns to Follow
+
+### Pattern 1: Mixin Order Coordination
+
+**What:** Use explicit order values to control mixin application sequence.
+
+**When:** Multiple mixins target the same method (e.g., Camera.update).
+
+**Example:**
+```java
+@Mixin(value = Camera.class, priority = 900)
+public class CameraMixin {
+    // Existing shake effect
+}
+
+@Mixin(value = Camera.class, priority = 950)
+public class CinematicCameraControllerMixin {
+    // NEW: Cinematic override (applied after shake)
+}
+```
+
+**Rationale:** Higher priority mixins apply later, allowing override without conflict.
+
+---
+
+### Pattern 2: Render-State Data Tickets
+
+**What:** Use GeckoLib's DataTicket system to pass data from game thread to render thread.
+
+**When:** Render decisions depend on entity state unavailable during rendering.
+
+**Example:**
+```java
+public class DreadEntity {
+    public static final DataTicket<Float> CINEMATIC_PROGRESS =
+        new DataTicket<>("cinematic_progress", 0.0f);
+
+    @Override
+    public void extractRenderData(DreadRenderState renderState) {
+        float progress = DeathCinematicClientHandler.getProgress();
+        renderState.putData(CINEMATIC_PROGRESS, progress);
+    }
+}
+
+public class DreadRenderer {
+    @Override
+    public void render(...) {
+        float progress = renderState.getData(DreadEntity.CINEMATIC_PROGRESS);
+        // Use progress for render decisions
+    }
+}
+```
+
+**Rationale:** Thread-safe data passing, GeckoLib 5 best practice.
+
+---
+
+### Pattern 3: Event-Driven Effect Triggers
+
+**What:** Use Fabric event system instead of polling or custom tick loops.
+
+**When:** Triggering effects based on game state changes.
+
+**Example:**
+```java
+// Registration
+ClientTickEvents.END_CLIENT_TICK.register(ProximityEffectManager::tick);
+
+// Unregister when no longer needed to prevent memory leaks
+ClientTickEvents.END_CLIENT_TICK.unregister(ProximityEffectManager::tick);
+```
+
+**Rationale:** Integrates with Fabric lifecycle, avoids manual tick management, better mod compatibility.
+
+---
+
+### Pattern 4: Timeline-Based Keyframes
+
+**What:** Define camera paths and animation timing as declarative timelines.
+
+**When:** Complex sequences with multiple waypoints.
+
+**Example:**
+```java
+Timeline DEATH_SEQUENCE = Timeline.builder()
+    .keyframe(0.0f, CameraKeyframe.at(player).lookingAt(dread))
+    .keyframe(1.5f, CameraKeyframe.circling(dread, 3, 1.5))
+    .keyframe(3.0f, CameraKeyframe.closeup(dread.face))
+    .keyframe(4.5f, CameraKeyframe.fadeToBlack())
+    .interpolation(InterpolationType.SMOOTH)
+    .build();
+
+// Evaluate at render time
+CameraKeyframe frame = DEATH_SEQUENCE.evaluate(progress);
+camera.setPosition(frame.position);
+camera.setRotation(frame.rotation);
+```
+
+**Rationale:** Easier to author/edit sequences, separates timing from logic, supports interpolation.
+
+---
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Direct Entity Manipulation During Rendering
+
+**What goes wrong:** Accessing entity fields directly in render methods.
+
+**Why it happens:** Works in pre-1.21 versions, breaks with render thread separation.
+
+**Consequences:** NullPointerException, race conditions, crashes.
+
+**Prevention:**
+```java
+// BAD (1.21+)
+@Override
+public void render(DreadEntity entity, ...) {
+    float health = entity.getHealth(); // Entity may not exist on render thread!
+}
+
+// GOOD
+@Override
+public void extractRenderState(DreadRenderState state) {
+    state.putData(HEALTH_TICKET, this.getHealth());
+}
+
+@Override
+public void render(DreadRenderState state, ...) {
+    float health = state.getData(HEALTH_TICKET);
+}
+```
+
+---
+
+### Anti-Pattern 2: Separate Cinematic Timers
+
+**What goes wrong:** Each component maintains its own cinematic timer.
+
+**Why it happens:** Seems simpler than coordinating a shared timer.
+
+**Consequences:** Components drift out of sync, texture changes don't match camera movements.
+
+**Prevention:**
+```java
+// BAD
+class CinematicCamera {
+    private long myStartTime;
+    private float getProgress() { return ...; } // Separate timer!
+}
+
+class DreadTextureAnimator {
+    private long myStartTime;
+    private float getProgress() { return ...; } // Another separate timer!
+}
+
+// GOOD
+class DeathCinematicClientHandler {
+    private static long startTime;
+    public static float getProgress() { return ...; } // Single source of truth
+}
+
+// All components query DeathCinematicClientHandler.getProgress()
+```
+
+---
+
+### Anti-Pattern 3: Networking Visual-Only Effects
+
+**What goes wrong:** Sending packets to server for client-side-only particles/sounds.
+
+**Why it happens:** Habit from server-authoritative game logic.
+
+**Consequences:** Unnecessary network traffic, server load, lag.
+
+**Prevention:**
+```java
+// BAD
+void spawnBloodParticle() {
+    NetworkHandler.sendToServer(new SpawnBloodParticlePacket(pos));
+    // Server has to broadcast to all clients, then clients render
+}
+
+// GOOD
+void spawnBloodParticle() {
+    Minecraft.getInstance().level.addParticle(ParticleTypes.BLOOD, pos, ...);
+    // Client spawns directly, no network round-trip
+}
+```
+
+---
+
+### Anti-Pattern 4: Mixin Conflicts with Same Priority
+
+**What goes wrong:** Multiple mixins target same method with default priority.
+
+**Why it happens:** Not specifying explicit priority values.
+
+**Consequences:** Unpredictable application order, different behavior depending on mod load order.
+
+**Prevention:**
+```java
+// BAD
+@Mixin(Camera.class) // Default priority (1000)
+public class CameraMixin { ... }
+
+@Mixin(Camera.class) // Also default priority (1000) - conflict!
+public class CinematicCameraMixin { ... }
+
+// GOOD
+@Mixin(value = Camera.class, priority = 900)
+public class CameraMixin { ... }
+
+@Mixin(value = Camera.class, priority = 950)
+public class CinematicCameraMixin { ... }
+```
+
+---
+
+## Build Order Recommendations
+
+**Phase structure based on dependencies:**
+
+### Phase 1: Cinematic Camera Control (Foundation)
+**Why first:** Camera override is the most complex component, all other features are visible through the camera.
+
+**Components:**
+- `CinematicCameraController` with basic position/rotation override
+- Mixin integration with existing `CameraMixin`
+- Timeline keyframe system
+- Integration with `DeathCinematicClientHandler`
+
+**Validation:** Camera follows predefined path during death sequence, shake still works.
+
+**Estimated complexity:** HIGH (mixin coordination, render-time injection)
+
+---
+
+### Phase 2: Animated Textures (Visual Polish)
+**Why second:** Depends on camera being positioned correctly to see effects, requires GeckoLib render state understanding.
+
+**Components:**
+- Texture variant switching in `DreadEntity.getTextureResource()`
+- OR UV offset animation for glitch effect
+- OR `GeoRenderLayer` for blood overlay
+- Synchronization with `DeathCinematicClientHandler.getProgress()`
+
+**Validation:** Dread texture changes during kill sequence, timing matches camera keyframes.
+
+**Estimated complexity:** MEDIUM (GeckoLib 5 render state, timing sync)
+
+---
+
+### Phase 3: Environmental Effects - Proximity (Atmosphere)
+**Why third:** Independent of camera/texture systems, can be developed in parallel with Phase 2.
+
+**Components:**
+- `ProximityEffectManager` with client tick event registration
+- Door slam trigger + animation
+- Light flicker trigger + particle effects
+- Distance calculation optimization (spatial partitioning)
+
+**Validation:** Doors close and lights flicker when Dread approaches during gameplay.
+
+**Estimated complexity:** MEDIUM (performance optimization needed for chunk-wide scans)
+
+---
+
+### Phase 4: Environmental Effects - Crawl Trail (Final Polish)
+**Why last:** Simplest component, depends on existing `DownedStateClientHandler`.
+
+**Components:**
+- `CrawlBloodTrailEffect` with particle spawning
+- Integration with `DownedStateClientHandler` lifecycle
+- Particle rate limiting (performance)
+
+**Validation:** Blood particles trail behind crawling player.
+
+**Estimated complexity:** LOW (straightforward particle system usage)
+
+---
+
+**Phase ordering rationale:**
+- **Camera first:** Everything else is rendered through the camera; must work correctly before other visuals matter
+- **Textures second:** Requires camera to be positioned to see effects; builds on GeckoLib understanding
+- **Proximity third:** Can be developed in parallel with textures; independent system
+- **Crawl trail last:** Simplest feature; good final polish item; no dependencies
+
+**Parallelization opportunities:**
+- Phases 2 and 3 can be developed simultaneously (different systems)
+- Phase 4 is quick, can be done by separate developer while others work on 1-3
+
+---
+
+## Technical Risks & Mitigation
+
+### Risk 1: Render Thread Separation Breaking Entity Access
+
+**Likelihood:** HIGH (GeckoLib 5 architectural change)
+**Impact:** CRITICAL (crashes, visual glitches)
+
+**Mitigation:**
+- Always use `extractRenderState()` for entity → render data transfer
+- Test thoroughly on 1.21+ (thread separation active)
+- Review GeckoLib 5 migration guide before implementation
+
+---
+
+### Risk 2: Mixin Conflicts with Other Mods
+
+**Likelihood:** MEDIUM (Camera mixins are common)
+**Impact:** MEDIUM (features don't work, or crash)
+
+**Mitigation:**
+- Use explicit priority values (900, 950)
+- Inject at TAIL instead of RETURN when possible (less invasive)
+- Test with popular camera mods (Freecam, Camera Utils, etc.)
+
+---
+
+### Risk 3: Performance Impact of Proximity Scanning
+
+**Likelihood:** MEDIUM (depends on chunk size, door density)
+**Impact:** MEDIUM (FPS drops in complex builds)
+
+**Mitigation:**
+- Cache nearby doors/lights (only rescan when chunks change)
+- Use spatial partitioning (chunk-based lookups)
+- Limit scan radius (12 blocks max)
+- Throttle updates (every 5 ticks instead of every tick)
+
+---
+
+### Risk 4: Camera Timeline Desync
+
+**Likelihood:** LOW (if single source of truth pattern followed)
+**Impact:** HIGH (texture changes don't match camera position, breaks immersion)
+
+**Mitigation:**
+- Single `DeathCinematicClientHandler.getProgress()` method
+- All components query this static method (no local timers)
+- Unit test timeline evaluation (verify keyframes interpolate correctly)
 
 ---
 
 ## Sources
 
-**Minecraft Forge Documentation:**
-- [Events - Forge Documentation](https://docs.minecraftforge.net/en/latest/concepts/events/)
-- [Sounds - Forge Documentation](https://docs.minecraftforge.net/en/latest/gameeffects/sounds/)
-- [Synchronizing Entities - Forge Documentation](https://docs.minecraftforge.net/en/latest/networking/entities/)
-- [Sounds - Forge Community Wiki](https://forge.gemwire.uk/wiki/Sounds)
-- [Events - Forge Community Wiki](https://forge.gemwire.uk/wiki/Events)
+**HIGH Confidence (Official Documentation):**
+- [Fabric Events](https://docs.fabricmc.net/develop/events)
+- [Fabric Mixin @Inject](https://wiki.fabricmc.net/tutorial:mixin_injects)
+- [Fabric Block Entities](https://docs.fabricmc.net/develop/blocks/block-entities)
+- [GeckoLib 5 Changes](https://github.com/bernie-g/geckolib/wiki/Geckolib-5-Changes)
+- [GeckoLib 4 Animated Textures](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib4))
+- [Minecraft Particles (Java Edition)](https://minecraft.wiki/w/Particles_(Java_Edition))
+- [Fabric WorldRenderEvents API](https://maven.fabricmc.net/docs/fabric-api-0.119.2+1.21.5/net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents.html)
 
-**GeckoLib Documentation:**
-- [GeckoLib Wiki - Custom Entity](https://github.com/bernie-g/geckolib/wiki/Custom-GeckoLib-Entity)
-- [GeckoLib Wiki - Animated Textures (Geckolib4)](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib4))
-- [GeckoLib Wiki - Render Layers (Geckolib5)](https://github.com/bernie-g/geckolib/wiki/Render-Layers-(Geckolib5))
-- [GeckoLib Changelog](https://modrinth.com/mod/geckolib/changelog)
+**MEDIUM Confidence (Mod Analysis & Community):**
+- [Free Camera API Architecture](https://deepwiki.com/AnECanSaiTin/Free-camera-API)
+- [Camera Utils Mod](https://modrinth.com/mod/camera-utils)
+- [Fabric ClientTickEvents](https://maven.fabricmc.net/docs/fabric-api-0.34.8+1.17/net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents.html)
 
-**Minecraft Official:**
-- [Shader - Minecraft Wiki](https://minecraft.wiki/w/Shader)
-- [Attribute - Minecraft Wiki](https://minecraft.wiki/w/Attribute)
-- [Third Person View - Minecraft Wiki](https://minecraft.wiki/w/Third-person_view)
-
-**Community Resources:**
-- [Not Enough Animations - CurseForge](https://www.curseforge.com/minecraft/mc-mods/not-enough-animations) (crawl animation reference)
-- [playerAnimator - CurseForge](https://www.curseforge.com/minecraft/mc-mods/playeranimator) (player animation library)
-- [LivingAttackEvent JavaDocs](https://skmedix.github.io/ForgeJavaDocs/javadoc/forge/1.9.4-12.17.0.2051/net/minecraftforge/event/entity/living/LivingAttackEvent.html)
-- [Pose JavaDocs (1.18.2)](https://nekoyue.github.io/ForgeJavaDocs-NG/javadoc/1.18.2/net/minecraft/world/entity/Pose.html)
-- [SetPose implementation - Forge Forums](https://forums.minecraftforge.net/topic/83874-setpose-implementation/)
-
-**LOW Confidence (WebSearch-only):**
-- Camera manipulation specifics (requires direct testing)
-- GeckoLib 5 API changes (recent version, may have undocumented features)
+**LOW Confidence (WebSearch - unverified):**
+- [GeckoLib texture swapping runtime discussion](https://mcreator.net/forum/103630/how-change-geckolib-animated-mobs-texture-using-procedures)

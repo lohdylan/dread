@@ -1,914 +1,543 @@
-# Domain Pitfalls: Dread v1.1 Polish Features
+# Domain Pitfalls: Cinematic Cameras, Animated Textures & Environmental Effects
 
-**Domain:** Minecraft Horror Mod Enhancement (Fabric 1.21.x)
-**Version:** v1.1 Enhancements
-**Researched:** 2026-01-25
-**Focus:** Adding crawl pose, attack prevention, dread texture improvements, intense cinematic effects, and real audio to existing Dread v1.0 mod
-
-**Context:** v1.0 already handles client-server separation (proper source sets), sound channel management (priority system exists), shader compatibility (runtime detection), and entity rendering with GeckoLib. This document focuses on pitfalls specific to v1.1 polish features.
+**Domain:** Minecraft Horror Mod - v2.0 Atmosphere & Dread Enhancement
+**Researched:** 2026-01-27
+**Confidence:** MEDIUM (WebSearch-based with technical documentation verification)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause crashes, multiplayer desync, or require major rewrites.
+Mistakes that cause rewrites, multiplayer failures, or major performance issues.
 
-### Pitfall 1: Client-Server Animation Desync (Crawl Pose)
-
-**What goes wrong:** Crawl pose forced on client but not synchronized with server, causing position desync, rubberbanding, and multiplayer inconsistencies. Other players see the affected player in wrong position or glitching between standing/crawling states.
+### Pitfall 1: Camera Transformation Feedback Loops
+**What goes wrong:** Camera transformations during death sequence create recursive updates when applied at wrong timing - camera position affects entity position which triggers camera update again, causing exponential calculations and crashes.
 
 **Why it happens:**
-- Pose manipulation code runs only on logical client without packet-based synchronization
-- Animation state changes without notifying server of player state
-- Swimming animation reused for crawling without proper server-side state tracking
-- v1.0's client-server separation exists but new pose code bypasses it
+- Minecraft's render pipeline processes camera updates, entity updates, and world rendering in sequence
+- Modifying camera during entity update phase creates circular dependency
+- Your v1.x already experienced this with camera shake via entity rotation
 
 **Consequences:**
-- **Multiplayer desync:** Other players see glitching/teleporting player
-- **Server kicks:** "Moved wrongly" or position violation kicks
-- **Attack hitboxes misaligned:** Visual player position differs from server hitbox
-- **Dread entity targeting breaks:** Entity attacks wrong position
-- **Immersion destroyed:** Other players laugh at glitchy player instead of feeling fear
+- Game freezes or crashes within 2-3 frames
+- MatrixStack overflow exceptions
+- Unrecoverable feedback loop requiring force quit
 
 **Prevention:**
-- Use v1.0's existing client-server separation pattern (proper source sets)
-- Use Fabric's networking API to sync pose state changes between client/server
-- Track pose state in both logical client AND logical server:
-  - Server: Authoritative pose state for gameplay
-  - Client: Visual representation only
-- Send packets when entering/exiting crawl pose (both C2S and S2C)
-- Verify server acknowledges pose change before applying visual effects
-- Test in dedicated server environment, not just singleplayer (which uses integrated server)
-
-```java
-// SERVER: Receive crawl pose request from client
-ServerPlayNetworking.registerGlobalReceiver(CRAWL_POSE_PACKET, (server, player, handler, buf, responseSender) -> {
-    boolean shouldCrawl = buf.readBoolean();
-    server.execute(() -> {
-        // Server-side validation
-        if (!canEnterCrawlPose(player, shouldCrawl)) return;
-
-        // Update server-side state
-        setCrawlPoseState(player, shouldCrawl);
-
-        // Sync to ALL clients (including sender)
-        for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
-            ServerPlayNetworking.send(viewer, new CrawlPoseSyncPacket(player.getUuid(), shouldCrawl));
-        }
-    });
-});
-```
+- Apply ALL camera transformations in render-time mixins ONLY (like your existing CameraMixin)
+- Never modify actual entity position/rotation for camera effects
+- Store camera state separately from entity state
+- Use `partialTicks` parameter for smooth interpolation between game ticks
 
 **Detection:**
-- Test with two clients connected to dedicated server (not singleplayer)
-- Watch second client's view while first player enters crawl pose
-- Log server-side player position vs client-side position using F3 debug
-- Check for "moved wrongly" or "moved too quickly" messages in server logs
-- Use Entity Desync Viewer mod during testing to visualize hitbox misalignment
+- Rapid console spam of camera-related messages
+- FPS drops to single digits immediately when effect triggers
+- Stack overflow errors mentioning `MatrixStack` or `Camera` classes
 
-**Related Features:** Crawl pose forcing
-
-**Phase Impact:** Crawl Pose Milestone - Must implement networking from day one, retrofitting sync is complex and error-prone.
+**Phase to address:** Phase 1 (Camera Pullback System) - Must establish architecture before building cinematic sequence
 
 **Sources:**
-- [Fabric Wiki: Side Tutorial](https://wiki.fabricmc.net/tutorial:side)
-- [Fabric Documentation: Networking](https://docs.fabricmc.net/develop/networking)
-- [Entity Desync Viewer mod](https://modrinth.com/mod/entity-desync-viewer)
+- [MatrixStack API Documentation](https://maven.fabricmc.net/docs/yarn-1.21+build.2/net/minecraft/client/util/math/MatrixStack.html)
+- [Mixin Transformation Issues](https://www.minecraftforum.net/forums/support/java-edition-support/3214749-how-to-solve-mixin-transformation-of-net-minecraft)
 
 ---
 
-### Pitfall 2: Attack Prevention Server-Only Execution
-
-**What goes wrong:** Attack prevention logic runs only on server, allowing client-side attack animations and sounds to play even when attacks are blocked. Player sees weapon swing, hears attack sound, but deals no damage. This breaks immersion and causes confusion.
+### Pitfall 2: Death Screen GUI Conflicts with Custom Camera
+**What goes wrong:** Vanilla death screen forces specific camera behaviors (red tint, third-person in Bedrock, tilting in Java) that conflict with custom camera control, causing camera to snap between states or GUI to render incorrectly.
 
 **Why it happens:**
-- Using `LivingHurtEvent` or similar server-side-only events
-- Canceling attack damage without canceling client-side attack action
-- Not communicating block status back to client for UI/audio feedback
-- Treating attack prevention as damage cancellation instead of attack cancellation
+- Death screen applies its own camera transformations
+- `doImmediateRespawn` gamerule changes when death screen renders
+- GUI overlay rendering happens AFTER camera transformation but BEFORE post-processing
+- Your Satin API shaders may render before/after GUI depending on render stage
 
 **Consequences:**
-- **Player confusion:** "Why didn't my attack work? Is my game broken?"
-- **Audio pollution:** Attack sounds play repeatedly with no effect, breaking horror atmosphere
-- **Animation desync:** Weapon swings but nothing happens
-- **Multiplayer inconsistency:** Attacker sees hit, victim sees nothing
-- **Dread mechanic unclear:** Players don't understand why they can't fight back
+- Camera snaps between custom position and vanilla death position
+- Red tint conflicts with custom post-processing effects
+- Respawn button may not function with immediate respawn enabled
+- Commands executed at death position fail with immediate respawn (execute after respawn instead)
 
 **Prevention:**
-- Cancel attack at packet level (Use Entity packet 0x02) BEFORE damage calculation
-- Send client notification when attack is prevented for UI/audio feedback
-- Suppress client-side attack animations/sounds when blocked
-- Update attack cooldown indicator to show prevention state (red X overlay, etc.)
-- Handle both melee AND projectile attacks (see Pitfall 11)
-- Test with both single-target and AOE attacks
-
-```java
-// SERVER: Cancel attack at event level
-ServerPlayNetworking.registerGlobalReceiver(ATTACK_ENTITY_PACKET, (server, player, handler, buf, responseSender) -> {
-    UUID targetUuid = buf.readUuid();
-    server.execute(() -> {
-        // Check if attacks are prevented (e.g., during dread state)
-        if (isAttackPrevented(player)) {
-            // Send feedback to client
-            ServerPlayNetworking.send(player, new AttackPreventedPacket());
-            return; // Don't process attack
-        }
-        // Process normal attack
-    });
-});
-
-// CLIENT: Handle attack prevention feedback
-ClientPlayNetworking.registerGlobalReceiver(ATTACK_PREVENTED_PACKET, (client, handler, buf, responseSender) -> {
-    client.execute(() -> {
-        // Visual feedback
-        showAttackPreventedIndicator();
-        // Stop attack sound if playing
-        stopAttackSounds();
-        // Show UI message
-        client.player.sendMessage(Text.literal("You cannot attack!").formatted(Formatting.RED));
-    });
-});
-```
+- Disable vanilla death screen entirely when your cinematic plays
+- Use custom GUI overlay that doesn't invoke vanilla death mechanics
+- Cancel death screen rendering via mixin injection at `HEAD` with `cancellable=true`
+- Trigger respawn programmatically after cinematic completes
+- Test both with and without `doImmediateRespawn` enabled
 
 **Detection:**
-- Enable attack prevention, then spam attack button
-- Listen for attack sounds - they should NOT play when attacks are blocked
-- Watch for weapon swing animation - should be suppressed or show special "prevented" animation
-- Check combat log for damage vs visual feedback mismatch
-- Test in multiplayer with observer watching attacker
+- Camera "jumps" during death sequence
+- Console warnings about render order conflicts
+- Death screen visible during custom cinematic
+- Players report being "stuck" unable to respawn
 
-**Related Features:** Attack prevention during dread states, crawl pose restrictions
-
-**Phase Impact:** Attack Prevention Milestone - Packet-level cancellation must be designed upfront; event-based cancellation creates UX debt.
+**Phase to address:** Phase 1 (Camera Pullback System) - Death screen interaction must work before building full sequence
 
 **Sources:**
-- [Minecraft Forums: Stopping mobs from attacking players](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/modification-development/2351019-stopping-mobs-from-attacking-players)
-- [Hypixel Forums: Disabling attack packet](https://hypixel.net/threads/need-help-disabling-attack-packet.5536697/)
+- [Death Screen Mechanics](https://minecraft.wiki/w/Death)
+- [Updated Death Experience Feedback](https://feedback.minecraft.net/hc/en-us/community/posts/19522618627981-Updated-You-Died-Experience)
+- [Immediate Respawn Conflicts](https://serverminer.com/article/how-to-skip-the-death-respawn-screen-on-minecraft-server/)
 
 ---
 
-### Pitfall 3: GeckoLib Animation Conflicts with Pose Override
-
-**What goes wrong:** v1.0's GeckoLib entity animations break or glitch when player pose override is active. Dread entity animations freeze, play at wrong times, or cause visual artifacts like stretched limbs when player enters crawl pose.
+### Pitfall 3: Animated Texture Atlas Performance Collapse
+**What goes wrong:** Multiple animated textures (pulsing runes, writhing forms, opening eyes) cause severe FPS drops because Minecraft uploads ALL animated textures to GPU every tick (20x/second), even when not visible.
 
 **Why it happens:**
-- GeckoLib uses its own animation controller that conflicts with vanilla pose manipulation
-- Animation keyframes don't account for forced pose states
-- Both GeckoLib (for entities) and pose override (for player) try to control rendering simultaneously
-- v1.0 entity rendering assumptions break when player model changes
-- Render tick calculations assume standard player model bounds
+- Vanilla Minecraft designed for ~21 animated textures total
+- Each animated texture requires CPU-to-GPU upload every tick
+- AMD GPUs particularly affected by texture update overhead
+- Atlas stitching recalculates entire texture map with each animation frame
+- Your mod adds multiple new animated textures on top of existing ones
 
 **Consequences:**
-- **Dread entity animations freeze** when player enters crawl pose
-- **Player model limbs stretch or distort** during pose transitions
-- **Animation transitions become jarring** instead of smooth
-- **Shader incompatibilities worsen:** Entity shadows, translucency glitches amplified
-- **v1.0 entity rendering breaks:** Existing working entities start glitching
+- FPS drops from 60 to 6-10 when animated entities are visible
+- Worse performance with AMD graphics cards
+- Stuttering during Dread encounters (worst possible timing)
+- Multiplayer servers may kick clients for lag
 
 **Prevention:**
-- Check GeckoLib animation state before applying pose override
-- Pause or adjust GeckoLib animations during pose-forced states
-- Use GeckoLib's event keyframes to coordinate with pose changes
-- Test with v1.0 entities present while pose override active
-- Test with shaders enabled (Iris/Oculus) as they amplify conflicts
-- Ensure GeckoLib version is 5.4.2+ (latest 2026 version with shader fixes)
-- Use v1.0's existing shader compatibility runtime detection
-
-```java
-// Coordinate GeckoLib animations with pose state
-@Override
-public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-    controllers.add(new AnimationController<>(this, "controller", 0, state -> {
-        // Check if nearby players are in special pose states
-        List<PlayerEntity> nearbyPlayers = world.getPlayers();
-        boolean anyPlayerCrawling = nearbyPlayers.stream()
-            .anyMatch(player -> isPlayerCrawling(player));
-
-        if (anyPlayerCrawling) {
-            // Adjust animation to avoid conflicts
-            return state.setAndContinue(CAUTIOUS_ANIMATION);
-        }
-
-        return state.setAndContinue(NORMAL_ANIMATION);
-    }));
-}
-```
+- **Use GeckoLib animated models instead of animated textures where possible** (GeckoLib 5 has optimized render layers)
+- For true texture animations, use `.mcmeta` sparingly
+- Consider OptiFine/AnimFix compatibility for users with performance issues
+- Batch animations: one 16-frame pulsing cycle for all runes, not separate animations
+- Test with AMD GPUs specifically (high-risk hardware)
+- Profile FPS with 3+ Dread entities visible simultaneously
 
 **Detection:**
-- Trigger dread entity spawn while in crawl pose
-- Watch for frozen animations or limb distortion on BOTH player and entity
-- Enable shader pack (Complementary, BSL) and check for entity shadow glitches
-- Monitor console for GeckoLib animation controller errors
-- Test animation transitions: normal → crawl pose → normal (while entity present)
-- Check existing v1.0 entities for new bugs after pose code added
+- FPS drops proportional to number of animated entities on screen
+- AMD users report worse performance than NVIDIA users
+- Console shows high GL texture upload times
+- MSI Afterburner shows GPU memory bandwidth saturation
 
-**Related Features:** Crawl pose + existing GeckoLib entity rendering integration
-
-**Phase Impact:** Crawl Pose Milestone - Must coordinate with v1.0 entity rendering from start, fixing after implementation requires animation rework.
+**Phase to address:**
+- Phase 2 (Animated Textures) - Must design texture system with performance in mind from start
+- Phase 3 (Environmental Effects) may amplify if adding animated block textures
 
 **Sources:**
-- [GeckoLib GitHub](https://github.com/bernie-g/geckolib)
-- [Iris/Oculus & GeckoLib Compat mod](https://modrinth.com/mod/geckoanimfix)
-- [GeckoLib 5.4.2 release (Jan 2026)](https://www.curseforge.com/minecraft/mc-mods/geckolib/files/all)
+- [MC-132488: Animated Textures Performance Bug](https://bugs.mojang.com/browse/MC-132488)
+- [AnimFix Performance Optimization](https://modrinth.com/mod/animfix)
+- [VanillaFix for Large Modpacks](https://github.com/FTBTeam/FTB-Modpack-Issues/issues/5550)
 
 ---
 
-### Pitfall 4: Sound Channel Saturation (v1.1 Expansion)
-
-**What goes wrong:** New cinematic audio and dread ambient sounds exceed Minecraft's sound channel limit (~28 channels), causing critical sounds to be dropped. Player might miss important audio cues (entity footsteps, attack warnings) while new cinematic/ambient sounds play.
+### Pitfall 4: Particle Trail Multiplayer Desync
+**What goes wrong:** Blood trail particles when crawling only appear for the crawling player or appear in wrong location for other players because particle spawning is client-side only by default.
 
 **Why it happens:**
-- Adding high-priority cinematic sounds without integrating into v1.0 priority system
-- Playing looping dread ambient sounds that never release channels
-- Not respecting existing v1.0 sound channel management
-- Multiple sound sources (entities, new ambience, cinematics, v1.0 sounds) competing for channels
-- Stacking new v1.1 sounds on top of v1.0 without channel budget planning
+- `World#spawnParticle` does nothing on the server (empty function)
+- Particles are rendered client-side only for performance reasons
+- Server needs to send explicit packets to all nearby clients
+- Random chance calculations happen separately on client vs server
 
 **Consequences:**
-- **"Failed to create new sound handle" errors** in logs
-- **"Maximum sound pool size 247 reached" errors**
-- **Critical entity sounds silenced:** Dread entity footsteps don't play during cinematic moments
-- **Horror atmosphere breaks:** Jump scare sound might not play if channels full
-- **Performance degradation:** Sound system overload causes FPS drops
-- **v1.0 sounds blocked by v1.1 sounds:** New features break existing working audio
+- In multiplayer, only the crawling player sees their own blood trail
+- Other players see no trail or see trail offset from actual player position
+- Horror effect completely lost for spectators/other players
+- Particles may spawn twice (once on client, once from server packet)
 
 **Prevention:**
-- **Use v1.0's existing priority system** and extend it:
-  - Priority 1 (highest): Jump scares, critical entity sounds (v1.0)
-  - Priority 2: New cinematic audio (v1.1)
-  - Priority 3: Dread entity sounds (v1.0)
-  - Priority 4: New dread ambient sounds (v1.1)
-  - Priority 5 (lowest): World ambient sounds
-- Stop looping sounds when switching states (exit dread, end cinematic)
-- Implement sound pooling with v1.1 expansion:
-  - Max 1 cinematic audio at a time (v1.1)
-  - Max 2 ambient loops (1 from v1.0, 1 from v1.1)
-  - Remainder for entities and interactions
-- Before playing new cinematic sound, stop lower-priority ambient sounds
-- Monitor active sound channels with debug logging
-- Use Audio Engine Tweaks patterns for sound scheduling
-- Test with: multiple dread entities + cinematic effects + ambient sounds simultaneously
-
-```java
-// Extend v1.0 sound priority system for v1.1
-public class SoundManager {
-    private static final int MAX_AMBIENT_SOUNDS = 2;
-    private static final int MAX_CINEMATIC_SOUNDS = 1;
-    private List<SoundInstance> activeAmbient = new ArrayList<>();
-    private SoundInstance activeCinematic = null;
-
-    public void playCinematicSound(SoundEvent sound, Vec3d pos) {
-        // Stop existing cinematic
-        if (activeCinematic != null) {
-            stopSound(activeCinematic);
-        }
-
-        // Reduce ambient sounds to make room
-        while (activeAmbient.size() > 1) {
-            stopSound(activeAmbient.remove(0)); // Stop oldest ambient
-        }
-
-        // Play new cinematic (highest priority)
-        activeCinematic = world.playSound(null, pos, sound, SoundCategory.AMBIENT, 1.0f, 1.0f);
-    }
-}
-```
+- Use `WorldServer#spawnParticle` with range parameter (16 blocks default) for multiplayer sync
+- Check `!world.isRemote` before spawning particles server-side
+- Send custom network packets for complex particle effects
+- Test in actual multiplayer environment (not just local server)
+- Consider particle spawn rate: 20 particles/second is 20x packets/second per player
 
 **Detection:**
-- Check logs for "sound handle" or "sound pool" errors during gameplay
-- Count active sound sources during peak moments (F3 debug + sound debug)
-- Verify critical sounds play during cinematic sequences:
-  - Entity footsteps should still be audible
-  - Jump scare sounds must never fail
-- Test with: 3+ dread entities + cinematic camera shake + ambient sounds + background music
-- Use audio debug overlay to visualize channel usage
+- Particles work in singleplayer but not multiplayer
+- Particles appear in wrong location in multiplayer
+- Console shows no errors but multiplayer players report missing effects
+- Twice as many particles spawn as expected
 
-**Related Features:** Cinematic audio (v1.1) + dread ambient sounds (v1.1) + real audio integration (v1.1)
-
-**Phase Impact:** Cinematic Effects Milestone + Real Audio Milestone - Must integrate with v1.0 sound system from start, adding later risks breaking existing audio.
+**Phase to address:** Phase 4 (Blood Trail Particles) - Must implement networking from the start
 
 **Sources:**
-- [Audio Engine Tweaks mod](https://modrinth.com/mod/audio-engine-tweaks)
-- [Minecraft Forums: Sound channel limits](https://www.minecraftforum.net/forums/minecraft-java-edition/discussion/3183671-momentary-lack-of-sound-effects-when-breaking)
+- [MC-10369: Server Side Particle Spawning](https://bugs.mojang.com/browse/MC-10369)
+- [Client/Server Desynchronization](https://technical-minecraft.fandom.com/wiki/Client/server_desynchronization)
+- [Particle Spawning in Multiplayer](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/modification-development/2729635-particles-not-spawning)
+
+---
+
+### Pitfall 5: GeckoLib Animation with Texture Animation Timing Conflicts
+**What goes wrong:** GeckoLib skeletal animations (your existing Dread entity) conflict with texture animations (your new pulsing runes) causing desynced timing, where texture animates at 20fps (tick-based) but GeckoLib animates at render framerate (60+ fps).
+
+**Why it happens:**
+- GeckoLib animations run at render time using `partialTicks` for smooth interpolation
+- Vanilla texture animations (.mcmeta) are tick-based (20fps max)
+- No built-in synchronization between the two systems
+- GeckoLib's texture animation support has limitations (doesn't support glowmask textures)
+
+**Consequences:**
+- Pulsing rune texture looks jerky compared to smooth Dread movement
+- Cannot sync "eye opening" texture animation with GeckoLib head rotation animation
+- Glowing effects (glowmask) cannot be animated
+- Animations drift out of sync over time
+
+**Prevention:**
+- Choose ONE animation system per effect:
+  - Skeletal movement → GeckoLib (already working for your Dread entity)
+  - Texture scrolling/pulsing → GeckoLib's animated texture support (NOT .mcmeta)
+  - Block animations → .mcmeta is fine (not attached to entity)
+- For glowing animated effects, use separate render layer without glowmask
+- Test animation synchronization over 60+ seconds to detect drift
+- Consider shader-based effects via Satin API for smooth texture effects
+
+**Detection:**
+- Texture animation appears "choppy" compared to entity movement
+- Animations slowly drift out of sync
+- Glowmask textures don't animate at all
+- Console shows `.mcmeta` file not found for GeckoLib entity
+
+**Phase to address:** Phase 2 (Animated Textures) - Must establish animation architecture before implementing all texture effects
+
+**Sources:**
+- [GeckoLib Animated Textures Documentation](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib5))
+- [GeckoLib Glowmask Limitation](https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib4))
+- [Animation Framerate Synchronization](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/resource-packs/resource-pack-help/2952375-animated-texture-frametime-for-a-24-fps-animation)
 
 ---
 
 ## Moderate Pitfalls
 
-Mistakes that cause delays, visual bugs, or technical debt.
+Mistakes that cause delays, technical debt, or noticeable bugs.
 
-### Pitfall 5: Texture UV Mapping Breaks on Model Changes
-
-**What goes wrong:** Dread entity texture UVs break when switching between animation states or when pose override changes player model bounds. Textures appear stretched, squashed, or misaligned on improved v1.1 textures.
+### Pitfall 6: Camera Interpolation Timing Jitter
+**What goes wrong:** Camera pullback during death sequence moves at inconsistent speed, jerking every tick instead of smooth motion, making cinematic look amateurish.
 
 **Why it happens:**
-- UV coordinates designed for one model state (standing) don't translate to another (crawling)
-- Automatic UV mapping in Blockbench creates overlapping UVs
-- Texture resolution doesn't use proper multiples of 16px
-- Converting between model types (generic vs entity) mangles UVs
-- v1.1 texture improvements applied without testing against all animation states
-
-**Consequences:**
-- **Gray/pink textures during pose transitions** (repeating v1.0 mistake: "Gray textures that break immersion")
-- **Texture stretching on limbs** during crawl animation
-- **Dread entity texture glitches** during certain animations (regression from v1.0)
-- **Need to remake textures from scratch** (wasted v1.1 improvement work)
-- **Immersion destroyed:** Players see placeholder textures instead of improved visuals
+- Camera position updated at tick rate (20fps) but rendered at monitor framerate (60-144fps)
+- Not using `partialTicks` parameter for interpolation
+- Linear interpolation creates visible steps instead of smooth acceleration/deceleration
 
 **Prevention:**
-- **Learn from v1.0 mistakes:** No gray textures, no invalid placeholders
-- Design UV maps for all animation states upfront (standing, crawling, etc.)
-- Use consistent UV scale across all model parts (avoid stretching)
-- Stick to entity-appropriate texture resolutions: 64x64, 128x128, 256x256 (multiples of 16)
-- Avoid Blockbench auto-UV for complex models; manual UV mapping gives control
-- Test UV map with animated model in ALL states before creating final texture
-- Preserve texture ratios when scaling (maintain 1:1, 2:1, or 4:1 aspect ratios)
-- Never convert model types (generic ↔ entity) after UV mapping
-- Test improved textures in crawl pose before considering them "done"
+- Store camera animation state (start position, target position, elapsed time)
+- Use `partialTicks` to interpolate between tick states during rendering
+- Use easing functions (cosine, cubic, hermite) not linear interpolation
+- Camera plugins typically need 20+ interpolated positions per second for smoothness
 
 **Detection:**
-- Preview texture on model in all animation states in Blockbench (standing, crawling, downed)
-- Check for UV overlap warnings in Blockbench
-- Load model in-game and cycle through all animations
-- Look for texture seams, stretching, or misalignment
-- Verify texture dimensions are power-of-2 and multiples of 16px
-- Ensure NO gray textures appear (v1.0 lesson learned)
+- Camera "stutters" during pullback
+- Movement looks stepped rather than continuous
+- More noticeable at high framerates (144Hz monitors)
 
-**Related Features:** Dread entity texture improvements (v1.1) + crawl pose model changes (v1.1)
-
-**Phase Impact:** Dread Texture Milestone + Crawl Pose Milestone - UV mapping must account for both features simultaneously.
+**Phase to address:** Phase 1 (Camera Pullback System) - Core camera animation quality
 
 **Sources:**
-- [Blockbench: Minecraft Style Guide](https://www.blockbench.net/wiki/guides/minecraft-style-guide/)
-- [LinkedIn: Common UV mapping mistakes](https://www.linkedin.com/advice/0/what-common-uv-mapping-texturing-mistakes-how-fix-them)
-- [Blockbench UV mapping issue](https://github.com/JannisX11/blockbench/issues/822)
+- [CMDCam Interpolation Types](https://www.curseforge.com/minecraft/mc-mods/cmdcam)
+- [Smooth Camera Animation Discussion](https://www.spigotmc.org/threads/how-to-make-a-smooth-camera-animation.612081/)
 
 ---
 
-### Pitfall 6: Cinematic Camera Motion Sickness
-
-**What goes wrong:** Intense cinematic camera shake and effects are too strong, causing player nausea, discomfort, or disorientation. Players disable the mod instead of experiencing enhanced horror atmosphere.
+### Pitfall 7: Environmental Effect Client-Server Desync
+**What goes wrong:** Doors slam and lights flicker only on client that triggered event, or effects play at different times for different players, breaking immersion.
 
 **Why it happens:**
-- Camera shake intensity too high or too frequent
-- No easing/smoothing on camera transitions (abrupt snapping)
-- Camera effects triggered at low framerates amplify jitter/stutter
-- No player control/accessibility options to reduce intensity
-- Focusing on "intense" without considering motion sensitivity
-
-**Consequences:**
-- **Player complaints about motion sickness:** Bad reviews, uninstalls
-- **Mod gets disabled or blacklisted**
-- **Negative reviews citing nausea:** Damages mod reputation
-- **Ruins horror experience:** Players feel sick instead of scared
-- **Accessibility problems:** Excludes motion-sensitive players entirely
-- **Horror atmosphere destroyed:** Can't be scared if you're nauseous
+- Block state changes (door opening/closing) must be synced via packets
+- BlockEntity renderer data (torch extinguished state) not automatically synced
+- Your existing BlockEntityMixin for torch extinguishing may not sync properly
 
 **Prevention:**
-- Use **exponential decay** for camera shake (start strong, fade smoothly)
-- Apply **simplex noise** for natural-feeling shake (not random jitter)
-- Limit shake duration (0.5-2 seconds max, NOT sustained shaking)
-- Recommend performance mods (Sodium/Lithium) for high FPS in mod description
-- **Add config options (CRITICAL for accessibility):**
-  - Shake intensity slider (0-200%, default 100%)
-  - Toggle to completely disable camera shake
-  - Separate intensity for different shake types (damage, cinematic, dread)
-- Test at 30fps, 60fps, and 144fps to ensure smooth at all framerates
-- Follow Camera Overhaul mod patterns: well-documented config with intensity scaling
-- Add accessibility note in config about motion sensitivity
-- Default to moderate intensity, let players increase if desired
-
-```java
-// Cinematic shake with accessibility
-public void applyCinematicShake(float baseIntensity) {
-    // Read from config
-    float intensityMultiplier = config.getShakeIntensity(); // 0.0 to 2.0
-    boolean shakeEnabled = config.isShakeEnabled();
-
-    if (!shakeEnabled || intensityMultiplier <= 0.0f) {
-        return; // Respect accessibility settings
-    }
-
-    float actualIntensity = baseIntensity * intensityMultiplier;
-
-    // Apply with exponential decay
-    applyShakeWithDecay(actualIntensity, 2.0f /* duration */);
-}
-```
+- Use `getUpdateTag()` and `handleUpdateTag()` for BlockEntity data sync
+- Send block state updates via `world.setBlockState()` not client-only rendering
+- Send custom network packets for complex effects (light flicker timing)
+- Sync environmental triggers server-side, let clients render effect
 
 **Detection:**
-- Test cinematic sequences at 30fps (simulate low-end hardware with FPS cap)
-- Ask multiple people to test; some are more motion-sensitive than others
-- Check camera movement feels smooth, not jerky/snappy
-- Verify config options actually reduce/disable effects
-- Test sustained sequences (10+ seconds) not just brief moments
-- Monitor community feedback post-release for motion sickness complaints
+- Effects work in singleplayer but not multiplayer
+- Each player sees different door states
+- Torches extinguished for one player but lit for others
 
-**Related Features:** Intense cinematic camera effects (v1.1)
-
-**Phase Impact:** Cinematic Effects Milestone - Accessibility features must be designed in from start; adding config options later is retrofitting band-aid.
+**Phase to address:** Phase 3 (Environmental Interactions) - Must implement networking layer
 
 **Sources:**
-- [Camera Overhaul mod](https://modrinth.com/mod/cameraoverhaul)
-- [Inertia! motion sickness reduction](https://modrinth.com/mod/inertia!)
+- [BlockEntity Client Rendering Sync Issues](https://github.com/orgs/FabricMC/discussions/1800)
+- [BlockEntity Renderer Data Synchronization](https://fabricmc.net/wiki/tutorial:blockentityrenderers)
 
 ---
 
-### Pitfall 7: Audio Format Incompatibility
-
-**What goes wrong:** Real audio files fail to load or cause errors due to wrong format, sample rate, channels, or encoding. Sounds are silent, crackling, or crash the game when v1.1 audio is added.
+### Pitfall 8: Satin API Shader Conflicts with Camera Effects
+**What goes wrong:** Your existing Satin API post-processing shaders render at wrong time relative to custom camera position, causing horror effects to appear in wrong screen space or not apply to cinematic camera.
 
 **Why it happens:**
-- Using stereo files instead of mono (Minecraft uses mono for spatial audio)
-- Wrong file format (MP3 instead of OGG Vorbis)
-- Sample rate mismatch (48kHz instead of 44.1kHz standard)
-- Bitrate too high causing performance issues
-- Not following Minecraft's strict audio requirements
-
-**Consequences:**
-- **Silent audio files:** No error message, just no sound playing
-- **Audio crackle or distortion** during playback
-- **Performance degradation** with high-bitrate files (FPS drops during audio)
-- **Spatial audio doesn't work:** Sounds don't move in 3D space, breaking immersion
-- **Horror atmosphere fails:** Ambient dread sounds are critical, silence breaks experience
+- Satin callbacks fire between world render and GUI render
+- Custom camera transformations may not be active when shader executes
+- Post-processing uses framebuffer from previous render, not current camera state
 
 **Prevention:**
-- **Use OGG Vorbis format ONLY** (.ogg files, NOT .mp3)
-- **Convert to mono channel** (1 channel, not 2 for spatial audio)
-- **Use 44.1kHz sample rate** (standard for Minecraft)
-- **Keep bitrate reasonable:** 96-128kbps sufficient for horror ambience (higher wastes space)
-- **Use proper sound categories:**
-  - `AMBIENT` for atmosphere and environmental sounds
-  - `HOSTILE` for entity sounds
-  - `MASTER` for critical sounds
-- Test spatial audio: move around sound source, verify volume/panning changes
-- Check game log for audio loading errors on startup
-- Use audio conversion tools with correct settings:
-
-```bash
-# Convert to Minecraft-compatible format using ffmpeg
-ffmpeg -i input.mp3 -ac 1 -ar 44100 -b:a 128k output.ogg
-# -ac 1: mono channel
-# -ar 44100: 44.1kHz sample rate
-# -b:a 128k: 128kbps bitrate
-```
+- Use `PostWorldRenderCallback` for shaders that should apply to custom camera
+- Test shader effects during camera pullback (not just normal gameplay)
+- Ensure MatrixStack state is preserved/restored around custom camera transforms
+- Check Iris compatibility if players use external shader packs
 
 **Detection:**
-- Load game and check logs for sound registration errors
-- Play each new sound in-game to verify it works
-- Walk toward/away from sound source to test spatial audio (stereo files won't spatialize)
-- Monitor performance during audio playback (FPS drops indicate bitrate too high)
-- Test with headphones to hear spatial positioning clearly
+- Shader effects appear offset during camera movement
+- Horror effects disappear during cinematic
+- Console warning: "[Satin] Iris is present, custom block renders will not work"
 
-**Related Features:** Real audio implementation for dread ambience (v1.1)
-
-**Phase Impact:** Real Audio Milestone - Audio format must be correct from import; converting after creation wastes time.
+**Phase to address:** Phase 1 (Camera Pullback System) - Verify existing shader integration with new camera
 
 **Sources:**
-- [Minecraft Wiki: Sounds](https://minecraft.wiki/w/Sounds)
-- [MCreator: Sound categories](https://mcreator.net/forum/63120/what-do-different-sound-categories-mean)
-- [Sound Physics Remastered audio issues](https://github.com/henkelmax/sound-physics-remastered/issues/219)
+- [Satin API GitHub](https://github.com/Ladysnake/Satin)
+- [Satin/Iris Compatibility Warning](https://www.curseforge.com/minecraft/mc-mods/satin-api)
 
 ---
 
-### Pitfall 8: Performance Impact from High-Res Textures
-
-**What goes wrong:** Using high-resolution textures (512x512+) for dread entity improvements tanks FPS, especially with multiple entities or during cinematic sequences with many rendered elements.
+### Pitfall 9: Animated Texture .mcmeta File Errors
+**What goes wrong:** Animated textures appear squashed, stretched, or as magenta checkerboard because .mcmeta file has wrong dimensions, missing properties, or incorrect frame timing.
 
 **Why it happens:**
-- Entity Texture Features (ETF) constantly switches textures, amplified by high resolution
-- High entity density areas (multiple dread entities) load many high-res textures into VRAM
-- VRAM consumption spikes, causing texture swapping lag and stuttering
-- Shader packs multiply performance cost of high-res entity textures
-- Focusing on visual quality without performance testing
-
-**Consequences:**
-- **FPS drops during critical horror moments** (ruins immersion worse than low-res textures)
-- **Low-end systems become unplayable** (excludes player base)
-- **Cinematic sequences stutter** instead of flowing smoothly (destroys atmosphere)
-- **Shader users hit harder** than vanilla renderer users (common horror mod audience uses shaders)
-- **Players disable v1.1 improvements** to restore performance (defeats purpose)
+- Each animation frame must be same size
+- Total image height must be multiple of width for vertical strip animations
+- Pre-1.13: textures MUST have equal width/height
+- Missing or misnamed .mcmeta file (must be `texture.png.mcmeta` not `texture.mcmeta`)
 
 **Prevention:**
-- **Use 64x64 or 128x128 for entity textures** (NOT 256x+ unless absolutely critical)
-- Optimize texture file size with tools (keep under 50KB per texture file)
-- Implement texture LOD (level of detail): lower-res versions at distance
-- Test performance with 3+ entities on screen simultaneously
-- Test with popular shader packs (Complementary, BSL, Sildur's)
-- Warn users in mod description: recommend optimization mods for best experience
-- Profile frame time during entity-heavy scenes (F3 debug screen)
-- Consider artistic optimization: stylized lower-res can be more atmospheric than realistic high-res
+- Use `.mcmeta` generator tools for complex animations
+- Follow formula: `image_height = frame_height * frame_count`
+- Minimum .mcmeta: `{ "animation": {} }` (uses defaults)
+- Test texture in vanilla resource pack first before adding to mod
+- Check atlas stitching errors in logs
 
 **Detection:**
-- Use F3 debug screen to monitor FPS during entity spawns
-- Spawn 5+ dread entities, check FPS drop percentage (should not exceed 20% drop)
-- Enable shader pack and repeat entity density test
-- Check VRAM usage in task manager (should not exceed ~2GB for textures)
-- Test on low-end system (integrated graphics, 8GB RAM)
-- Monitor frame times, not just average FPS (stuttering ruins horror more than lower FPS)
+- Texture appears as magenta/black checkerboard (missing texture)
+- Texture appears stretched or squashed vertically
+- Console error: "Unable to fit: [texture_name] - size: WxH"
+- All animation frames visible at once instead of cycling
 
-**Related Features:** Dread entity texture improvements (v1.1)
-
-**Phase Impact:** Dread Texture Milestone - Resolution choices affect artistic direction and performance; changing later requires texture recreation.
+**Phase to address:** Phase 2 (Animated Textures) - Must validate texture format early
 
 **Sources:**
-- [Entity Texture Features performance impact](https://modern.cansoft.com/time-to-retire-etf-why-entity-texture-features-has-run-its-course/)
-- [Minecraft Forums: Texture resolution FPS impact](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/resource-packs/resource-pack-discussion/2853251-does-going-lower-than-16x-actually-improve-fps)
+- [.mcmeta Texture Atlas Stitching Problems](https://github.com/AllTheMods/ATM-6/issues/808)
+- [Animation Texture Dimension Requirements](https://minecraft.wiki/w/Resource_pack)
+- [.mcmeta Generator Tools](https://github.com/OrangeUtan/mcanitexgen)
+
+---
+
+### Pitfall 10: Render Layer Priority Conflicts
+**What goes wrong:** Multiple render modifications (CameraMixin, GeckoLib entities, Satin shaders, particle effects) render in wrong order, causing visual artifacts like particles behind entities or shaders not applying to custom renders.
+
+**Why it happens:**
+- Minecraft renders in specific order: world → entities → particles → translucent → post-processing → GUI
+- Mixin injection points may conflict when multiple mods target same method
+- GeckoLib 5 improved render layer performance but changed how layers interact
+
+**Prevention:**
+- Use GeckoLib 5's pre-defined render layers (don't interrupt buffer flow)
+- Use appropriate Mixin priority values for render-related mixins
+- Test all effects together, not in isolation
+- Use Mixin Conflict Helper mod during development to catch conflicts early
+
+**Detection:**
+- Entities render in front of particles that should be in front
+- Shader effects don't apply to certain entities
+- Console: "Mixin transformation of [class] failed"
+- Visual "Z-fighting" or flickering overlaps
+
+**Phase to address:**
+- Phase 2 (Animated Textures) when combining GeckoLib with new effects
+- Phase 4 (Blood Trail Particles) when adding particles to existing render pipeline
+
+**Sources:**
+- [GeckoLib 5 Render Layers](https://github.com/bernie-g/geckolib/wiki/Render-Layers-(Geckolib5))
+- [Mixin Conflict Helper](https://modrinth.com/mod/mixin-conflict-helper)
 
 ---
 
 ## Minor Pitfalls
 
-Mistakes that cause annoyance but are fixable without major refactoring.
+Mistakes that cause annoyance but are fixable.
 
-### Pitfall 9: Invalid Placeholder Textures (v1.0 Repeat Prevention)
-
-**What goes wrong:** Creating placeholder textures that are too small, wrong dimensions, or invalid formats causes black/magenta checkerboard patterns or gray textures instead of intended visuals. **This repeats v1.0's documented mistake.**
-
-**Why it happens:**
-- Forgetting v1.0 lesson: "Placeholder files that are too small/invalid"
-- Forgetting v1.0 lesson: "Gray textures that break immersion"
-- Using dimensions that aren't multiples of 16px
-- Creating files over 256px on one axis
-- Using uppercase or special characters in filenames
-- Creating empty or corrupted placeholder files
-
-**Consequences:**
-- **Immersion-breaking magenta/black checkerboard** during development and potentially release
-- **Gray textures** (explicitly called out in v1.0 issues to NEVER repeat)
-- Texture loading errors in logs
-- Wasted time debugging why textures won't load
-- **Repeating known mistakes destroys credibility**
-
-**Prevention (v1.0 Lessons Applied):**
-- Set minimum placeholder size: 64x64 for entities, 16x16 for items
-- Use proper dimensions: 64x64, 128x128, 256x256 (never 256x512, 300x300, or odd sizes)
-- Follow naming conventions: lowercase, underscores only (dread_entity_texture.png, NOT DreadTexture.png)
-- Create valid placeholder with basic color/pattern (not empty file, not 1x1 file)
-- Check logs on startup for texture loading errors
-- Never exceed 256px on any single axis without testing
-- Use PNG format with proper compression
-- Document v1.0 mistakes in team notes to prevent repetition
-
-**Detection:**
-- Check game logs for "invalid texture" or "dimensions exceed" errors
-- Look for magenta/black checkerboard or gray textures in-game
-- Verify texture files open correctly in image editor
-- Confirm filenames are lowercase with underscores only
-- Run texture validation before committing
-
-**Related Features:** All texture work (dread entity improvements, pose-related textures)
-
-**Phase Impact:** Dread Texture Milestone - Placeholder quality matters for development workflow.
-
-**Sources:**
-- [Minecraft Wiki: Missing textures](https://minecraft.wiki/w/Missing_textures_and_models)
-- [MCreator: Invalid texture path](https://mcreator.net/forum/83997/invalid-texture-path)
-- v1.0 Project Post-Mortem (documented issues)
-
----
-
-### Pitfall 10: Pose Animation Conflicts with Other Mods
-
-**What goes wrong:** Crawl pose animation conflicts with popular animation mods (Not Enough Animations, playerAnimator, Better Animations), causing animation glitches or forcing players to choose between mods.
+### Pitfall 11: Camera Chunk Loading During Pullback
+**What goes wrong:** Camera pulls back outside loaded chunks, causing black void or missing terrain during cinematic.
 
 **Why it happens:**
-- Multiple mods trying to control player animation simultaneously
-- Using swim animation for crawling conflicts with other mods' swim animation overrides
-- Not using animation library API (playerAnimator) for compatibility
-- Implementing custom animation system instead of leveraging existing libraries
-
-**Consequences:**
-- **Players must choose:** Dread mod OR animation mod (not both)
-- **Reduced mod adoption** due to incompatibilities
-- **Bug reports from users** with popular animation packs
-- **Animation glitches:** Running animation plays during crawl, weird limb positions
-- **Negative reviews citing incompatibility**
+- Minecraft only loads chunks near player position
+- Camera moves faster than chunk loading can keep up
+- Cinematic camera may be 16+ blocks away from player
 
 **Prevention:**
-- **Integrate playerAnimator library** (117M+ downloads, compatibility-focused)
-- Check for animation mod presence at runtime, defer to their system if found
-- Use animation blend modes, NOT replacement modes
-- Test with top animation mods during development:
-  - Not Enough Animations
-  - Better Animations resource pack
-  - playerAnimator
-- Document known incompatibilities in mod description if unavoidable
-- Consider making playerAnimator a soft dependency (optional but recommended)
-
-```java
-// Check for playerAnimator and use it if available
-if (FabricLoader.getInstance().isModLoaded("playeranimator")) {
-    // Use playerAnimator API for compatibility
-    registerAnimationWithPlayerAnimator();
-} else {
-    // Fallback to custom implementation
-    registerCustomAnimation();
-}
-```
+- Keep camera within render distance during cinematic (test with low render distance)
+- Pre-load chunks in direction of camera movement
+- Limit pullback distance to 8-16 blocks maximum
+- Test with minimum render distance setting (2 chunks)
 
 **Detection:**
-- Install Not Enough Animations + Dread mod, test crawl pose
-- Install Better Animations resource pack + Dread mod, test animations
-- Check for visual glitches: multiple animations layered, limb positions wrong
-- Test animation transitions: standing → crawling → swimming → standing
-- Monitor community feedback for incompatibility reports
+- Black void visible behind Dread during cinematic
+- Terrain "pops in" during camera movement
+- Console shows chunk loading messages during cinematic
 
-**Related Features:** Crawl pose forcing (v1.1)
-
-**Phase Impact:** Crawl Pose Milestone - Integration approach must be decided early; refactoring animation system later is high-effort.
-
-**Sources:**
-- [playerAnimator mod](https://modrinth.com/mod/playeranimator)
-- [Better Animations compatibility list](https://modrinth.com/resourcepack/better-animations)
-- [Not Enough Animations](https://www.curseforge.com/minecraft/mc-mods/not-enough-animations)
+**Phase to address:** Phase 1 (Camera Pullback System) - Test early with various render distances
 
 ---
 
-### Pitfall 11: Attack Prevention Edge Case - Projectiles
-
-**What goes wrong:** Attack prevention blocks melee attacks but forgets about projectiles (arrows, tridents, potions). Player can still damage entities they shouldn't be able to, breaking dread mechanics.
+### Pitfall 12: Particle Spawn Rate Performance
+**What goes wrong:** Blood trail particles spawn too frequently (multiple per tick) causing FPS drops and visual clutter.
 
 **Why it happens:**
-- Event cancellation targets `AttackEntityEvent` (melee only)
-- Projectile damage uses different event path: `ProjectileImpactEvent`
-- Not considering indirect damage sources (explosions, potions, environmental)
-- Testing only with sword/hand, not ranged weapons
-
-**Consequences:**
-- **Inconsistent attack prevention:** Melee blocked, ranged works (confusing UX)
-- **Player confusion:** "Why can I shoot but not punch?"
-- **Breaks intended dread mechanics:** Player can cheese encounters with bow
-- **Multiplayer exploits:** Players discover ranged workaround, share it
+- Easy to spawn particles every tick (20/second) without considering cumulative effect
+- Multiple players crawling = multiplicative particle count
+- Particles persist for multiple seconds, accumulating on screen
 
 **Prevention:**
-- Cancel BOTH `AttackEntityEvent` AND `ProjectileImpactEvent`
-- Handle indirect damage sources:
-  - Splash potions (Harming, Poison)
-  - Lingering effects (potions, area effects)
-  - TNT and explosions
-  - Environmental (lava buckets, fire)
-- Test comprehensively with:
-  - Bow and arrows
-  - Crossbow
-  - Trident (melee and thrown)
-  - Splash potion of harming
-  - Snowballs (non-damaging but still "attack")
-  - Fishing rod (knockback)
-
-```java
-// Projectile attack prevention
-ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
-    if (source.isProjectile() && isAttackPrevented(source.getAttacker())) {
-        // Block projectile damage
-        return false;
-    }
-    return true; // Allow damage
-});
-```
+- Spawn blood trail particles every 5-10 ticks, not every tick (2-4 particles/second)
+- Use particle culling: don't spawn if player not moving
+- Set particle lifetime (2-3 seconds for blood trail)
+- Profile: 10 entities × 4 particles/sec × 2.5sec lifetime = 100 particles on screen
 
 **Detection:**
-- Enable attack prevention
-- Test melee attack with sword (should fail)
-- Test bow/arrow (should also fail if prevention is comprehensive)
-- Test splash potion of harming
-- Test trident throw vs melee
-- Test indirect damage (place lava, ignite TNT)
+- FPS drops when multiple players crawl
+- Blood trail looks more like "blood river"
+- Particle overdraw causes visual noise
 
-**Related Features:** Attack prevention during dread states (v1.1)
-
-**Phase Impact:** Attack Prevention Milestone - Comprehensive event coverage needed from start; patching edge cases post-release is reactive.
-
-**Sources:**
-- [Minecraft Forums: Stopping mob attacks](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/modification-development/2351019-stopping-mobs-from-attacking-players)
+**Phase to address:** Phase 4 (Blood Trail Particles) - Tune spawn rate during implementation
 
 ---
 
-### Pitfall 12: Audio Volume Imbalance
-
-**What goes wrong:** New v1.1 cinematic audio or dread sounds are too loud/quiet relative to existing v1.0 game sounds and vanilla Minecraft sounds, forcing players to constantly adjust volume or miss important audio cues.
+### Pitfall 13: Animation Texture Cannot Freeze on Frame
+**What goes wrong:** Desire to have animation pause on specific frame (e.g., eyes fully open) but animations must continuously loop in Minecraft.
 
 **Why it happens:**
-- Not normalizing audio files to consistent volume level
-- Not accounting for Minecraft's volume categories (master, ambient, hostile)
-- Recording/adding audio without reference to existing game volumes
-- Stacking multiple sounds without volume compensation
-- Testing with headphones only (or speakers only) instead of both
-
-**Consequences:**
-- **Cinematic audio blows out eardrums:** Players scramble for volume control
-- **Dread ambience too quiet to hear:** Subtle horror cues missed
-- **Player has to manually balance volumes** in settings (poor UX)
-- **Horror atmosphere ruined** by volume inconsistency (jumpscares too loud, ambience inaudible)
-- **Negative reviews:** "Mod is too loud" or "Can't hear the sounds"
+- Minecraft texture animation system has no "freeze" command
+- All .mcmeta animations loop indefinitely
+- Cannot conditionally control animation state from code
 
 **Prevention:**
-- **Normalize all audio to -3dB peak level** before importing to mod
-- Test in-game with master volume at 50%, category volumes at 100%
-- Compare new sounds to vanilla sounds at same distance for reference
-- Compare to v1.0 sounds for consistency within mod
-- Use proper sound categories:
-  - `AMBIENT` for atmosphere (subject to ambient volume slider)
-  - `HOSTILE` for entities (subject to hostile volume slider)
-  - `MASTER` for critical sounds (subject only to master volume)
-- Document recommended volume settings in mod description if adjustment needed
-- Implement volume scaling in config for user fine-tuning
-- **Test with BOTH headphones AND speakers** (different audio experiences)
-
-```java
-// Audio with volume scaling from config
-public void playDreadAmbient(SoundEvent sound, Vec3d pos) {
-    float baseVolume = 0.7f; // Start at 70% for ambient
-    float volumeMultiplier = config.getAmbientVolumeMultiplier(); // User config
-    float finalVolume = baseVolume * volumeMultiplier;
-
-    world.playSound(null, pos, sound, SoundCategory.AMBIENT, finalVolume, 1.0f);
-}
-```
+- Design animations that look good looping continuously
+- For "state change" effects (eyes closed → open), use multiple textures with logic to swap
+- Use GeckoLib skeletal animations for controllable state changes
+- Extend final frame: set very long duration on last frame for "pause" effect
 
 **Detection:**
-- Play game with volume at normal level (50% master)
-- Trigger cinematic audio, check if you need to adjust volume immediately
-- Trigger dread ambient sounds, verify they're audible but not overpowering
-- Ask playtesters about volume balance (don't rely on developer familiarity)
-- Compare to vanilla cave sounds and Nether ambience for reference baseline
-- Test with different audio output devices (headphones, speakers, surround)
+- Animation loops when you want it to stop
+- Cannot trigger animation state change from game events
 
-**Related Features:** Real audio implementation (v1.1) + cinematic audio (v1.1)
-
-**Phase Impact:** Real Audio Milestone + Cinematic Effects Milestone - Volume normalization should happen during audio creation, not post-integration.
+**Phase to address:** Phase 2 (Animated Textures) - Design animations with looping constraint
 
 **Sources:**
-- [Tense Ambience mod configuration](https://modrinth.com/mod/tense-ambience)
-- [MAtmos audio balancing update](https://www.curseforge.com/minecraft/mc-mods/matmos2)
+- [Animation Cannot Freeze Discussion](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/resource-packs/resource-pack-help/2512588-animated-texture-clamping-maximum-frame-duration)
 
 ---
 
-## Phase-Specific Warnings (v1.1 Features)
+## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| **Crawl Pose Implementation** | Client-Server Animation Desync (Critical #1) | Implement Fabric networking sync BEFORE visual effects |
-| | GeckoLib Conflicts (Critical #3) | Test with v1.0 entities early, coordinate animation controllers |
-| | Mod Compatibility (Minor #10) | Integrate playerAnimator API for broad compatibility |
-| | Texture UV Breaks (Moderate #5) | Design UVs for crawl state from start, test in Blockbench |
-| **Attack Prevention** | Server-Only Execution (Critical #2) | Cancel at packet level, sync feedback to client |
-| | Projectile Edge Case (Minor #11) | Handle both melee AND projectile events comprehensively |
-| **Dread Texture Improvements** | UV Mapping Breaks (Moderate #5) | Manual UV mapping for all animation states, no auto-UV |
-| | Invalid Placeholders (Minor #9) | Apply v1.0 learnings: valid dimensions, proper naming |
-| | Performance Impact (Moderate #8) | Stick to 64x64 or 128x128, test with multiple entities + shaders |
-| **Cinematic Effects** | Motion Sickness (Moderate #6) | Exponential decay, config options, test at low FPS |
-| | Sound Channel Saturation (Critical #4) | Integrate with v1.0 priority system, stop looping sounds |
-| **Real Audio Implementation** | Format Incompatibility (Moderate #7) | OGG mono 44.1kHz only, test spatial audio |
-| | Volume Imbalance (Minor #12) | Normalize to -3dB, test with vanilla sounds for reference |
-| | Sound Channel Saturation (Critical #4) | Respect v1.0 channel limits, integrate with priority system |
+| Phase | Likely Pitfalls | Required Testing |
+|-------|-----------------|------------------|
+| **Phase 1: Camera Pullback System** | Pitfall 1 (Feedback Loops), Pitfall 2 (Death Screen Conflicts), Pitfall 6 (Interpolation Jitter), Pitfall 8 (Satin Shader Conflicts), Pitfall 11 (Chunk Loading) | - Test with doImmediateRespawn ON and OFF<br>- Profile render-time vs tick-time modifications<br>- Test with 2-chunk render distance<br>- Verify existing Satin shaders still work |
+| **Phase 2: Animated Textures** | Pitfall 3 (Atlas Performance), Pitfall 5 (GeckoLib Timing Conflicts), Pitfall 9 (.mcmeta Errors), Pitfall 10 (Render Layer Priority), Pitfall 13 (Cannot Freeze) | - Profile FPS with AMD GPUs<br>- Test 3+ animated Dread entities simultaneously<br>- Verify glowmask compatibility<br>- Test animation sync over 60 seconds |
+| **Phase 3: Environmental Interactions** | Pitfall 7 (Client-Server Desync), Pitfall 10 (Render Layer Priority) | - Test in actual multiplayer (not local server)<br>- Verify BlockEntity data sync<br>- Test with 3+ players in same area |
+| **Phase 4: Blood Trail Particles** | Pitfall 4 (Multiplayer Desync), Pitfall 10 (Render Layer Priority), Pitfall 12 (Spawn Rate Performance) | - Test in multiplayer with 5+ players<br>- Profile particle count with multiple crawling players<br>- Verify particles appear for all clients |
 
 ---
 
-## Integration Pitfalls with Existing v1.0 System
+## Integration Warnings with Existing v1.x Systems
 
-### Existing v1.0 Strengths to Preserve
+### CameraMixin (Existing Camera Shake)
+- **Risk:** New camera pullback conflicts with existing shake effect
+- **Test:** Trigger death during existing camera shake conditions
+- **Solution:** Apply shake as relative transform on top of cinematic position
 
-1. **Client-Server Separation (Proper Source Sets)**
-   - **Risk:** New v1.1 features bypass separation, causing dedicated server crashes
-   - **Prevention:** Use existing client/server module structure for all new code
-   - **Test:** Deploy to dedicated server, not just singleplayer testing
+### GeckoLib (Existing Dread Entity)
+- **Risk:** New texture animations conflict with existing skeletal animations
+- **Test:** Verify Dread continues to animate smoothly with new texture effects
+- **Solution:** Use GeckoLib's texture animation system, not separate .mcmeta
 
-2. **Sound Priority System**
-   - **Risk:** New v1.1 sounds ignore priority levels, breaking v1.0 channel management
-   - **Prevention:** Route ALL new audio through existing priority manager
-   - **Test:** Trigger v1.0 + v1.1 sounds simultaneously, verify priority ordering
+### Satin API (Existing Post-Processing)
+- **Risk:** Shaders render at wrong time relative to camera pullback
+- **Test:** Verify horror effects apply correctly during cinematic
+- **Solution:** Ensure MatrixStack state properly restored after camera transform
 
-3. **Shader Compatibility (Runtime Detection)**
-   - **Risk:** New rendering (pose, textures) breaks shader detection or conflicts with shaders
-   - **Prevention:** Test new visuals (pose, improved textures) with shader packs enabled
-   - **Test:** Enable Complementary/BSL shaders, verify no visual regressions
+### BlockEntityMixin (Existing Torch Extinguishing)
+- **Risk:** Environmental effects (light flicker) may conflict with existing torch logic
+- **Test:** Verify torch extinguishing still works with new effects
+- **Solution:** Extend existing BlockEntity sync system for new effects
 
-4. **GeckoLib Entity Rendering**
-   - **Risk:** Pose overrides conflict with GeckoLib animations, breaking v1.0 entities
-   - **Prevention:** Coordinate animation controllers, test entity rendering during pose changes
-   - **Test:** Spawn v1.0 entities while in crawl pose, verify animations work correctly
-
-### Known v1.0 Issues to NEVER Repeat
-
-1. **Placeholder Textures (too small/invalid)**
-   - **For v1.1:** Create valid 64x64 minimum placeholders from day one
-   - **Verification:** Check logs on startup, zero texture loading errors
-
-2. **Gray Textures (immersion-breaking)**
-   - **For v1.1:** Use proper dimensions (multiples of 16px), valid file formats
-   - **Verification:** All textures show color/pattern, never gray placeholders
-
-3. **No regression on v1.0 fixes:**
-   - v1.0 solved these problems; v1.1 must not reintroduce them
-   - Test v1.0 features after adding v1.1 features to catch regressions
+### Network Packets (Existing Multiplayer)
+- **Risk:** New effects (particles, environmental) need additional packets
+- **Test:** Monitor packet rate in multiplayer
+- **Solution:** Batch environmental effects in single packet where possible
 
 ---
 
-## v1.1-Specific Testing Checklist
+## Quality Gates Before Each Phase
 
-Before milestone completion:
+### Before Phase 1 (Camera):
+- [ ] Can trigger custom camera position without entity position change
+- [ ] Camera interpolation smooth at 144fps
+- [ ] Death screen doesn't interfere with camera control
+- [ ] Existing Satin shaders still apply correctly
+- [ ] Works with both immediate respawn ON and OFF
 
-### Crawl Pose Milestone:
-- [ ] Pose syncs correctly in dedicated server (2+ clients)
-- [ ] No client-server position desync (no rubberbanding)
-- [ ] v1.0 GeckoLib entities still animate correctly during crawl pose
-- [ ] Texture UVs remain correct in crawl pose
-- [ ] Compatible with playerAnimator (if installed)
-- [ ] No gray textures during pose transitions
+### Before Phase 2 (Textures):
+- [ ] Know exact animated texture count (target: <10 total in mod)
+- [ ] Tested .mcmeta format in vanilla resource pack
+- [ ] Decided GeckoLib vs .mcmeta for each effect
+- [ ] Profiled FPS impact per animated texture
+- [ ] Tested on AMD GPU hardware
 
-### Attack Prevention Milestone:
-- [ ] Melee attacks blocked correctly
-- [ ] Projectile attacks (bow, trident, potions) also blocked
-- [ ] Client receives feedback (no ghost animations/sounds)
-- [ ] Attack prevention syncs in multiplayer
+### Before Phase 3 (Environmental):
+- [ ] BlockEntity data sync working in multiplayer
+- [ ] Can trigger effects server-side with client-side rendering
+- [ ] Network packet design reviewed
+- [ ] Tested with 3+ players in same area
 
-### Dread Texture Milestone:
-- [ ] Improved textures work in all animation states (standing, crawling, downed)
-- [ ] No UV stretching or misalignment
-- [ ] Performance acceptable with 5+ entities on screen
-- [ ] Shader compatibility maintained (test with Complementary, BSL)
-- [ ] No gray/placeholder textures in release build
-- [ ] Texture dimensions are multiples of 16px
-
-### Cinematic Effects Milestone:
-- [ ] Camera shake has config options (intensity, enable/disable)
-- [ ] No motion sickness at 30fps, 60fps, 144fps
-- [ ] Sound channels don't saturate (cinematics + v1.0 sounds work together)
-- [ ] v1.0 sound priority system respected
-- [ ] Performance remains 60+ FPS during cinematic sequences
-
-### Real Audio Milestone:
-- [ ] All audio files are OGG mono 44.1kHz
-- [ ] Spatial audio works correctly (3D positioning)
-- [ ] Volume balanced with vanilla sounds and v1.0 sounds
-- [ ] Sound channel budget not exceeded (test with multiple sources)
-- [ ] v1.0 priority system extended for new sounds
-- [ ] Config options for volume adjustment
+### Before Phase 4 (Particles):
+- [ ] Calculated max particle count (players × spawn rate × lifetime)
+- [ ] Particle multiplayer sync implementation designed
+- [ ] Tested particle performance budget
+- [ ] Verified particle culling distance
 
 ---
 
-## Confidence Assessment
+## Research Confidence Assessment
 
-| Pitfall Category | Confidence Level | Source Quality |
-|------------------|------------------|----------------|
-| Client-Server Sync (v1.1 features) | HIGH | Fabric official docs + v1.0 patterns |
-| Animation Conflicts (pose + GeckoLib) | MEDIUM | WebSearch + mod compatibility reports |
-| Texture Issues (UV, formats) | HIGH | Blockbench docs + Minecraft Wiki + v1.0 lessons |
-| Audio Format (OGG requirements) | HIGH | Minecraft Wiki + mod best practices |
-| Performance Impact (textures, cinematics) | MEDIUM | Community reports + mod developer insights |
-| Sound Channel Limits (v1.1 expansion) | MEDIUM | WebSearch + Audio Engine Tweaks + v1.0 system |
-| Motion Sickness (accessibility) | MEDIUM | Camera mod best practices + accessibility standards |
-| Attack Prevention (events) | MEDIUM | Fabric events + community patterns |
+| Topic | Confidence | Reason |
+|-------|------------|--------|
+| Camera Transformation | HIGH | Well-documented MatrixStack API, clear community patterns, you have existing CameraMixin experience |
+| Death Screen Conflicts | MEDIUM | Official wiki documentation but limited modding-specific info |
+| Animated Texture Performance | HIGH | Official bug report (MC-132488), multiple performance mods address issue, specific benchmarks |
+| GeckoLib Integration | MEDIUM | Official GeckoLib wiki but limited community discussion of texture animation conflicts |
+| Multiplayer Sync | HIGH | Well-documented client/server architecture, official particle spawning API, clear common issues |
+| Satin API Conflicts | LOW | Limited documentation, relies on Iris compatibility warning observation |
+| .mcmeta Format | HIGH | Official resource pack documentation, multiple community tutorials |
 
----
+## Validation Recommendations
 
-## Research Notes
+**HIGH Priority (validate before starting):**
+1. Test camera transformation in render-time mixin (Pitfall 1)
+2. Profile animated texture performance on AMD GPU (Pitfall 3)
+3. Verify particle multiplayer sync in test environment (Pitfall 4)
 
-**Most Critical for v1.1 Roadmap Planning:**
-1. **Client-Server Animation Desync** (affects crawl pose milestone heavily, MUST sync from day one)
-2. **Sound Channel Saturation** (affects both cinematic and audio milestones, must integrate with v1.0)
-3. **GeckoLib Animation Conflicts** (affects integration with v1.0 entity system)
+**MEDIUM Priority (validate during implementation):**
+4. Test death screen interaction with camera control (Pitfall 2)
+5. Verify GeckoLib + texture animation timing (Pitfall 5)
+6. Test BlockEntity renderer sync (Pitfall 7)
 
-**Likely Needs Phase-Specific Research:**
-- Crawl pose: Deep dive into playerAnimator integration for broad mod compatibility
-- Cinematic effects: Accessibility testing with motion-sensitive users (external playtesters)
-- Attack prevention: Comprehensive event coverage validation (all damage types)
-
-**Low Risk / Standard Patterns:**
-- Texture format compliance (well-documented, straightforward, v1.0 experience)
-- Audio format conversion (tooling exists, clear specs, repeatable process)
-
-**v1.0 Lessons Applied:**
-- No gray textures (documented mistake, won't repeat)
-- No invalid placeholders (documented mistake, won't repeat)
-- Respect existing sound priority system (v1.0 strength, must preserve)
-- Test with shaders (v1.0 already handles, must not break)
+**LOW Priority (fix if encountered):**
+7. Camera chunk loading edge cases (Pitfall 11)
+8. Particle spawn rate tuning (Pitfall 12)
 
 ---
 
-## Sources Summary
+## Additional Resources
 
-### Official Documentation (HIGH confidence)
-- [Fabric Wiki: Side Tutorial](https://wiki.fabricmc.net/tutorial:side)
-- [Fabric Documentation: Networking](https://docs.fabricmc.net/develop/networking)
-- [Fabric Documentation: Events](https://docs.fabricmc.net/develop/events)
-- [Blockbench: Minecraft Style Guide](https://www.blockbench.net/wiki/guides/minecraft-style-guide/)
-- [Minecraft Wiki: Textures](https://minecraft.wiki/w/Textures)
-- [Minecraft Wiki: Missing textures](https://minecraft.wiki/w/Missing_textures_and_models)
+**Official Documentation:**
+- Minecraft Wiki - Death: https://minecraft.wiki/w/Death
+- Fabric Wiki - BlockEntity Renderers: https://fabricmc.net/wiki/tutorial:blockentityrenderers
+- GeckoLib Wiki - Animated Textures: https://github.com/bernie-g/geckolib/wiki/Animated-Textures-(Geckolib5)
 
-### Mod Compatibility & Best Practices (MEDIUM-HIGH confidence)
-- [playerAnimator mod](https://modrinth.com/mod/playeranimator) - 117M+ downloads, animation compatibility library
-- [GeckoLib GitHub](https://github.com/bernie-g/geckolib) - Animation engine documentation, v5.4.2 (Jan 2026)
-- [Audio Engine Tweaks](https://modrinth.com/mod/audio-engine-tweaks) - Sound channel management patterns
-- [Camera Overhaul](https://modrinth.com/mod/cameraoverhaul) - Cinematic camera best practices with config
-- [Inertia! mod](https://modrinth.com/mod/inertia!) - Motion sickness reduction patterns
-- [Entity Desync Viewer](https://modrinth.com/mod/entity-desync-viewer) - Debug tool for client-server position sync
+**Performance Tools:**
+- AnimFix (texture animation optimization): https://modrinth.com/mod/animfix
+- Mixin Conflict Helper (development tool): https://modrinth.com/mod/mixin-conflict-helper
+- Particle Core (particle optimization): https://modrinth.com/mod/particle-core
 
-### Community Knowledge (MEDIUM confidence)
-- [Minecraft Forums: Animation conflicts](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1288552-aesthetic-animated-player-compatibility-and)
-- [LinkedIn: UV mapping mistakes](https://www.linkedin.com/advice/0/what-common-uv-mapping-texturing-mistakes-how-fix-them)
-- [Entity Texture Features performance analysis](https://modern.cansoft.com/time-to-retire-etf-why-entity-texture-features-has-run-its-course/)
-- [Minecraft Forums: Texture resolution FPS impact](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/resource-packs/resource-pack-discussion/2853251-does-going-lower-than-16x-actually-improve-fps)
-- [Tense Ambience mod](https://modrinth.com/mod/tense-ambience) - Horror atmosphere audio configuration
-- [MAtmos audio balancing](https://www.curseforge.com/minecraft/mc-mods/matmos2) - Ambient sound volume management
+**Technical References:**
+- MatrixStack API: https://maven.fabricmc.net/docs/yarn-1.21+build.2/net/minecraft/client/util/math/MatrixStack.html
+- Client/Server Desync: https://technical-minecraft.fandom.com/wiki/Client/server_desynchronization
+
+**Bug Reports:**
+- MC-132488 (Animated Texture Performance): https://bugs.mojang.com/browse/MC-132488
+- MC-10369 (Server Particle Spawning): https://bugs.mojang.com/browse/MC-10369
+
+---
+
+**Prepared for:** Roadmap creation and phase planning
+**Last Updated:** 2026-01-27
