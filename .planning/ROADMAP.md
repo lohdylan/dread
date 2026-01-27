@@ -49,10 +49,14 @@ Plans:
   3. Full death cinematic plays before single-player death (not skipped)
   4. Multiplayer downed state still lasts 300 seconds
   5. Multiplayer death without revive still results in permanent spectator mode
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 11-01: TBD
+- [ ] 11-01-PLAN.md — Game mode detection infrastructure (GameModeDetector, config timeouts, mode-aware setDowned)
+- [ ] 11-02-PLAN.md — Death outcome branching (singleplayer triggers cinematic + normal death, multiplayer spectator)
+- [ ] 11-03-PLAN.md — Extended packet with mercy mode flag for client sync
+- [ ] 11-04-PLAN.md — Client UI updates (MERCY/NO MERCY indicator, orange/red color scheme)
+- [ ] 11-05-PLAN.md — Mode transitions on player join/leave, respawn debuff application
 
 ### Phase 12: Audio & Testing
 **Goal**: Audio polish complete, multiplayer stability validated
@@ -85,7 +89,7 @@ Phases 1-8 complete. v1.2 starts at Phase 9.
 | 8. Cinematic Enhancement | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 9. Cinematic Fix | v1.2 | 1/1 | Complete | 2026-01-26 |
 | 10. State Cleanup | v1.2 | 2/2 | Complete | 2026-01-26 |
-| 11. Single-Player Forgiveness | v1.2 | 0/? | Not started | - |
+| 11. Single-Player Forgiveness | v1.2 | 0/5 | Not started | - |
 | 12. Audio & Testing | v1.2 | 0/? | Not started | - |
 
 **Total:** 12 phases, 33 plans complete, 2 milestones shipped, 1 in progress
