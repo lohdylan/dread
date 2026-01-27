@@ -55,6 +55,9 @@ Recent decisions from PROJECT.md affecting v2.0:
 - HudRenderCallback pattern for cinematic overlays — Phase 13-02
 - Locked camera rotation during face close-up (frozen terror aesthetic) — Phase 13-03
 - Smooth yaw tracking during pull-back phase — Phase 13-03
+- Heartbeat pulse zones: 3 zones with accelerating periods (20-tick → 12-tick → 6-tick) — Phase 14-02
+- Pulse frame calculation: Zone-based modulo for smooth acceleration effect — Phase 14-02
+- Texture path generation: Dynamic construction supports all 3 form variants — Phase 14-02
 - Parallel controller pattern for tentacle animation (runs alongside main/head) — Phase 14-03 (ANIM-01)
 - Subtle rotation values (2-6 degrees) for barely perceptible motion — Phase 14-03 (ANIM-02)
 - 4-second loop with offset timing for organic tentacle movement — Phase 14-03 (ANIM-03)
@@ -79,10 +82,14 @@ None.
 
 **Phase 14 (Textures):**
 - Plan 14-01 COMPLETE: Timer API and placeholder textures in place
+- Plan 14-02 COMPLETE: Cinematic-synchronized texture selection with heartbeat pulse
 - Plan 14-03 COMPLETE: Tentacle writhing animation added
 - getCinematicTimer() returns tick (0-90) for animation sync
 - isInFaceCloseup() detects face close-up phase
 - 8 placeholder texture files created (pulse 0/1/2, eyes_open + glowmasks)
+- DreadEntityModel.getTextureResource() dynamically selects textures based on cinematic state
+- Accelerating heartbeat pulse (3 zones: 20-tick → 12-tick → 6-tick periods)
+- Eyes-open texture shown during face close-up phase
 - tentacle_writhe animation with 4s loop, 2-6° subtle rotations
 - Parallel animation controller for continuous background motion
 - MEDIUM risk: Animated texture performance collapse with AMD GPUs
