@@ -21,61 +21,37 @@ public class DeathCinematicClientHandler {
     // ===== Phase System =====
 
     /**
-     * Cinematic phases matching death_grab animation timing plus settle transition.
+     * Cinematic phases for v2.0 camera control system.
+     * Third-person pull-back followed by jump cut to face close-up.
      */
     private enum CinematicPhase {
-        IMPACT,   // 0-3 ticks (0.15s): grab impact - quick downward dip
-        LIFT,     // 3-14 ticks (0.15s-0.7s): being lifted - slow pitch raise
-        HOLD,     // 14-30 ticks (0.7s-1.5s): face-to-face - stable locked view
-        RELEASE,  // 30-36 ticks (1.5s-1.8s): released - gradual settle
-        SETTLE    // 36-46 ticks (1.8s-2.3s): transition to downed - fade in effects
+        THIRD_PERSON_PULLBACK, // 0-30 ticks (1.5s): Camera behind and above player, framing both
+        FACE_CLOSEUP           // 30-90 ticks (3.0s): Camera locked on Dread's face, eyes centered
     }
 
     // Phase tick boundaries
-    private static final int IMPACT_END = 3;       // 0.15s
-    private static final int LIFT_END = 14;        // 0.7s
-    private static final int HOLD_END = 30;        // 1.5s
-    private static final int RELEASE_END = 36;     // 1.8s (death_grab animation ends)
-    private static final int SETTLE_END = 46;      // 2.3s (full transition complete)
-    private static final int CINEMATIC_DURATION_TICKS = SETTLE_END; // Extended for smooth transition
+    private static final int PULLBACK_END_TICKS = 30;     // 1.5 seconds
+    private static final int CINEMATIC_DURATION_TICKS = 90; // 4.5 seconds total
 
-    // Phase-specific camera motion parameters
-    private static final float IMPACT_DIP_DEGREES = 5.0f;    // Downward dip on grab
-    private static final float LIFT_RAISE_DEGREES = 18.0f;   // How much pitch raises during lift
-    private static final float RELEASE_LOWER_DEGREES = 10.0f; // Lower more to anticipate crawl
-    private static final float SETTLE_FINAL_PITCH = 15.0f;   // Final resting pitch (slightly looking down)
+    // Camera positioning constants
+    private static final double PULLBACK_DISTANCE = 5.0;  // Blocks behind player
+    private static final double PULLBACK_HEIGHT = 2.0;    // Blocks above player
+    private static final double FACE_DISTANCE = 0.4;      // Blocks from Dread's face (avoid clipping)
 
-    // Yaw lerp speeds per phase (higher = faster snap to target)
-    private static final float IMPACT_YAW_LERP = 0.25f;  // Fast snap toward Dread
-    private static final float LIFT_YAW_LERP = 0.12f;    // Smooth tracking
-    private static final float HOLD_YAW_LERP = 0.08f;    // Very smooth, stable
-    private static final float RELEASE_YAW_LERP = 0.05f; // Gradual settle
-    private static final float SETTLE_YAW_LERP = 0.03f;  // Very gradual, player regaining control feel
-
-    // SETTLE phase wobble parameters (simulates "landing" impact)
-    private static final float SETTLE_WOBBLE_AMPLITUDE = 2.0f;  // Degrees of wobble
-    private static final float SETTLE_WOBBLE_FREQUENCY = 3.0f;  // Oscillations during settle
-
-    // Keep CameraShakeHandler for potential future use, but not used during death grab
-    @SuppressWarnings("unused")
-    private static final CameraShakeHandler cameraShake = new CameraShakeHandler();
+    // Yaw tracking during pull-back (smooth look toward Dread)
+    private static final float PULLBACK_YAW_LERP = 0.08f;
 
     private static boolean cinematicActive = false;
     private static int cinematicTimer = 0;
     private static int dreadEntityId = -1;
-    private static CinematicPhase currentPhase = CinematicPhase.IMPACT;
+    private static CinematicPhase currentPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
 
-    // Target rotation to look at Dread
+    // Target rotation to look at Dread (used during pull-back)
     private static float targetYaw = 0;
     private static float targetPitch = 0;
     // Current smoothed rotation
     private static float currentYaw = 0;
     private static float currentPitch = 0;
-
-    // Phase-specific tracking
-    private static float initialPitch = 0;        // Player's pitch when cinematic started
-    private static float basePitchOffset = 0;     // Accumulated pitch offset from phases
-    private static float impactDipProgress = 0;   // Track impact dip animation (0 to 1 and back)
 
     /**
      * Register client tick event for cinematic updates.
@@ -89,9 +65,8 @@ public class DeathCinematicClientHandler {
     }
 
     /**
-     * Start the death cinematic - force player camera to look at Dread.
-     * Player stays as camera entity but their view is locked onto Dread.
-     * Uses phased camera motion for smooth, deliberate "grabbed and lifted" feel.
+     * Start the death cinematic with v2.0 camera control.
+     * Camera jumps to third-person immediately, pulls back, then jump-cuts to face close-up.
      *
      * @param payload Cinematic trigger packet from server
      */
@@ -106,17 +81,15 @@ public class DeathCinematicClientHandler {
         Entity dreadEntity = client.world.getEntityById(dreadEntityId);
 
         if (dreadEntity != null) {
-            // Store current rotation as starting point for smooth interpolation
+            // Store current rotation as starting point
             currentYaw = client.player.getYaw();
             currentPitch = client.player.getPitch();
-            initialPitch = currentPitch;
 
-            // Calculate direction from player to Dread (so player SEES Dread)
+            // Calculate direction from player to Dread for yaw tracking
             Vec3d playerEyePos = client.player.getEyePos();
-            Vec3d dreadPos = dreadEntity.getPos().add(0, dreadEntity.getHeight() / 2, 0); // Aim at Dread's center
+            Vec3d dreadPos = dreadEntity.getPos().add(0, dreadEntity.getHeight() / 2, 0);
             Vec3d direction = dreadPos.subtract(playerEyePos).normalize();
 
-            // Convert to yaw/pitch
             targetYaw = (float) Math.toDegrees(Math.atan2(-direction.x, direction.z));
             targetPitch = (float) Math.toDegrees(-Math.asin(direction.y));
 
@@ -125,15 +98,8 @@ public class DeathCinematicClientHandler {
                 dread.setPlayingDeathGrab(true);
             }
 
-            // Initialize phase system - no random shake, just smooth phased motion
-            currentPhase = CinematicPhase.IMPACT;
-            basePitchOffset = 0;
-            impactDipProgress = 0;
-
-            // Initialize effects for smooth fade-in during SETTLE phase
-            // Effects start invisible (0) and fade to full (1) during SETTLE
-            DownedStateClientHandler.setShaderFadeIntensity(0.0f);
-            CrawlCameraHandler.setPitchLimitTransition(0.0f);
+            // Initialize v2.0 phase system
+            currentPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
 
             // Start cinematic timer
             cinematicActive = true;
@@ -142,8 +108,8 @@ public class DeathCinematicClientHandler {
     }
 
     /**
-     * Tick the cinematic timer and apply phased camera motion.
-     * Each phase has distinct camera behavior matching the death_grab animation.
+     * Tick the cinematic timer and update phase.
+     * Camera position/rotation controlled via mixins reading getCameraPositionOffset().
      */
     private static void tick() {
         cinematicTimer++;
@@ -154,25 +120,28 @@ public class DeathCinematicClientHandler {
         // Update current phase based on timer
         updatePhase();
 
-        // Keep player looking at Dread during cinematic
-        Entity dreadEntity = client.world.getEntityById(dreadEntityId);
-        if (dreadEntity != null) {
-            // Recalculate direction to Dread (in case either moved)
-            Vec3d playerEyePos = client.player.getEyePos();
-            Vec3d dreadPos = dreadEntity.getPos().add(0, dreadEntity.getHeight() / 2, 0);
-            Vec3d direction = dreadPos.subtract(playerEyePos).normalize();
+        // During pull-back, smoothly rotate player to look at Dread
+        if (currentPhase == CinematicPhase.THIRD_PERSON_PULLBACK) {
+            Entity dreadEntity = client.world.getEntityById(dreadEntityId);
+            if (dreadEntity != null) {
+                // Recalculate direction to Dread
+                Vec3d playerEyePos = client.player.getEyePos();
+                Vec3d dreadPos = dreadEntity.getPos().add(0, dreadEntity.getHeight() / 2, 0);
+                Vec3d direction = dreadPos.subtract(playerEyePos).normalize();
 
-            targetYaw = (float) Math.toDegrees(Math.atan2(-direction.x, direction.z));
-            targetPitch = (float) Math.toDegrees(-Math.asin(direction.y));
+                targetYaw = (float) Math.toDegrees(Math.atan2(-direction.x, direction.z));
+                targetPitch = (float) Math.toDegrees(-Math.asin(direction.y));
 
-            // Apply phase-specific camera motion
-            applyPhaseMotion();
+                // Smooth yaw tracking
+                currentYaw = lerpAngle(currentYaw, targetYaw, PULLBACK_YAW_LERP);
+                currentPitch = MathHelper.lerp(PULLBACK_YAW_LERP, currentPitch, targetPitch);
 
-            // Apply final rotation to player
-            client.player.setYaw(currentYaw);
-            client.player.setPitch(currentPitch + basePitchOffset);
-            client.player.prevYaw = currentYaw;
-            client.player.prevPitch = currentPitch + basePitchOffset;
+                // Apply to player
+                client.player.setYaw(currentYaw);
+                client.player.setPitch(currentPitch);
+                client.player.prevYaw = currentYaw;
+                client.player.prevPitch = currentPitch;
+            }
         }
 
         if (cinematicTimer >= CINEMATIC_DURATION_TICKS) {
@@ -184,157 +153,64 @@ public class DeathCinematicClientHandler {
      * Update the current cinematic phase based on timer.
      */
     private static void updatePhase() {
-        if (cinematicTimer <= IMPACT_END) {
-            currentPhase = CinematicPhase.IMPACT;
-        } else if (cinematicTimer <= LIFT_END) {
-            currentPhase = CinematicPhase.LIFT;
-        } else if (cinematicTimer <= HOLD_END) {
-            currentPhase = CinematicPhase.HOLD;
-        } else if (cinematicTimer <= RELEASE_END) {
-            currentPhase = CinematicPhase.RELEASE;
+        if (cinematicTimer < PULLBACK_END_TICKS) {
+            currentPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
         } else {
-            currentPhase = CinematicPhase.SETTLE;
+            currentPhase = CinematicPhase.FACE_CLOSEUP;
         }
     }
 
     /**
-     * Apply camera motion specific to current phase.
+     * Calculate camera position offset for third-person pull-back.
+     * Camera positioned behind and above player.
      */
-    private static void applyPhaseMotion() {
-        switch (currentPhase) {
-            case IMPACT -> applyImpactMotion();
-            case LIFT -> applyLiftMotion();
-            case HOLD -> applyHoldMotion();
-            case RELEASE -> applyReleaseMotion();
-            case SETTLE -> applySettleMotion();
+    private static Vec3d calculatePullbackPosition() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) {
+            return Vec3d.ZERO;
         }
+
+        // Get player's yaw (horizontal rotation)
+        float yaw = client.player.getYaw();
+        double yawRadians = Math.toRadians(yaw);
+
+        // Calculate offset behind player
+        // In Minecraft: yaw 0 = south (-Z), yaw 90 = west (-X)
+        double offsetX = -Math.sin(yawRadians) * PULLBACK_DISTANCE;
+        double offsetZ = Math.cos(yawRadians) * PULLBACK_DISTANCE;
+        double offsetY = PULLBACK_HEIGHT;
+
+        return new Vec3d(offsetX, offsetY, offsetZ);
     }
 
     /**
-     * IMPACT phase (ticks 0-3): Quick downward dip then recovery.
-     * Simulates being grabbed - fast, visceral but controlled.
+     * Calculate camera position for face close-up.
+     * Camera positioned just in front of Dread's eyes, looking back at player.
      */
-    private static void applyImpactMotion() {
-        // Progress through impact phase (0 to 1)
-        float phaseProgress = (float) cinematicTimer / IMPACT_END;
+    private static Vec3d calculateFaceCloseupPosition() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null || client.world == null) {
+            return Vec3d.ZERO;
+        }
 
-        // Dip down quickly then start recovering
-        // Use sine curve: peaks at middle of phase, returns toward 0
-        impactDipProgress = (float) Math.sin(phaseProgress * Math.PI);
-        basePitchOffset = IMPACT_DIP_DEGREES * impactDipProgress;
+        // Get Dread entity
+        Entity dreadEntity = client.world.getEntityById(dreadEntityId);
+        if (dreadEntity == null) {
+            return Vec3d.ZERO;
+        }
 
-        // Fast yaw snap toward Dread
-        currentYaw = lerpAngle(currentYaw, targetYaw, IMPACT_YAW_LERP);
-        currentPitch = MathHelper.lerp(IMPACT_YAW_LERP, currentPitch, targetPitch);
-    }
+        // Get positions
+        Vec3d dreadEyes = dreadEntity.getEyePos();
+        Vec3d playerPos = client.player.getPos();
 
-    /**
-     * LIFT phase (ticks 3-14): Camera smoothly raises.
-     * Feeling of being lifted up by Dread - slow, deliberate with ease-out.
-     */
-    private static void applyLiftMotion() {
-        // Progress through lift phase (0 to 1)
-        float phaseProgress = (float) (cinematicTimer - IMPACT_END) / (LIFT_END - IMPACT_END);
+        // Calculate direction from Dread to player (normalized)
+        Vec3d direction = playerPos.subtract(dreadEyes).normalize();
 
-        // Apply ease-out for natural deceleration (fast start, slow end)
-        float easedProgress = easeOut(phaseProgress);
+        // Position camera just in front of Dread's face, looking back toward player
+        Vec3d cameraTarget = dreadEyes.add(direction.multiply(FACE_DISTANCE));
 
-        // Raise pitch (looking more upward at Dread holding us)
-        // Negative pitch = looking up in Minecraft
-        basePitchOffset = -LIFT_RAISE_DEGREES * easedProgress;
-
-        // Smooth yaw tracking
-        currentYaw = lerpAngle(currentYaw, targetYaw, LIFT_YAW_LERP);
-        currentPitch = MathHelper.lerp(LIFT_YAW_LERP, currentPitch, targetPitch);
-    }
-
-    /**
-     * HOLD phase (ticks 14-30): Completely stable view locked on Dread.
-     * Face-to-face horror moment - stillness creates tension.
-     */
-    private static void applyHoldMotion() {
-        // Maintain lift offset - no additional motion
-        basePitchOffset = -LIFT_RAISE_DEGREES;
-
-        // Very smooth, stable tracking
-        currentYaw = lerpAngle(currentYaw, targetYaw, HOLD_YAW_LERP);
-        currentPitch = MathHelper.lerp(HOLD_YAW_LERP, currentPitch, targetPitch);
-    }
-
-    /**
-     * RELEASE phase (ticks 30-36): Camera slowly settles toward crawl position.
-     * Being released/dropped - smooth ease-out anticipating the downed state.
-     */
-    private static void applyReleaseMotion() {
-        // Progress through release phase (0 to 1)
-        float phaseProgress = (float) (cinematicTimer - HOLD_END) / (RELEASE_END - HOLD_END);
-
-        // Apply ease-in-out for smooth settle
-        float easedProgress = easeInOut(phaseProgress);
-
-        // Transition from lifted position toward crawl-friendly angle
-        // Start at -LIFT_RAISE_DEGREES (looking up), end at +RELEASE_LOWER_DEGREES (looking down)
-        float startOffset = -LIFT_RAISE_DEGREES;
-        float endOffset = RELEASE_LOWER_DEGREES;
-        basePitchOffset = MathHelper.lerp(easedProgress, startOffset, endOffset);
-
-        // Gradual, gentle tracking
-        currentYaw = lerpAngle(currentYaw, targetYaw, RELEASE_YAW_LERP);
-        currentPitch = MathHelper.lerp(RELEASE_YAW_LERP, currentPitch, targetPitch);
-    }
-
-    /**
-     * SETTLE phase (ticks 36-46): Smooth transition into downed state.
-     * Fades in shader effects, gradually applies pitch limits, adds landing wobble.
-     */
-    private static void applySettleMotion() {
-        // Progress through settle phase (0 to 1)
-        float phaseProgress = (float) (cinematicTimer - RELEASE_END) / (SETTLE_END - RELEASE_END);
-
-        // Apply ease-out for natural deceleration
-        float easedProgress = easeOut(phaseProgress);
-
-        // Fade in shader/vignette effects smoothly
-        DownedStateClientHandler.setShaderFadeIntensity(easedProgress);
-
-        // Gradually apply pitch limits (0 = no limit, 1 = full downed limits)
-        CrawlCameraHandler.setPitchLimitTransition(easedProgress);
-
-        // Continue settling pitch toward final resting position
-        float startOffset = RELEASE_LOWER_DEGREES;
-        float endOffset = SETTLE_FINAL_PITCH;
-        float settleOffset = MathHelper.lerp(easedProgress, startOffset, endOffset);
-
-        // Add damped wobble for "landing" feel (decays as phase progresses)
-        float wobbleDecay = 1.0f - easedProgress;  // Wobble fades out
-        float wobblePhase = phaseProgress * SETTLE_WOBBLE_FREQUENCY * (float) Math.PI * 2.0f;
-        float wobble = (float) Math.sin(wobblePhase) * SETTLE_WOBBLE_AMPLITUDE * wobbleDecay;
-
-        basePitchOffset = settleOffset + wobble;
-
-        // Very gradual yaw - player starting to regain control
-        currentYaw = lerpAngle(currentYaw, targetYaw, SETTLE_YAW_LERP);
-        currentPitch = MathHelper.lerp(SETTLE_YAW_LERP, currentPitch, targetPitch);
-    }
-
-    // ===== Easing Functions =====
-
-    /**
-     * Ease-out: fast start, slow end.
-     * Good for impact recovery and lift deceleration.
-     */
-    private static float easeOut(float t) {
-        return 1.0f - (1.0f - t) * (1.0f - t);
-    }
-
-    /**
-     * Ease-in-out: slow start, fast middle, slow end.
-     * Good for smooth transitions like release settle.
-     */
-    private static float easeInOut(float t) {
-        return t < 0.5f
-            ? 2.0f * t * t
-            : 1.0f - (float) Math.pow(-2.0f * t + 2.0f, 2) / 2.0f;
+        // Return offset from player position
+        return cameraTarget.subtract(playerPos);
     }
 
     /**
@@ -346,7 +222,7 @@ public class DeathCinematicClientHandler {
     }
 
     /**
-     * End the cinematic - release camera lock and stop animations.
+     * End the cinematic - release camera control and stop animations.
      */
     private static void endCinematic() {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -359,29 +235,17 @@ public class DeathCinematicClientHandler {
             }
         }
 
-        // Finalize effect transitions - ensure full intensity after SETTLE phase
-        DownedStateClientHandler.setShaderFadeIntensity(1.0f);
-        CrawlCameraHandler.setPitchLimitTransition(1.0f);
-
-        // Camera was never switched away from player, so no restoration needed.
-        // Player regains control of their camera rotation.
-
-        // NOTE: Don't apply downed effects here - server sends DownedStateUpdateS2C packets
-        // to sync state. Calling applyDownedEffects() with defaults would overwrite the
-        // correct server-synced state (wrong timer, wrong mercy mode).
+        // Camera position/rotation control released - player can move camera again
 
         // Reset cinematic state
         cinematicActive = false;
         cinematicTimer = 0;
         dreadEntityId = -1;
-        currentPhase = CinematicPhase.IMPACT;
+        currentPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
         targetYaw = 0;
         targetPitch = 0;
         currentYaw = 0;
         currentPitch = 0;
-        initialPitch = 0;
-        basePitchOffset = 0;
-        impactDipProgress = 0;
     }
 
     /**
@@ -432,10 +296,18 @@ public class DeathCinematicClientHandler {
 
     /**
      * Get camera position offset for current cinematic phase.
-     * Stub for future Phase 13 camera position control.
-     * Currently returns zero offset (no position changes).
+     * Called by CameraMixin to position camera during cinematic.
+     *
+     * @return Position offset from player location
      */
     public static Vec3d getCameraPositionOffset() {
-        return Vec3d.ZERO;
+        if (!cinematicActive) {
+            return Vec3d.ZERO;
+        }
+
+        return switch (currentPhase) {
+            case THIRD_PERSON_PULLBACK -> calculatePullbackPosition();
+            case FACE_CLOSEUP -> calculateFaceCloseupPosition();
+        };
     }
 }
