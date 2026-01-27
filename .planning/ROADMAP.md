@@ -80,11 +80,13 @@ Plans:
 4. Eyes open as camera zooms to face (reveal timed to climax)
 5. Texture animations run at 60+ FPS with AMD GPUs (no performance collapse)
 
-**Plans:** TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 14-01: TBD
-- [ ] 14-02: TBD
+- [ ] 14-01-PLAN.md — Client handler API + placeholder texture files (foundation)
+- [ ] 14-02-PLAN.md — Cinematic-synchronized texture selection with pulse timing
+- [ ] 14-03-PLAN.md — Tentacle writhing animation (GeckoLib bone animation)
+- [ ] 14-04-PLAN.md — In-game verification checkpoint
 
 #### Phase 15: Environmental Effects
 
@@ -144,7 +146,7 @@ Plans:
 | 11. Single-Player Forgiveness | v1.2 | 5/5 | Complete | 2026-01-26 |
 | 12. Audio & Testing | v1.2 | 2/2 | Complete | 2026-01-27 |
 | 13. Cinematic Camera Control | v2.0 | 3/3 | Complete | 2026-01-27 |
-| 14. Animated Entity Textures | v2.0 | 0/? | Not started | - |
+| 14. Animated Entity Textures | v2.0 | 0/4 | Planned | - |
 | 15. Environmental Effects | v2.0 | 0/? | Not started | - |
 | 16. Blood Trail Particles | v2.0 | 0/? | Not started | - |
 
