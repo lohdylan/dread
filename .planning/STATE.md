@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 ## Current Position
 
 Phase: 11 of 12 (Single-Player Forgiveness)
-Plan: 02 of 05 complete
-Status: In progress
-Last activity: 2026-01-27 — Completed 11-02-PLAN.md
+Plan: 05 of 05 complete
+Status: Phase complete - ready for final testing
+Last activity: 2026-01-27 — Completed 11-05-PLAN.md
 
-Progress: [█████████████████████░░░░░░░░░] 83% (35/42 estimated plans)
+Progress: [███████████████████████░░░░░░] 88% (37/42 estimated plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 35
-- Average duration: 3.3 min
-- Total execution time: ~3.0 hours
+- Total plans completed: 37
+- Average duration: 3.2 min
+- Total execution time: ~3.1 hours
 
 ## Accumulated Context
 
@@ -42,7 +42,7 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 - Send RemoveDownedEffectsS2C packet before allowing void/kill death to clear client state
 - Exit crawl pose before vanilla death to prevent visual glitches
 
-**Phase 11 (Single-Player Forgiveness) - Plans 01-02:**
+**Phase 11 (Single-Player Forgiveness) - Plans 01-05:**
 - Detect mode per-downed-instance (not cached globally) - mode may change during gameplay
 - Dedicated servers always MULTIPLAYER, integrated with 1 player is SINGLEPLAYER
 - Default to MULTIPLAYER for backwards compatibility when reading NBT
@@ -50,6 +50,9 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 - Dread death tracking is transient (not persisted) - server restart clears debuff penalties
 - Single-player death triggers cinematic then player.kill() for normal Minecraft death flow
 - Multiplayer mode retains permanent spectator transition (hardcore behavior)
+- Mode transitions use proportional timer scaling to maintain fairness and prevent exploits
+- Respawn debuff (Weakness II 60s, Slowness I 30s) applied via AFTER_RESPAWN event with alive flag
+- SP->MP transition triggers on player join, MP->SP triggers when last other player leaves
 
 ### Pending Todos
 
@@ -69,9 +72,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 11-02-PLAN.md
+Stopped at: Completed 11-05-PLAN.md
 Resume file: None
-Next: Execute 11-03-PLAN.md (Mercy Mode Network Sync)
+Next: Execute Phase 12 plans (grab_impact.ogg audio fix)
 
 ## Milestone History
 
