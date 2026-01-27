@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 Phase: 11 of 12 (Single-Player Forgiveness)
 Plan: 02 of 05 complete
 Status: In progress
-Last activity: 2026-01-27 — Completed 11-03-PLAN.md
+Last activity: 2026-01-27 — Completed 11-02-PLAN.md
 
 Progress: [█████████████████████░░░░░░░░░] 83% (35/42 estimated plans)
 
@@ -42,13 +42,14 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 - Send RemoveDownedEffectsS2C packet before allowing void/kill death to clear client state
 - Exit crawl pose before vanilla death to prevent visual glitches
 
-**Phase 11 (Single-Player Forgiveness) - Plans 01-03:**
+**Phase 11 (Single-Player Forgiveness) - Plans 01-02:**
 - Detect mode per-downed-instance (not cached globally) - mode may change during gameplay
 - Dedicated servers always MULTIPLAYER, integrated with 1 player is SINGLEPLAYER
 - Default to MULTIPLAYER for backwards compatibility when reading NBT
 - 30-second single-player timeout (normal respawn), 300-second multiplayer timeout (spectator)
-- isMercyMode = true means SINGLEPLAYER (MERCY), false means MULTIPLAYER (NO MERCY)
-- Mercy mode sent per-sync (not cached) to support mode changes during gameplay
+- Dread death tracking is transient (not persisted) - server restart clears debuff penalties
+- Single-player death triggers cinematic then player.kill() for normal Minecraft death flow
+- Multiplayer mode retains permanent spectator transition (hardcore behavior)
 
 ### Pending Todos
 
@@ -68,9 +69,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 11-03-PLAN.md
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
-Next: Execute 11-04-PLAN.md (Mercy Mode UI Rendering)
+Next: Execute 11-03-PLAN.md (Mercy Mode Network Sync)
 
 ## Milestone History
 
