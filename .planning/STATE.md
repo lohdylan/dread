@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** The jump scare must be genuinely terrifying — entity appearance, cinematic kill, and audio must combine to deliver real horror.
-**Current focus:** v1.2 Quick Fixes — Phase 9 (Cinematic Fix)
+**Current focus:** v1.2 Quick Fixes — Phase 10 (State Cleanup)
 
 ## Current Position
 
-Phase: 9 of 12 (Cinematic Fix)
-Plan: 1 of 1 (complete)
-Status: Phase 9 complete
-Last activity: 2026-01-26 — Completed 09-01-PLAN.md
+Phase: 10 of 12 (State Cleanup)
+Plan: Ready to plan
+Status: Phase 9 verified and complete
+Last activity: 2026-01-26 — Phase 9 verified
 
 Progress: [████████████████████░░░░░░░░░░] 74% (31/42 estimated plans)
 
@@ -51,9 +51,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 09-01-PLAN.md
+Stopped at: Phase 9 verified
 Resume file: None
-Next: `/gsd:plan-phase 10` (Downed State Persistence Fix)
+Next: `/gsd:discuss-phase 10` (State Cleanup)
 
 ## Milestone History
 

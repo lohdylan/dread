@@ -22,7 +22,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — Camera mixin for render-time shake injection (fixes entity rotation feedback loop)
+- [x] 09-01-PLAN.md — Camera mixin for render-time shake injection (fixes entity rotation feedback loop)
 
 ### Phase 10: State Cleanup
 **Goal**: Downed state lifecycle is properly managed across world boundaries
@@ -81,12 +81,12 @@ Phases 1-8 complete. v1.2 starts at Phase 9.
 | 6. Attack Prevention | v1.1 | 1/1 | Complete | 2026-01-26 |
 | 7. Crawl Pose | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 8. Cinematic Enhancement | v1.1 | 3/3 | Complete | 2026-01-26 |
-| 9. Cinematic Fix | v1.2 | 0/? | Not started | - |
+| 9. Cinematic Fix | v1.2 | 1/1 | Complete | 2026-01-26 |
 | 10. State Cleanup | v1.2 | 0/? | Not started | - |
 | 11. Single-Player Forgiveness | v1.2 | 0/? | Not started | - |
 | 12. Audio & Testing | v1.2 | 0/? | Not started | - |
 
-**Total:** 12 phases, 30 plans complete, 2 milestones shipped, 1 in progress
+**Total:** 12 phases, 31 plans complete, 2 milestones shipped, 1 in progress
 
 ---
-*Last updated: 2026-01-26 after v1.2 roadmap creation*
+*Last updated: 2026-01-26 after Phase 9 completion*
