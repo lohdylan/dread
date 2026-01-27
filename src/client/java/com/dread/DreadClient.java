@@ -79,10 +79,10 @@ public class DreadClient implements ClientModInitializer {
                     boolean isMercyMode = payload.isMercyMode();
 
                     if (isDowned) {
-                        DownedStateClientHandler.applyDownedEffects(remainingSeconds);
-                        // TODO: Pass isMercyMode to client handler (implemented in Plan 04)
+                        DownedStateClientHandler.applyDownedEffects(remainingSeconds, isMercyMode);
                     } else {
                         DownedStateClientHandler.updateCountdown(remainingSeconds);
+                        DownedStateClientHandler.setMercyMode(isMercyMode);
                     }
                 });
             }
