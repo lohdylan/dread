@@ -6,7 +6,8 @@
   "mixins": [
     "PlayerJumpMixin",
     "PlayerSprintMixin",
-    "PlayerInteractionMixin"
+    "PlayerInteractionMixin",
+    "GamemodeChangeMixin"
   ],
   "client": [
     "DeathScreenMixin",
