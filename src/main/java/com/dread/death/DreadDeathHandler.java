@@ -4,7 +4,9 @@ import com.dread.DreadMod;
 import com.dread.config.DreadConfigLoader;
 import com.dread.death.CrawlPoseHandler;
 import com.dread.entity.DreadEntity;
+import com.dread.network.packets.RemoveDownedEffectsS2C;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
@@ -52,17 +54,21 @@ public class DreadDeathHandler {
                 DreadMod.LOGGER.info("Player {} killed by {} while downed - bypassing timer",
                     player.getName().getString(), damageType);
 
-                // Find nearest Dread entity to trigger cinematic
-                DreadEntity nearestDread = findNearestDread(player, 64.0);
-                if (nearestDread != null) {
-                    DeathCinematicController.triggerDeathCinematic(player, nearestDread);
-                }
+                // NOTE: Don't trigger death cinematic here. The cinematic's endCinematic()
+                // re-applies downed effects, which would leave the player in a broken state
+                // after respawn. Player already saw the cinematic when they entered downed state.
+
+                // Remove movement penalty
+                RevivalInteractionHandler.removeMovementPenalty(player);
 
                 // Exit crawl pose
                 CrawlPoseHandler.exitCrawlPose(player);
 
                 // Remove from downed state
                 state.removeDowned(player.getUuid());
+
+                // Send packet to clear client-side downed effects (prevents DeathScreen crash)
+                ServerPlayNetworking.send(player, new RemoveDownedEffectsS2C());
             }
 
             return true; // Allow vanilla death to proceed
