@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 ## Current Position
 
 Phase: 14 of 16 (Animated Entity Textures)
-Plan: 1 of 3 (estimated)
+Plan: 3 of 3 (estimated)
 Status: In progress
-Last activity: 2026-01-27 — Completed 14-01-PLAN.md (Cinematic timer API and placeholder textures)
+Last activity: 2026-01-27 — Completed 14-03-PLAN.md (Tentacle writhing animation)
 
-Progress: [██████████████░░░░░░] 79% (44/56 estimated total plans)
+Progress: [██████████████░░░░░░] 82% (46/56 estimated total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 44
-- Average duration: 3.0 min
-- Total execution time: ~3.7 hours
+- Total plans completed: 46
+- Average duration: 2.9 min
+- Total execution time: ~3.8 hours
 
 **By Milestone:**
 
@@ -30,7 +30,7 @@ Progress: [██████████████░░░░░░] 79% (44
 | v1.0 MVP | 4 | 20 | Shipped |
 | v1.1 Polish | 4 | 10 | Shipped |
 | v1.2 Fixes | 4 | 10 | Shipped |
-| v2.0 Atmosphere | 4 | 4 | In progress |
+| v2.0 Atmosphere | 4 | 6 | In progress |
 
 **Recent Trend:**
 - Consistent velocity across v1.x milestones
@@ -55,6 +55,9 @@ Recent decisions from PROJECT.md affecting v2.0:
 - HudRenderCallback pattern for cinematic overlays — Phase 13-02
 - Locked camera rotation during face close-up (frozen terror aesthetic) — Phase 13-03
 - Smooth yaw tracking during pull-back phase — Phase 13-03
+- Parallel controller pattern for tentacle animation (runs alongside main/head) — Phase 14-03 (ANIM-01)
+- Subtle rotation values (2-6 degrees) for barely perceptible motion — Phase 14-03 (ANIM-02)
+- 4-second loop with offset timing for organic tentacle movement — Phase 14-03 (ANIM-03)
 
 **v2.0 decisions pending:**
 - Texture animation method (.mcmeta vs custom FeatureRenderer)
@@ -76,9 +79,12 @@ None.
 
 **Phase 14 (Textures):**
 - Plan 14-01 COMPLETE: Timer API and placeholder textures in place
+- Plan 14-03 COMPLETE: Tentacle writhing animation added
 - getCinematicTimer() returns tick (0-90) for animation sync
 - isInFaceCloseup() detects face close-up phase
 - 8 placeholder texture files created (pulse 0/1/2, eyes_open + glowmasks)
+- tentacle_writhe animation with 4s loop, 2-6° subtle rotations
+- Parallel animation controller for continuous background motion
 - MEDIUM risk: Animated texture performance collapse with AMD GPUs
 - UV offset application method needs validation during planning
 - GeckoLib 5 render thread separation requires extractRenderState() pattern
@@ -100,9 +106,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 14-01-PLAN.md (Cinematic timer API and placeholder textures)
+Stopped at: Completed 14-03-PLAN.md (Tentacle writhing animation)
 Resume file: None
-Next: Phase 14 in progress - ready for 14-02 (Texture animation logic)
+Next: Phase 14 in progress - ready for 14-04 (Texture animation logic)
 
 ## Milestone History
 
@@ -124,4 +130,4 @@ Next: Phase 14 in progress - ready for 14-02 (Texture animation logic)
 See `.planning/MILESTONES.md` for full details.
 
 ---
-*Last updated: 2026-01-27 after completing 14-01-PLAN.md*
+*Last updated: 2026-01-27 after completing 14-03-PLAN.md*
