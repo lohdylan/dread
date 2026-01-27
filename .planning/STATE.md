@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 
 Phase: 10 of 12 (State Cleanup)
 Plan: 02 of 02 complete
-Status: Phase complete
-Last activity: 2026-01-26 — Completed 10-02-PLAN.md
+Status: Phase 10 verified and complete
+Last activity: 2026-01-26 — Phase 10 verified
 
 Progress: [█████████████████████░░░░░░░░░] 79% (33/42 estimated plans)
 
@@ -38,7 +38,8 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 - Use vanilla timeUntilRegen field for 3-second damage immunity on reconnect
 - Broadcast escape message to all players for narrative consistency
 - Mixin injection for gamemode change (no Fabric event exists for this API)
-- Death cinematic plays on void/kill death if Dread within 64 blocks
+- Void/kill bypass: DON'T trigger cinematic (cinematic.endCinematic() re-applies downed effects causing broken state after respawn)
+- Send RemoveDownedEffectsS2C packet before allowing void/kill death to clear client state
 - Exit crawl pose before vanilla death to prevent visual glitches
 
 ### Pending Todos
@@ -59,9 +60,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 10-02-PLAN.md (Phase 10 complete)
+Stopped at: Phase 10 verified
 Resume file: None
-Next: Plan Phase 11 (Gameplay Balancing)
+Next: `/gsd:discuss-phase 11` (Single-Player Forgiveness)
 
 ## Milestone History
 

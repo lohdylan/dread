@@ -31,11 +31,13 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Leaving a world clears downed state completely
   2. Creating a new world starts with fresh state (not downed)
-  3. Re-entering a world where player was downed restores correct state
-**Plans**: TBD
+  3. Reconnecting after escaping downed state applies escape penalty (2 HP, immunity, message)
+  4. Dimension changes (Nether/End) do NOT clear downed state
+**Plans**: 2 plans
 
 Plans:
-- [ ] 10-01: TBD
+- [x] 10-01-PLAN.md — Disconnect/reconnect lifecycle handlers with escape penalty
+- [x] 10-02-PLAN.md — Gamemode change mixin and void/kill damage bypass
 
 ### Phase 11: Single-Player Forgiveness
 **Goal**: Single-player death is punishing but not permanent, while multiplayer retains hardcore behavior
@@ -82,11 +84,11 @@ Phases 1-8 complete. v1.2 starts at Phase 9.
 | 7. Crawl Pose | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 8. Cinematic Enhancement | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 9. Cinematic Fix | v1.2 | 1/1 | Complete | 2026-01-26 |
-| 10. State Cleanup | v1.2 | 0/? | Not started | - |
+| 10. State Cleanup | v1.2 | 2/2 | Complete | 2026-01-26 |
 | 11. Single-Player Forgiveness | v1.2 | 0/? | Not started | - |
 | 12. Audio & Testing | v1.2 | 0/? | Not started | - |
 
-**Total:** 12 phases, 31 plans complete, 2 milestones shipped, 1 in progress
+**Total:** 12 phases, 33 plans complete, 2 milestones shipped, 1 in progress
 
 ---
-*Last updated: 2026-01-26 after Phase 9 completion*
+*Last updated: 2026-01-26 after Phase 10 execution*

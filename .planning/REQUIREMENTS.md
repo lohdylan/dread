@@ -10,7 +10,7 @@ Requirements for quick fixes milestone. Focus on bug fixes, gameplay polish, and
 ### Bug Fixes
 
 - [x] **FIX-01**: Death cinematic is smooth and readable — camera effects coordinated, player can clearly see Dread grab animation
-- [ ] **FIX-02**: Downed state clears properly when leaving world or creating new world
+- [x] **FIX-02**: Downed state clears properly when leaving world or creating new world
 - [ ] **FIX-03**: grab_impact.ogg audio file exists and plays during death grab animation
 
 ### Gameplay
@@ -57,7 +57,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FIX-01 | Phase 9 | Complete |
-| FIX-02 | Phase 10 | Pending |
+| FIX-02 | Phase 10 | Complete |
 | FIX-03 | Phase 12 | Pending |
 | GAME-01 | Phase 11 | Pending |
 | GAME-02 | Phase 11 | Pending |
