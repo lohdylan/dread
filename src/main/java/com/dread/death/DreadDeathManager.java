@@ -10,6 +10,8 @@ import net.minecraft.world.GameMode;
 
 import com.dread.death.CrawlPoseHandler;
 import com.dread.death.GameModeDetector.DreadGameMode;
+import com.dread.entity.DreadEntity;
+import com.dread.config.DreadConfigLoader;
 
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.Vec3d;
@@ -77,9 +79,14 @@ public class DreadDeathManager {
             }
         }
 
-        // Transition expired players to spectator
+        // Transition expired players based on game mode
         for (UUID playerId : expiredPlayers) {
-            transitionToSpectator(world, playerId, state);
+            DownedPlayerData data = state.getDownedData(playerId);
+            if (data != null && data.mode == DreadGameMode.SINGLEPLAYER) {
+                triggerSingleplayerDeath(world, playerId, state);
+            } else {
+                transitionToSpectator(world, playerId, state);
+            }
         }
     }
 
@@ -106,6 +113,62 @@ public class DreadDeathManager {
         // Broadcast death message
         Text deathMessage = Text.literal(player.getName().getString() + " succumbed to the Dread");
         world.getServer().getPlayerManager().broadcast(deathMessage, false);
+    }
+
+    /**
+     * Trigger singleplayer death - cinematic followed by normal Minecraft death.
+     * Respects keepInventory gamerule and allows respawn at bed/world spawn.
+     */
+    private static void triggerSingleplayerDeath(ServerWorld world, UUID playerId, DownedPlayersState state) {
+        ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(playerId);
+        if (player == null) {
+            state.removeDowned(playerId);
+            return;
+        }
+
+        // Trigger death cinematic first (if not skipped in config)
+        DreadEntity dread = findNearestDread(player, 32.0);
+        if (dread != null && !DreadConfigLoader.getConfig().skipDeathCinematic) {
+            DeathCinematicController.triggerDeathCinematic(player, dread);
+        }
+
+        // Exit crawl pose BEFORE death
+        CrawlPoseHandler.exitCrawlPose(player);
+
+        // Remove movement penalty
+        RevivalInteractionHandler.removeMovementPenalty(player);
+
+        // Mark for respawn debuff
+        state.markDreadDeath(playerId);
+
+        // Remove from downed state
+        state.removeDowned(playerId);
+
+        // Broadcast death message (same as multiplayer)
+        Text deathMessage = Text.literal(player.getName().getString() + " succumbed to the Dread");
+        world.getServer().getPlayerManager().broadcast(deathMessage, false);
+
+        // Trigger normal Minecraft death - respects keepInventory, shows death screen
+        player.kill();
+    }
+
+    /**
+     * Find the nearest Dread entity within range of player.
+     */
+    private static DreadEntity findNearestDread(ServerPlayerEntity player, double range) {
+        List<DreadEntity> dreads = player.getServerWorld().getEntitiesByClass(
+            DreadEntity.class,
+            player.getBoundingBox().expand(range),
+            dread -> true
+        );
+
+        if (dreads.isEmpty()) {
+            return null;
+        }
+
+        return dreads.stream()
+            .min(Comparator.comparingDouble(dread -> dread.squaredDistanceTo(player)))
+            .orElse(null);
     }
 
     /**
