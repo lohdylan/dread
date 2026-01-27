@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 ## Current Position
 
 Phase: 12 of 12 (Audio & Testing)
-Plan: 01 of 02 complete
-Status: Ready for plan 12-02 (testing)
-Last activity: 2026-01-26 — Plan 12-01 complete (grab_impact.ogg + bug fixes)
+Plan: 02 of 02 complete
+Status: Phase 12 COMPLETE - v1.2 ready for single-player release
+Last activity: 2026-01-27 — Plan 12-02 complete (comprehensive testing)
 
-Progress: [████████████████████████████░░] 95% (39/40 plans)
+Progress: [██████████████████████████████] 100% (40/40 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 39
+- Total plans completed: 40
 - Average duration: 3.1 min
-- Total execution time: ~3.4 hours
+- Total execution time: ~3.5 hours
 
 ## Accumulated Context
 
@@ -54,11 +54,14 @@ All v1.0 + v1.1 decisions documented in PROJECT.md Key Decisions table.
 - Respawn debuff (Weakness II 60s, Slowness I 30s) applied via AFTER_RESPAWN event with alive flag
 - SP->MP transition triggers on player join, MP->SP triggers when last other player leaves
 
-**Phase 12 (Audio & Testing) - Plan 01:**
+**Phase 12 (Audio & Testing) - Plans 01-02:**
 - Skip death cinematic in singleplayer (cinematic is for multiplayer spectator transition only)
 - Add 5-second Resistance V immunity after Dread death respawn (prevent death loop)
 - Client should never independently apply downed effects - always from server packets
 - Send RemoveDownedEffectsS2C before player.kill() in singleplayer death
+- Deferred multiplayer testing due to lack of LAN/dedicated server setup
+- Single-player validation sufficient for v1.2 conditional release
+- Multiplayer features implemented but unverified - require future testing
 
 ### Pending Todos
 
@@ -69,19 +72,22 @@ None.
 **Build Environment:**
 - Build requires `export JAVA_HOME="X:/Vibe Coding/jdk-21.0.6+7"` before Gradle commands
 
-**Known Bugs (v1.2 targets):**
-- Death cinematic janky/unreadable (camera effects fighting) -> Phase 9 ✓ FIXED
-- Downed state persists across worlds -> Phase 10 ✓ FIXED (disconnect/reconnect + edge cases)
-- Missing grab_impact.ogg -> Phase 12-01 ✓ FIXED
-- Single-player permanent death too punishing -> Phase 11 ✓ FIXED
-- Singleplayer death bugs (crash, frozen, death loop) -> Phase 12-01 ✓ FIXED
+**v1.2 Release Status:**
+- ✅ All single-player features validated (30/30 tests PASS)
+- ✅ All known bugs fixed and verified
+- ⏸️ Multiplayer features implemented but unverified (34/34 tests SKIPPED)
+- Verdict: CONDITIONAL PASS - ready for single-player release
+
+**Future Testing Required:**
+- Multiplayer LAN testing (revival system, mode transitions, state sync, audio)
+- Dedicated server testing (optional, but recommended for production)
 
 ## Session Continuity
 
-Last session: 2026-01-26
-Stopped at: Plan 12-01 complete, ready for 12-02 (testing)
+Last session: 2026-01-27
+Stopped at: Phase 12 complete (all 40 plans executed)
 Resume file: None
-Next: `/gsd:execute-phase 12` (will pick up at plan 12-02)
+Next: v1.2 release or future multiplayer testing
 
 ## Milestone History
 
