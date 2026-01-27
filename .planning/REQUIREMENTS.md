@@ -15,10 +15,10 @@ Requirements for quick fixes milestone. Focus on bug fixes, gameplay polish, and
 
 ### Gameplay
 
-- [ ] **GAME-01**: Single-player downed state duration is brief (~30-60 seconds) before death
-- [ ] **GAME-02**: Single-player death triggers normal Minecraft death (respawn at bed/spawn, not permanent spectator)
-- [ ] **GAME-03**: Full cinematic still plays before single-player death
-- [ ] **GAME-04**: Multiplayer retains current behavior (300s downed, revive or permanent spectator)
+- [x] **GAME-01**: Single-player downed state duration is brief (~30-60 seconds) before death
+- [x] **GAME-02**: Single-player death triggers normal Minecraft death (respawn at bed/spawn, not permanent spectator)
+- [x] **GAME-03**: Full cinematic still plays before single-player death
+- [x] **GAME-04**: Multiplayer retains current behavior (300s downed, revive or permanent spectator)
 
 ### Testing
 
@@ -59,10 +59,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-01 | Phase 9 | Complete |
 | FIX-02 | Phase 10 | Complete |
 | FIX-03 | Phase 12 | Pending |
-| GAME-01 | Phase 11 | Pending |
-| GAME-02 | Phase 11 | Pending |
-| GAME-03 | Phase 11 | Pending |
-| GAME-04 | Phase 11 | Pending |
+| GAME-01 | Phase 11 | Complete |
+| GAME-02 | Phase 11 | Complete |
+| GAME-03 | Phase 11 | Complete |
+| GAME-04 | Phase 11 | Complete |
 | TEST-01 | Phase 12 | Pending |
 | TEST-02 | Phase 12 | Pending |
 
