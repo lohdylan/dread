@@ -45,6 +45,7 @@ public class DeathCinematicClientHandler {
     private static int cinematicTimer = 0;
     private static int dreadEntityId = -1;
     private static CinematicPhase currentPhase = CinematicPhase.THIRD_PERSON_PULLBACK;
+    private static CinematicPhase previousPhase = null;
 
     // Target rotation to look at Dread (used during pull-back)
     private static float targetYaw = 0;
@@ -120,8 +121,9 @@ public class DeathCinematicClientHandler {
         // Update current phase based on timer
         updatePhase();
 
-        // During pull-back, smoothly rotate player to look at Dread
+        // Phase-specific camera rotation control
         if (currentPhase == CinematicPhase.THIRD_PERSON_PULLBACK) {
+            // During pull-back, smoothly rotate player to look at Dread
             Entity dreadEntity = client.world.getEntityById(dreadEntityId);
             if (dreadEntity != null) {
                 // Recalculate direction to Dread
@@ -141,6 +143,15 @@ public class DeathCinematicClientHandler {
                 client.player.setPitch(currentPitch);
                 client.player.prevYaw = currentYaw;
                 client.player.prevPitch = currentPitch;
+            }
+        } else if (currentPhase == CinematicPhase.FACE_CLOSEUP) {
+            // During face close-up, lock camera rotation on Dread's eyes (frozen terror aesthetic)
+            float[] rotation = getFaceCloseupRotation();
+            if (rotation != null) {
+                client.player.setYaw(rotation[0]);
+                client.player.setPitch(rotation[1]);
+                client.player.prevYaw = rotation[0];
+                client.player.prevPitch = rotation[1];
             }
         }
 
@@ -211,6 +222,35 @@ public class DeathCinematicClientHandler {
 
         // Return offset from player position
         return cameraTarget.subtract(playerPos);
+    }
+
+    /**
+     * Get camera rotation to look at Dread's eyes during face close-up.
+     * Returns null if not in face close-up phase.
+     *
+     * @return [yaw, pitch] array or null if not in close-up phase
+     */
+    public static float[] getFaceCloseupRotation() {
+        if (!cinematicActive || currentPhase != CinematicPhase.FACE_CLOSEUP) {
+            return null;
+        }
+
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null || client.world == null) return null;
+
+        Entity dread = client.world.getEntityById(dreadEntityId);
+        if (dread == null) return null;
+
+        // Camera looks FROM close-up position TO Dread's eyes
+        Vec3d cameraPos = client.player.getEyePos().add(getCameraPositionOffset());
+        Vec3d dreadEyes = dread.getEyePos();
+        Vec3d direction = dreadEyes.subtract(cameraPos).normalize();
+
+        // Convert to yaw/pitch
+        float yaw = (float) Math.toDegrees(Math.atan2(-direction.x, direction.z));
+        float pitch = (float) Math.toDegrees(-Math.asin(direction.y));
+
+        return new float[]{yaw, pitch};
     }
 
     /**
