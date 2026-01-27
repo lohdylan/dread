@@ -21,6 +21,8 @@ public class DownedPlayersState extends PersistentState {
 
     private final Map<UUID, DownedPlayerData> downedPlayers = new HashMap<>();
     private final Map<UUID, RevivalProgress> activeRevivals = new HashMap<>();
+    // Transient set tracking players who disconnected while downed (not persisted across server restarts)
+    private final transient Set<UUID> escapedPlayers = new HashSet<>();
 
     public DownedPlayersState() {
         super();
@@ -146,5 +148,31 @@ public class DownedPlayersState extends PersistentState {
 
     public void cancelRevival(UUID downedPlayerId) {
         activeRevivals.remove(downedPlayerId);
+    }
+
+    // --- Escape Tracking (Transient - Not Persisted) ---
+
+    /**
+     * Mark a player as having escaped while downed (disconnected before timer expired).
+     * This flag is NOT persisted - server restart clears all escape penalties.
+     */
+    public void markEscapedPlayer(UUID playerId) {
+        escapedPlayers.add(playerId);
+        // Note: Do NOT call markDirty() - this is transient data
+    }
+
+    /**
+     * Check if a player was marked as escaped.
+     * @return true if player disconnected while downed
+     */
+    public boolean wasEscapedPlayer(UUID playerId) {
+        return escapedPlayers.contains(playerId);
+    }
+
+    /**
+     * Clear escape flag after applying reconnect penalty.
+     */
+    public void clearEscapedPlayer(UUID playerId) {
+        escapedPlayers.remove(playerId);
     }
 }
