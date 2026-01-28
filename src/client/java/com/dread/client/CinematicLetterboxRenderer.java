@@ -30,21 +30,10 @@ public class CinematicLetterboxRenderer {
 
     /**
      * Render letterbox bars if cinematic is active.
-     * Bars are solid black, instant appearance, no animation.
+     * Currently disabled - user feedback indicated bars were too jarring.
      */
     private static void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (!DeathCinematicClientHandler.isCinematicActive()) {
-            return;
-        }
-
-        MinecraftClient client = MinecraftClient.getInstance();
-        int width = client.getWindow().getScaledWidth();
-        int height = client.getWindow().getScaledHeight();
-
-        // Top letterbox bar (solid black, instant appearance)
-        context.fill(0, 0, width, BAR_HEIGHT, BAR_COLOR);
-
-        // Bottom letterbox bar (solid black, instant appearance)
-        context.fill(0, height - BAR_HEIGHT, width, height, BAR_COLOR);
+        // Letterbox bars disabled per user feedback
+        // Keep method registered for potential future use
     }
 }
