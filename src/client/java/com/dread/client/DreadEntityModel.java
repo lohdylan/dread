@@ -33,12 +33,12 @@ public class DreadEntityModel extends GeoModel<DreadEntity> {
             int tick = DeathCinematicClientHandler.getCinematicTimer();
 
             if (tick >= 0) { // Cinematic active
-                // Face close-up phase (30-90 ticks): Eyes open texture
+                // Grab/hold phase (24+ ticks): Eyes wide open, locked on player
                 if (DeathCinematicClientHandler.isInFaceCloseup()) {
                     return getEyesOpenTexture(entity.getFormVariant());
                 }
 
-                // Pull-back phase (0-30 ticks): Accelerating rune pulse
+                // Stalking phase (0-24 ticks): Accelerating rune pulse during creepy approach
                 int pulseFrame = calculatePulseFrame(tick);
                 return getPulseTexture(entity.getFormVariant(), pulseFrame);
             }
@@ -55,26 +55,30 @@ public class DreadEntityModel extends GeoModel<DreadEntity> {
 
     /**
      * Calculate rune pulse frame based on accelerating heartbeat rhythm.
-     * Pulse accelerates from slow (1.0s/beat) to fast (0.3s/beat) over 1.5s pull-back.
+     * Pulse accelerates from slow to fast over the 1.2-second stalking phase
+     * (before the grab at tick 24).
      *
-     * @param tick Cinematic tick (0-30 for pull-back phase)
+     * @param tick Cinematic tick (0-24 for stalking phase)
      * @return Pulse frame 0-2 (dim, medium, bright)
      */
     private int calculatePulseFrame(int tick) {
-        // Three zones with accelerating heartbeat
-        if (tick < 10) {
-            // Zone 1: Slow (20-tick period = 1.0s at 20 ticks/sec)
-            // Toggle between dim(0) and medium(1)
-            return ((tick / 10) % 2 == 0) ? 0 : 1;
-        } else if (tick < 20) {
-            // Zone 2: Medium (12-tick period = 0.6s)
-            // Toggle between dim(0), medium(1), bright(2)
-            int phase = ((tick - 10) / 4) % 3;
+        // Four zones with accelerating heartbeat over 24 ticks (1.2 seconds)
+        // Building tension during the creepy examination/stalking phase
+        if (tick < 6) {
+            // Zone 1: Slow ominous pulse - dim to medium
+            return ((tick / 6) % 2 == 0) ? 0 : 1;
+        } else if (tick < 12) {
+            // Zone 2: Building pulse - cycle through all three
+            int phase = ((tick - 6) / 2) % 3;
+            return phase;
+        } else if (tick < 18) {
+            // Zone 3: Faster pulse
+            int phase = ((tick - 12) / 2) % 3;
             return phase;
         } else {
-            // Zone 3: Fast (6-tick period = 0.3s)
-            // Rapid pulse to bright
-            int phase = ((tick - 20) / 2) % 3;
+            // Zone 4: Rapid pulse right before strike
+            // Maximum intensity as Dread lunges
+            int phase = (tick - 18) % 3;
             return phase;
         }
     }

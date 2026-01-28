@@ -17,6 +17,9 @@
   "entrypoints": {
     "main": [
       "com.dread.DreadMod"
+    ],
+    "client": [
+      "com.dread.DreadClient"
     ]
   },
   "mixins": [

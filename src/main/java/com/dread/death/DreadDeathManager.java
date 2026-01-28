@@ -10,12 +10,14 @@ import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
 
 import com.dread.death.CrawlPoseHandler;
+import com.dread.death.DeathCinematicController;
 import com.dread.death.GameModeDetector.DreadGameMode;
 import com.dread.entity.DreadEntity;
 import com.dread.config.DreadConfigLoader;
 
-import net.minecraft.particle.ParticleTypes;
+import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -27,6 +29,12 @@ public class DreadDeathManager {
 
     private static int tickCounter = 0;
     private static final int SYNC_INTERVAL = 20; // Sync every 1 second
+    private static final int CINEMATIC_DURATION_TICKS = 120; // 6 seconds (matches death_grab animation v3.0)
+
+    // Track players waiting for cinematic to complete before death
+    private static final Map<UUID, Integer> pendingDeathAfterCinematic = new HashMap<>();
+    // Track players currently in death cinematic (to pause their downed timer)
+    private static final Set<UUID> playersInCinematic = new HashSet<>();
 
     /**
      * Register with ServerTickEvents.END_WORLD_TICK during mod initialization.
@@ -49,6 +57,9 @@ public class DreadDeathManager {
         // Process active revivals every tick
         processActiveRevivals(world, state);
 
+        // Process pending deaths (after cinematic completes)
+        processPendingDeaths(world, state);
+
         // Spawn blood particles for downed players
         spawnBloodParticles(world, state);
 
@@ -56,6 +67,36 @@ public class DreadDeathManager {
         if (tickCounter >= SYNC_INTERVAL) {
             syncDownedStates(world, state);
             tickCounter = 0;
+        }
+    }
+
+    /**
+     * Process players waiting for death cinematic to complete before dying/spectator.
+     */
+    private static void processPendingDeaths(ServerWorld world, DownedPlayersState state) {
+        List<UUID> readyToTransition = new ArrayList<>();
+
+        // Decrement timers and find players ready to transition
+        for (Map.Entry<UUID, Integer> entry : pendingDeathAfterCinematic.entrySet()) {
+            int remaining = entry.getValue() - 1;
+            if (remaining <= 0) {
+                readyToTransition.add(entry.getKey());
+            } else {
+                entry.setValue(remaining);
+            }
+        }
+
+        // Complete transitions for players whose cinematic is done
+        for (UUID playerId : readyToTransition) {
+            pendingDeathAfterCinematic.remove(playerId);
+
+            if (pendingSpectatorAfterCinematic.contains(playerId)) {
+                // Multiplayer - transition to spectator
+                completeSpectatorTransition(world, playerId, state);
+            } else {
+                // Singleplayer - normal death
+                completeSingleplayerDeath(world, playerId, state);
+            }
         }
     }
 
@@ -68,6 +109,11 @@ public class DreadDeathManager {
         for (DownedPlayerData data : state.getAllDowned()) {
             // Skip players currently being revived (timer pauses during revival)
             if (state.isBeingRevived(data.playerId)) {
+                continue;
+            }
+
+            // Skip players in death cinematic (timer pauses during cinematic)
+            if (playersInCinematic.contains(data.playerId)) {
                 continue;
             }
 
@@ -91,19 +137,38 @@ public class DreadDeathManager {
         }
     }
 
+    // Track players waiting for cinematic before spectator (multiplayer)
+    private static final Set<UUID> pendingSpectatorAfterCinematic = new HashSet<>();
+
     /**
-     * Transition player to spectator mode and broadcast death message.
+     * Transition player to spectator mode - immediate transition, no second cinematic.
+     * The cinematic already played when Dread first attacked. Player bled out, now spectator.
      */
     private static void transitionToSpectator(ServerWorld world, UUID playerId, DownedPlayersState state) {
+        // No second cinematic - player already saw Dread attack when first downed.
+        // They've been bleeding out, now they become spectator.
+        completeSpectatorTransition(world, playerId, state);
+    }
+
+    /**
+     * Complete the spectator transition after cinematic finishes.
+     */
+    private static void completeSpectatorTransition(ServerWorld world, UUID playerId, DownedPlayersState state) {
+        // Clear cinematic flag
+        playersInCinematic.remove(playerId);
+
         ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(playerId);
         if (player == null) {
-            // Player disconnected, clean up state
             state.removeDowned(playerId);
+            pendingSpectatorAfterCinematic.remove(playerId);
             return;
         }
 
         // Exit crawl pose BEFORE changing to spectator (pose changes don't work in spectator)
         CrawlPoseHandler.exitCrawlPose(player);
+
+        // Remove movement penalty
+        RevivalInteractionHandler.removeMovementPenalty(player);
 
         // Change to spectator mode
         player.changeGameMode(GameMode.SPECTATOR);
@@ -111,28 +176,38 @@ public class DreadDeathManager {
         // Remove from downed state
         state.removeDowned(playerId);
 
+        // Clear pending flag
+        pendingSpectatorAfterCinematic.remove(playerId);
+
         // Broadcast death message
         Text deathMessage = Text.literal(player.getName().getString() + " succumbed to the Dread");
         world.getServer().getPlayerManager().broadcast(deathMessage, false);
     }
 
     /**
-     * Trigger singleplayer death - normal Minecraft death with respawn.
-     * Respects keepInventory gamerule and allows respawn at bed/world spawn.
-     * NOTE: No death cinematic in singleplayer - player dies immediately and respawns,
-     * so the cinematic would be interrupted and cause frozen/jiggling state.
+     * Trigger singleplayer death - immediate death, no second cinematic.
+     * The cinematic already played when Dread first attacked. Player bled out, now they die.
      */
     private static void triggerSingleplayerDeath(ServerWorld world, UUID playerId, DownedPlayersState state) {
+        // No second cinematic - player already saw Dread attack when first downed.
+        // They've been bleeding out, now they just die.
+        completeSingleplayerDeath(world, playerId, state);
+    }
+
+    /**
+     * Complete the singleplayer death after cinematic finishes.
+     * Called either directly (no Dread) or after cinematic timer expires.
+     */
+    private static void completeSingleplayerDeath(ServerWorld world, UUID playerId, DownedPlayersState state) {
+        // Clear cinematic flag
+        playersInCinematic.remove(playerId);
+
         ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(playerId);
         if (player == null) {
             state.removeDowned(playerId);
+            pendingDeathAfterCinematic.remove(playerId);
             return;
         }
-
-        // NOTE: Don't trigger death cinematic in singleplayer. The cinematic runs for 1.8s
-        // but player.kill() happens immediately, causing the cinematic to continue running
-        // after respawn (frozen state, jiggling camera). Cinematic is for multiplayer
-        // spectator transition only.
 
         // Exit crawl pose BEFORE death
         CrawlPoseHandler.exitCrawlPose(player);
@@ -146,7 +221,7 @@ public class DreadDeathManager {
         // Remove from downed state
         state.removeDowned(playerId);
 
-        // Broadcast death message (same as multiplayer)
+        // Broadcast death message
         Text deathMessage = Text.literal(player.getName().getString() + " succumbed to the Dread");
         world.getServer().getPlayerManager().broadcast(deathMessage, false);
 
@@ -235,6 +310,12 @@ public class DreadDeathManager {
         }
     }
 
+    // Blood red color for particles (dark crimson red)
+    private static final DustParticleEffect BLOOD_PARTICLE = new DustParticleEffect(
+        new Vector3f(0.6f, 0.05f, 0.05f),  // Dark blood red RGB
+        1.2f  // Slightly larger size
+    );
+
     /**
      * Spawn blood drip particles around downed players.
      * Visible to all nearby players, reinforcing injury state.
@@ -249,20 +330,21 @@ public class DreadDeathManager {
 
             Vec3d pos = player.getPos();
 
-            // Spawn 1-2 particles around player at random offsets
-            int particleCount = world.random.nextInt(2) + 1;
+            // Spawn 2-4 blood particles around player at random offsets
+            int particleCount = world.random.nextInt(3) + 2;
             for (int i = 0; i < particleCount; i++) {
-                double offsetX = (world.random.nextDouble() - 0.5) * 0.6;
-                double offsetZ = (world.random.nextDouble() - 0.5) * 0.6;
+                double offsetX = (world.random.nextDouble() - 0.5) * 0.8;
+                double offsetZ = (world.random.nextDouble() - 0.5) * 0.8;
+                double offsetY = world.random.nextDouble() * 0.3;
 
                 world.spawnParticles(
-                    ParticleTypes.DRIPPING_LAVA,  // Red dripping particle
+                    BLOOD_PARTICLE,
                     pos.x + offsetX,
-                    pos.y + 0.3,  // Slightly above ground level
+                    pos.y + 0.2 + offsetY,  // Near ground level
                     pos.z + offsetZ,
-                    1,            // particle count
-                    0, 0, 0,      // no velocity spread
-                    0.0           // no extra speed
+                    1,              // particle count
+                    0.02, -0.05, 0.02,  // slight spread, downward drift
+                    0.01            // slow speed
                 );
             }
         }

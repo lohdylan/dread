@@ -4,8 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 public class DreadConfig {
     // Spawn configuration (from Phase 2 tuning)
-    public float baseSpawnChancePerSecond = 0.005f; // 0.5% per second
-    public float miningBonusPerBlock = 0.001f;      // +0.1% per block mined
+    public float baseSpawnChancePerSecond = 0.001f; // 0.1% per second (much rarer)
+    public float miningBonusPerBlock = 0.0002f;     // +0.02% per block mined
     public int dayEscalationCap = 20;              // Max day for multiplier
 
     // Damage configuration

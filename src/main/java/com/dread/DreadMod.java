@@ -2,6 +2,7 @@ package com.dread;
 
 import com.dread.config.DreadConfigLoader;
 import com.dread.death.AttackPreventionHandler;
+import com.dread.death.DeathCinematicController;
 import com.dread.death.DreadDeathHandler;
 import com.dread.death.DreadDeathManager;
 import com.dread.death.PlayerConnectionHandler;
@@ -30,6 +31,7 @@ public class DreadMod implements ModInitializer {
         DreadNetworking.registerPackets();
         DreadDeathHandler.register();
         DreadDeathManager.register();
+        DeathCinematicController.register();
         AttackPreventionHandler.register();
         PlayerConnectionHandler.register();
         LOGGER.info("Dread mod initialized successfully");

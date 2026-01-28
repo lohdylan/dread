@@ -11,31 +11,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Client-side handler for death cinematic (v2.2 - gentle horror).
- * Smooth, slow camera pull to third-person while watching Dread's grab animation.
- * No jarring movements - everything interpolates gently.
+ * Client-side handler for death cinematic (v3.1 - simple first-person).
+ * Stays in first-person. Camera smoothly locks onto Dread's face.
+ * Mouse input is blocked by MouseInputMixin during cinematic.
  *
- * Total duration: 4.5 seconds (90 ticks)
+ * Total duration: 6 seconds (120 ticks)
  */
 public class DeathCinematicClientHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeathCinematicClientHandler.class);
 
     // Cinematic timing
-    private static final int CINEMATIC_DURATION_TICKS = 90; // 4.5 seconds total
-    private static final int PULLBACK_PHASE_TICKS = 30;     // First 1.5s for texture pulse
+    private static final int CINEMATIC_DURATION_TICKS = 120; // 6 seconds total helplessness
+    private static final int DREAD_ANIMATION_TICKS = 100;    // 5 seconds - Dread attacks then leaves
+    private static final int STARE_PHASE_START = 24;         // 1.2s - eyes open texture during grab/hold phase
 
-    // Camera positioning - gentle third-person pull
-    private static final double MAX_PULLBACK_DISTANCE = 4.0;  // Final distance behind player
-    private static final double MAX_PULLBACK_HEIGHT = 1.5;    // Final height above player
-    private static final float CAMERA_LERP_SPEED = 0.02f;     // Very slow, smooth interpolation
+    // Camera control - smooth but not too slow
+    private static final float CAMERA_LERP_SPEED = 0.1f;
 
-    // Current interpolated values
-    private static double currentPullbackProgress = 0.0;  // 0.0 = first-person, 1.0 = full third-person
+    // Current interpolated camera values
     private static float currentYaw = 0;
     private static float currentPitch = 0;
-    private static float startYaw = 0;
-    private static float startPitch = 0;
 
     private static boolean cinematicActive = false;
     private static int cinematicTimer = 0;
@@ -53,8 +49,8 @@ public class DeathCinematicClientHandler {
     }
 
     /**
-     * Start the death cinematic (v2.2 - gentle horror).
-     * Camera will slowly pull back while smoothly rotating to face Dread.
+     * Start the death cinematic.
+     * Camera locks onto Dread's face. Mouse input blocked by mixin.
      *
      * @param payload Cinematic trigger packet from server
      */
@@ -74,22 +70,19 @@ public class DeathCinematicClientHandler {
             }
 
             // Store starting camera rotation
-            startYaw = client.player.getYaw();
-            startPitch = client.player.getPitch();
-            currentYaw = startYaw;
-            currentPitch = startPitch;
-            currentPullbackProgress = 0.0;
+            currentYaw = client.player.getYaw();
+            currentPitch = client.player.getPitch();
 
             // Start cinematic
             cinematicActive = true;
             cinematicTimer = 0;
 
-            LOGGER.debug("Death cinematic started (v2.2 - gentle horror)");
+            LOGGER.debug("Death cinematic started (v3.1 - simple first-person, 6 seconds)");
         }
     }
 
     /**
-     * Tick the cinematic - smooth interpolation of camera position and rotation.
+     * Tick the cinematic - smoothly look at Dread's face.
      */
     private static void tick() {
         cinematicTimer++;
@@ -106,24 +99,19 @@ public class DeathCinematicClientHandler {
             return;
         }
 
-        // Smoothly increase pullback progress (ease-out curve)
-        // Reaches ~95% at halfway point, then slows down
-        double targetProgress = Math.min(1.0, (double) cinematicTimer / 60.0); // Full pullback over 3 seconds
-        currentPullbackProgress = MathHelper.lerp(0.03, currentPullbackProgress, targetProgress);
-
-        // Calculate target rotation to look at Dread
-        Vec3d cameraPos = getCameraWorldPosition(client);
-        Vec3d dreadCenter = dreadEntity.getPos().add(0, dreadEntity.getHeight() * 0.6, 0);
-        Vec3d toTarget = dreadCenter.subtract(cameraPos).normalize();
+        // Look at Dread's face (upper center of entity)
+        Vec3d dreadFace = dreadEntity.getPos().add(0, dreadEntity.getHeight() * 0.7, 0);
+        Vec3d playerEyes = client.player.getEyePos();
+        Vec3d toTarget = dreadFace.subtract(playerEyes).normalize();
 
         float targetYaw = (float) Math.toDegrees(Math.atan2(-toTarget.x, toTarget.z));
         float targetPitch = (float) Math.toDegrees(-Math.asin(toTarget.y));
 
-        // Very smooth rotation interpolation
+        // Smooth rotation interpolation
         currentYaw = lerpAngle(currentYaw, targetYaw, CAMERA_LERP_SPEED);
-        currentPitch = MathHelper.lerp(CAMERA_LERP_SPEED, currentPitch, MathHelper.clamp(targetPitch, -60, 60));
+        currentPitch = MathHelper.lerp(CAMERA_LERP_SPEED, currentPitch, MathHelper.clamp(targetPitch, -80, 80));
 
-        // Apply rotation to player (camera follows)
+        // Apply rotation to player
         client.player.setYaw(currentYaw);
         client.player.setPitch(currentPitch);
         client.player.prevYaw = currentYaw;
@@ -132,17 +120,6 @@ public class DeathCinematicClientHandler {
         if (cinematicTimer >= CINEMATIC_DURATION_TICKS) {
             endCinematic();
         }
-    }
-
-    /**
-     * Get the camera's world position based on current pullback progress.
-     */
-    private static Vec3d getCameraWorldPosition(MinecraftClient client) {
-        if (client.player == null) return Vec3d.ZERO;
-
-        Vec3d playerEyes = client.player.getEyePos();
-        Vec3d offset = getCameraPositionOffset();
-        return playerEyes.add(offset);
     }
 
     /**
@@ -174,11 +151,8 @@ public class DeathCinematicClientHandler {
         cinematicActive = false;
         cinematicTimer = 0;
         dreadEntityId = -1;
-        currentPullbackProgress = 0.0;
         currentYaw = 0;
         currentPitch = 0;
-        startYaw = 0;
-        startPitch = 0;
     }
 
     /**
@@ -197,22 +171,22 @@ public class DeathCinematicClientHandler {
     }
 
     /**
-     * Check if cinematic is past the pulse phase (for texture animation).
-     * Eyes open after first 1.5 seconds.
+     * Check if cinematic is in the stare phase (for texture animation).
+     * Eyes open texture kicks in at 3 seconds.
      */
     public static boolean isInFaceCloseup() {
-        return cinematicActive && cinematicTimer >= PULLBACK_PHASE_TICKS;
+        return cinematicActive && cinematicTimer >= STARE_PHASE_START;
     }
 
     /**
-     * Get yaw shake offset - returns 0 (no shake in gentle horror mode).
+     * Get yaw shake offset - returns 0 (no shake).
      */
     public static float getShakeYawOffset() {
         return 0.0f;
     }
 
     /**
-     * Get pitch shake offset - returns 0 (no shake in gentle horror mode).
+     * Get pitch shake offset - returns 0 (no shake).
      */
     public static float getShakePitchOffset() {
         return 0.0f;
@@ -240,30 +214,11 @@ public class DeathCinematicClientHandler {
     }
 
     /**
-     * Get camera position offset for current cinematic state.
-     * Smoothly interpolates from first-person (0,0,0) to third-person behind player.
+     * Get camera position offset - returns zero for first-person mode.
      *
-     * @return Position offset from player eye position
+     * @return Always Vec3d.ZERO for first-person
      */
     public static Vec3d getCameraPositionOffset() {
-        if (!cinematicActive) {
-            return Vec3d.ZERO;
-        }
-
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null) {
-            return Vec3d.ZERO;
-        }
-
-        // Calculate offset behind and above player based on current progress
-        double distance = MAX_PULLBACK_DISTANCE * currentPullbackProgress;
-        double height = MAX_PULLBACK_HEIGHT * currentPullbackProgress;
-
-        // Use current yaw to position camera behind where player is looking
-        double yawRadians = Math.toRadians(currentYaw);
-        double offsetX = Math.sin(yawRadians) * distance;
-        double offsetZ = -Math.cos(yawRadians) * distance;
-
-        return new Vec3d(offsetX, height, offsetZ);
+        return Vec3d.ZERO;
     }
 }

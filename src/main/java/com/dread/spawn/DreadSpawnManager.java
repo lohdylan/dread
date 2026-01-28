@@ -14,7 +14,10 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -24,6 +27,9 @@ import java.util.Random;
 public class DreadSpawnManager {
 
     private static final Random RANDOM = new Random();
+
+    // Track glimpse Dreads scheduled to vanish: entityId -> ticksRemaining
+    private static final Map<Integer, Integer> pendingGlimpseVanish = new HashMap<>();
 
     /**
      * Register spawn probability events.
@@ -59,6 +65,9 @@ public class DreadSpawnManager {
         if (!DreadConfigLoader.getConfig().modEnabled) {
             return; // Skip all spawn logic when mod disabled
         }
+
+        // Process pending glimpse vanishes
+        processGlimpseVanishes(world);
 
         // Tick sound manager
         DreadSoundManager.tick(world);
@@ -127,6 +136,11 @@ public class DreadSpawnManager {
                                               ServerWorld world) {
         var config = DreadConfigLoader.getConfig();
 
+        // Check if player is in a safe daytime location
+        if (isPlayerInDaylightSafety(player, world)) {
+            return 0.0f; // No spawns during day unless underground
+        }
+
         long worldDay = world.getTimeOfDay() / 24000L;
         int blocksMined = state.getMinedBlocks(player.getUuid());
 
@@ -145,16 +159,179 @@ public class DreadSpawnManager {
     }
 
     /**
-     * Trigger a fake-out event that plays tension sounds without spawning.
+     * Check if player is in a "safe" daytime location where Dread won't spawn.
+     * Returns true if it's daytime AND player has sky access AND is above ground.
+     *
+     * @param player Target player
+     * @param world Server world
+     * @return true if player is safe from daytime spawns
+     */
+    private static boolean isPlayerInDaylightSafety(ServerPlayerEntity player, ServerWorld world) {
+        // Check if it's daytime (1000-13000 ticks = 7am to 7pm)
+        long timeOfDay = world.getTimeOfDay() % 24000;
+        boolean isDaytime = timeOfDay >= 1000 && timeOfDay < 13000;
+
+        if (!isDaytime) {
+            return false; // Night time - not safe
+        }
+
+        BlockPos playerPos = player.getBlockPos();
+
+        // Underground check: Below Y=50 is always "underground" regardless of sky
+        if (playerPos.getY() < 50) {
+            DreadMod.LOGGER.debug("Player {} below Y=50, daytime safety disabled", player.getName().getString());
+            return false; // Deep underground - Dread can spawn
+        }
+
+        // Check if player can see the sky directly above them
+        boolean canSeeSky = world.isSkyVisible(playerPos);
+        if (!canSeeSky) {
+            DreadMod.LOGGER.debug("Player {} cannot see sky, daytime safety disabled", player.getName().getString());
+            return false; // In cave or under solid blocks - Dread can spawn
+        }
+
+        // Sky light check: Additional safety check for covered areas
+        int skyLight = world.getLightLevel(net.minecraft.world.LightType.SKY, playerPos);
+        if (skyLight < 10) {
+            DreadMod.LOGGER.debug("Player {} low sky light ({}), daytime safety disabled", player.getName().getString(), skyLight);
+            return false; // Very dark even with sky access - Dread can spawn
+        }
+
+        // Player is in daytime with sky access above Y=50 - SAFE
+        DreadMod.LOGGER.debug("Player {} is in daylight safety (time={}, Y={}, skyLight={})",
+            player.getName().getString(), timeOfDay, playerPos.getY(), skyLight);
+        return true;
+    }
+
+    /**
+     * Trigger a fake-out event - either audio-only or visual glimpse.
+     * Visual glimpses are more terrifying: Dread appears briefly at edge of vision then vanishes.
      */
     private static void triggerFakeout(ServerWorld world, ServerPlayerEntity player, SpawnProbabilityState state) {
-        DreadSoundManager.playFakeoutSound(world, player);
+        // 40% chance for visual glimpse, 60% for audio-only fake-out
+        boolean isVisualGlimpse = RANDOM.nextFloat() < 0.40f;
+
+        if (isVisualGlimpse) {
+            spawnGlimpse(world, player);
+            DreadMod.LOGGER.info("GLIMPSE fake-out for player {}", player.getName().getString());
+        } else {
+            DreadSoundManager.playFakeoutSound(world, player);
+            DreadMod.LOGGER.debug("Audio fake-out for player {}", player.getName().getString());
+        }
+
         state.incrementFakeout(player.getUuid());
 
         // Fake-outs have shorter cooldown (10-20 seconds)
         state.setShortCooldown(player.getUuid(), world.getTime());
+    }
 
-        DreadMod.LOGGER.debug("Fake-out triggered for player {}", player.getName().getString());
+    /**
+     * Spawn a "glimpse" Dread at the edge of player's peripheral vision.
+     * The Dread appears briefly then immediately starts vanishing.
+     * Creates the unsettling "did I just see something?" effect.
+     */
+    private static void spawnGlimpse(ServerWorld world, ServerPlayerEntity player) {
+        // Calculate position at edge of player's vision (60-90 degrees to the side)
+        float playerYaw = player.getYaw();
+
+        // Randomly choose left or right peripheral
+        float sideAngle = RANDOM.nextBoolean() ? 75.0f : -75.0f;
+        // Add some randomness (-15 to +15 degrees)
+        sideAngle += (RANDOM.nextFloat() - 0.5f) * 30.0f;
+
+        float spawnYaw = playerYaw + sideAngle;
+        double yawRadians = Math.toRadians(-spawnYaw - 90);
+
+        // Spawn 8-15 blocks away (far enough to be at edge of vision)
+        double distance = 8.0 + RANDOM.nextDouble() * 7.0;
+        double spawnX = player.getX() + Math.cos(yawRadians) * distance;
+        double spawnZ = player.getZ() + Math.sin(yawRadians) * distance;
+
+        // Find ground level
+        BlockPos groundPos = new BlockPos((int) spawnX, (int) player.getY(), (int) spawnZ);
+
+        // Search up and down for valid ground
+        for (int i = 0; i < 10; i++) {
+            if (!world.getBlockState(groundPos).isAir()) {
+                groundPos = groundPos.up();
+                break;
+            }
+            groundPos = groundPos.down();
+        }
+
+        // Make sure we're standing on solid ground
+        while (world.getBlockState(groundPos).isAir() && groundPos.getY() > world.getBottomY()) {
+            groundPos = groundPos.down();
+        }
+        groundPos = groundPos.up();
+
+        // Spawn the glimpse Dread
+        DreadEntity dread = ModEntities.DREAD.create(world);
+        if (dread != null) {
+            dread.setPosition(groundPos.getX() + 0.5, groundPos.getY(), groundPos.getZ() + 0.5);
+
+            // Face toward the player
+            double dx = player.getX() - groundPos.getX();
+            double dz = player.getZ() - groundPos.getZ();
+            float faceYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            dread.setYaw(faceYaw);
+
+            world.spawnEntity(dread);
+
+            // Immediately trigger vanishing after a brief moment (0.5-1.5 seconds)
+            int vanishDelay = 10 + RANDOM.nextInt(20); // 10-30 ticks
+            scheduleGlimpseVanish(world, dread, vanishDelay);
+
+            // Play subtle ambient sound (not full jump scare)
+            world.playSound(
+                null,
+                groundPos,
+                ModSounds.DREAD_AMBIENT,
+                SoundCategory.HOSTILE,
+                0.4f, // Quieter than normal
+                0.8f + RANDOM.nextFloat() * 0.4f // Slightly varied pitch
+            );
+
+            DreadMod.LOGGER.debug("Glimpse spawned at {} for player {}", groundPos, player.getName().getString());
+        }
+    }
+
+    /**
+     * Schedule a glimpse Dread to vanish after a short delay.
+     */
+    private static void scheduleGlimpseVanish(ServerWorld world, DreadEntity dread, int delayTicks) {
+        pendingGlimpseVanish.put(dread.getId(), delayTicks);
+    }
+
+    /**
+     * Process pending glimpse vanishes - decrement timers and trigger vanish.
+     */
+    private static void processGlimpseVanishes(ServerWorld world) {
+        if (pendingGlimpseVanish.isEmpty()) return;
+
+        List<Integer> toRemove = new ArrayList<>();
+
+        for (Map.Entry<Integer, Integer> entry : pendingGlimpseVanish.entrySet()) {
+            int entityId = entry.getKey();
+            int ticksRemaining = entry.getValue() - 20; // Subtract 20 since we tick every second
+
+            if (ticksRemaining <= 0) {
+                // Time to vanish
+                var entity = world.getEntityById(entityId);
+                if (entity instanceof DreadEntity dread && !dread.isVanishing()) {
+                    dread.setVanishing(true);
+                    DreadMod.LOGGER.debug("Glimpse Dread {} starting vanish", entityId);
+                }
+                toRemove.add(entityId);
+            } else {
+                entry.setValue(ticksRemaining);
+            }
+        }
+
+        // Clean up completed entries
+        for (Integer id : toRemove) {
+            pendingGlimpseVanish.remove(id);
+        }
     }
 
     /**

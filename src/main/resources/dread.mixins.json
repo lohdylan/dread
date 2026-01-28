@@ -14,7 +14,8 @@
     "ClientAttackMixin",
     "PlayerPoseMixin",
     "CrawlCameraMixin",
-    "CameraMixin"
+    "CameraMixin",
+    "MouseInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1
